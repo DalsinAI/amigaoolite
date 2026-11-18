@@ -13,6 +13,7 @@ struct OOGFOSGameDispatch {
     struct Task *gameTask; /* only owner may service or destroy the port */
     void *owner;
     const struct OOGFOSShipBackend *ownerBackend;
+    ULONG inFlight; /* protected by Forbid/Permit with gamePort */
     ULONG requests;
     ULONG completions;
     LONG result;
@@ -20,6 +21,9 @@ struct OOGFOSGameDispatch {
 };
 int OOGFOSGameDispatchInit(struct OOGFOSGameDispatch *d, void *owner,
                            const struct OOGFOSShipBackend *ownerBackend);
+/* Owner-task close: 1 if port closed, 0 if requests still in-flight/wrong task. */
+int OOGFOSGameDispatchTryClose(struct OOGFOSGameDispatch *d);
+/* Compatibility wrapper: does NOT close if there are outstanding messages. */
 void OOGFOSGameDispatchClose(struct OOGFOSGameDispatch *d);
 int OOGFOSGameDispatchGet(void *state, unsigned property, LONG *value);
 int OOGFOSGameDispatchSet(void *state, unsigned property, LONG value);
