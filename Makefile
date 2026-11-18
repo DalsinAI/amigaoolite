@@ -181,14 +181,26 @@ $(OUT)/oolite-oxz-real-assets-68040: tests/oolite_oxz_real_assets_gate.m $(OUT)/
 .PHONY: oxz-real-assets
 oxz-real-assets: $(OUT)/oolite-oxz-real-assets-68040
 
-# Canonical GFOpenSDK javascript.library LVO ABI (no embedded JS runtime).
-# Set GFOS_JS_SDK to the GFOpenSDK checkout root; do not copy SDK headers.
-GFOS_JS_SDK ?= ../gfopensdk
-GFOS_JS_INC := $(GFOS_JS_SDK)/Include
-GFOS_JS_NDK := $(PREFIX)/m68k-amigaos/ndk-include.vendor
-GFOS_JS_FLAGS := -std=gnu11 -O2 -m68040 -m68881 -noixemul -I $(GFOS_JS_INC) -I $(GFOS_JS_NDK) -I src/Core
-$(OUT)/oolite-jslib-68040: tests/oolite_jslib_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h $(GFOS_JS_INC)/libraries/javascript.h $(GFOS_JS_INC)/inline/javascript.h
+# Pinned upstream Oolite SpiderMonkey 1.8.5 native interpreter gate.
+# Requires the *separate* OoliteProject/mozillajs-linux pinned source tree
+# already configured for big-endian 68040 and built with patch 0010.
+# Do not substitute a Linux js-config.h or incompatible modern JS engine.
+MOZJS ?= ../mozillajs-linux
+MOZJS_BUILD ?= $(MOZJS)/js/src/gfos-cross-build
+CROSS_CXX ?= $(PREFIX)/bin/m68k-amigaos-g++
+MOZJS_STATIC := $(MOZJS_BUILD)/libjs_static.a
+MOZJS_INCLUDE := -I $(MOZJS)/js/src -I $(MOZJS_BUILD)
+$(OUT)/oolite-mozjs-68040: tests/oolite_js_runtime_gate.cpp $(MOZJS_STATIC)
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_jslib_gate.c src/Core/OOGFOSJavaScript.c -o $@
-.PHONY: jslib-bridge
-jslib-bridge: $(OUT)/oolite-jslib-68040
+	$(CROSS_CXX) -std=gnu++11 -O2 -m68040 -m68881 -noixemul $(MOZJS_INCLUDE) -c tests/oolite_js_runtime_gate.cpp -o $(OUT)/oolite_js_runtime_gate.o
+	$(CROSS_CXX) -O2 -m68040 -m68881 -noixemul $(OUT)/oolite_js_runtime_gate.o -L $(GFOS_DEPS_LIB) -Wl,--start-group $(MOZJS_STATIC) -lpthread -lm -lsocket -lz -Wl,--end-group -o $@
+.PHONY: mozjs-68040
+mozjs-68040: $(OUT)/oolite-mozjs-68040
+
+# Additional CPU0 JavaScript object, array, string and forced GC guest gate.
+$(OUT)/oolite-mozjs-stage-68040: tests/oolite_js_stage_gate.cpp $(MOZJS_STATIC)
+	@mkdir -p $(OUT)
+	$(CROSS_CXX) -std=gnu++11 -O2 -m68040 -m68881 -noixemul $(MOZJS_INCLUDE) -c tests/oolite_js_stage_gate.cpp -o $(OUT)/oolite_js_stage_gate.o
+	$(CROSS_CXX) -O2 -m68040 -m68881 -noixemul $(OUT)/oolite_js_stage_gate.o -L $(GFOS_DEPS_LIB) -Wl,--start-group $(MOZJS_STATIC) -lpthread -lm -lsocket -lz -Wl,--end-group -o $@
+.PHONY: mozjs-stage
+mozjs-stage: $(OUT)/oolite-mozjs-stage-68040
