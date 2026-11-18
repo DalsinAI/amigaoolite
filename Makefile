@@ -661,3 +661,24 @@ $(OUT)/GameController+SDLFullScreen-gfos-68040.o: $(UPSTREAM)/src/SDL/GameContro
 	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
 .PHONY: oolite-core-seventeen-objects
 oolite-core-seventeen-objects: oolite-core-ten-objects $(GFOS_VISUAL_OBJECTS)
+
+# Additional actual Oolite HUD/entity/material/audio/controller code.
+GFOS_VISUAL_MORE_CORE := HeadUpDisplay OOOpenGLMatrixManager OOOpenALController OOMusicController OOCacheManager
+GFOS_VISUAL_MORE_ENTITIES := Entity OOEntityWithDrawable StationEntity
+GFOS_VISUAL_MORE_MATERIALS := OOMaterial OOTexture OOShaderProgram
+GFOS_VISUAL_MORE_SDL := OOSDLJoystickManager
+GFOS_VISUAL_MORE_OBJECTS := $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_CORE) $(GFOS_VISUAL_MORE_ENTITIES) $(GFOS_VISUAL_MORE_MATERIALS) $(GFOS_VISUAL_MORE_SDL)))
+$(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_CORE))): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/Core/%.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+$(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_ENTITIES))): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/Core/Entities/%.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+$(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_MATERIALS))): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/Core/Materials/%.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+$(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_SDL))): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/SDL/%.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+.PHONY: oolite-core-twentynine-objects
+oolite-core-twentynine-objects: oolite-core-seventeen-objects $(GFOS_VISUAL_MORE_OBJECTS)
