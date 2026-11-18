@@ -348,3 +348,10 @@ $(OUT)/oolite-js-seal-68040: tests/oolite_js_game_dispatch_seal_gate.c src/Core/
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_seal_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-seal
 js-seal: $(OUT)/oolite-js-seal-68040
+
+# Two ship tokens, game-owner routing and stale token rejection through JS Exec IPC.
+$(OUT)/oolite-js-ship-routes-68040: tests/oolite_js_game_dispatch_route_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSGameDispatch.h src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_route_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-ship-routes
+js-ship-routes: $(OUT)/oolite-js-ship-routes-68040
