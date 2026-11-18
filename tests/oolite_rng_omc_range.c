@@ -64,7 +64,7 @@ int main(void) {
     if(units) {
         int r=run(&job,out,OMC_ANY,OMCF_BOARD,"BOARD_ONLY");
         bad+=r;
-        if(!r && job.omj_Where!=OMCW_BOARD) puts("OOLITE_OMC_NO_BOARD_PLACEMENT");
+        if(!r && job.omj_Where!=OMCW_BOARD) { puts("OOLITE_OMC_NO_BOARD_PLACEMENT"); bad++; }
     }
     OMC_FreeGrant(out);
     CloseLibrary(OpenMulticoreBase);
