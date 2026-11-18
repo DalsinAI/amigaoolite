@@ -22,6 +22,7 @@ int OOGFOSPreflightOXZ(const char *path, unsigned *entries) {
     unzFile zip;
     uint64_t total = 0;
     unsigned count = 0;
+    int hasManifest = 0;
     unsigned i;
     char *names = NULL;
     int rc, ok = 0;
@@ -42,6 +43,7 @@ int OOGFOSPreflightOXZ(const char *path, unsigned *entries) {
         if (unzGetCurrentFileInfo64(zip,&fi,name,512,NULL,0,NULL,0) != UNZ_OK) goto done;
         if (!OOGFOSSafeOXZEntry(name,(size_t)fi.size_filename)) goto done;
         name[fi.size_filename] = 0;
+        if (equalFolded(name,"manifest.plist")) hasManifest=1;
         for (i=0;i<count;i++) if (equalFolded(name,names+(size_t)i*512)) goto done;
         /* Disallow Unix symlink entries; extraction must not follow external targets. */
         type=(fi.external_fa >> 16) & 0170000u;
@@ -51,7 +53,7 @@ int OOGFOSPreflightOXZ(const char *path, unsigned *entries) {
         count++;
         rc = unzGoToNextFile(zip);
     } while (rc == UNZ_OK);
-    if (rc == UNZ_END_OF_LIST_OF_FILE) {
+    if (rc == UNZ_END_OF_LIST_OF_FILE && hasManifest) {
         ok=1;
         if (entries) *entries=count;
     }
