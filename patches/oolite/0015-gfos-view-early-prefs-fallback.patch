@@ -1,0 +1,130 @@
+--- a/src/SDL/MyOpenGLView.m
++++ b/src/SDL/MyOpenGLView.m
+@@ -306,27 +306,46 @@
+ 
+ - (id)init
+ {
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW after-super\n", stdout); fflush(stdout);
++#endif
+     self = [super init];
+ 
+     NSString* cmdLineArgsStr = @"Startup command: ";
+ 
+-    // SDL splash screen  settings
+-
++    // SDL splash screen settings. GFOS Foundation's default-domain
++    // initialization is not yet qualified at application startup; the
++    // isolated 68040 probe blocks inside +standardUserDefaults. Match
++    // GameController's GFOS default-tick bootstrap: use the game's own
++    // defaults here until the Foundation preferences path is qualified.
++#if OOLITE_GFOS
++    NSUserDefaults* prefs = nil;
++    showSplashScreen = YES;
++    vSyncPreference = NO;
++    bitsPerColorComponent = 8;
++#else
+     NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+     showSplashScreen = [prefs oo_boolForKey:@"splash-screen" defaultValue:YES];
+     vSyncPreference = [prefs oo_boolForKey:@"v-sync" defaultValue:YES];
+     bitsPerColorComponent = [prefs oo_boolForKey:@"hdr" defaultValue:NO] ? 16 : 8;
++#endif
+ 
+     NSArray* arguments = nil;
+     NSEnumerator* argEnum = nil;
+     NSString* arg = nil;
+     BOOL noSplashArgFound = NO;
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW before-keymapping\n", stdout); fflush(stdout);
++#endif
+     [self initKeyMappingData];
+ 
+     // preload the printscreen key into our translation array because SDLK_PRINTSCREEN isn't available
+     scancode2Unicode[55] = gvPrintScreenKey;
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW before-process-arguments\n", stdout); fflush(stdout);
++#endif
+     arguments = [[NSProcessInfo processInfo] arguments];
+ 
+     // scan for splash screen overrides: -nosplash || --nosplash , -splash || --splash
+@@ -362,23 +381,38 @@
+ #endif
+ #endif
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW before-matrix-manager\n", stdout); fflush(stdout);
++#endif
+     matrixManager = [[OOOpenGLMatrixManager alloc] init];
+ 
+     // TODO: This code up to and including stickHandler really ought
+     // not to be in this class.
+     OOLog(@"sdl.init", @"%@", @"initialising SDL");
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW before-sdl-init\n", stdout); fflush(stdout);
++#endif
+     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_GAMEPAD)) {
+         OOLog(@"sdl.init.failed", @"Unable to init SDL: %s\n", SDL_GetError());
+         [self dealloc];
+         return nil;
+     }
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW before-mode-list\n", stdout); fflush(stdout);
++#endif
+     [self populateFullScreenModelist];
+ 
+     // Find what the full screen and windowed settings are.
+     fullScreen = NO;
+     currentSize = 0;
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW before-window-size\n", stdout); fflush(stdout);
++#endif
+     [self loadWindowSize];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW before-fullscreen-settings\n", stdout); fflush(stdout);
++#endif
+     [self loadFullscreenSettings];
+ 
+     // Set up the drawing surface's dimensions.
+@@ -388,6 +422,9 @@
+     [OOJoystickManager setStickHandlerClass:[OOSDLJoystickManager class]];
+     // end TODO
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW before-sound-setup\n", stdout); fflush(stdout);
++#endif
+     [OOSound setUp];
+     if (![OOSound isSoundOK])
+         OOLog(@"sound.init", @"%@", @"Sound system disabled.");
+@@ -401,12 +438,19 @@
+         [self initialiseGLWithSize:firstScreen];
+     }
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW before-auto-show-mouse\n", stdout); fflush(stdout);
++#endif
+     [self autoShowMouse];
+ 
+     virtualJoystickPosition = NSMakePoint(0.0, 0.0);
+     mouseWarped = NO;
+ 
++#if OOLITE_GFOS
++    _mouseVirtualStickSensitivityFactor = 0.95f;
++#else
+     _mouseVirtualStickSensitivityFactor = OOClamp_0_1_f([prefs oo_floatForKey:@"mouse-flight-sensitivity" defaultValue:0.95f]);
++#endif
+     // ensure no chance of a divide by zero later on
+     if (_mouseVirtualStickSensitivityFactor < 0.005f)
+         _mouseVirtualStickSensitivityFactor = 0.005f;
+@@ -419,6 +463,9 @@
+ 
+     _mouseWheelDelta = 0.0f;
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_VIEW before-return\n", stdout); fflush(stdout);
++#endif
+     return self;
+ }
+ 
