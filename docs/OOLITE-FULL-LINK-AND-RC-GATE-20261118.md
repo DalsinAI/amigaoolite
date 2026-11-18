@@ -1,0 +1,24 @@
+# Native Oolite 68040 full-engine link / RC qualification checkpoint
+
+18 November 2026, daletop AC090 AmigaOS 3.2.3 lab. The real original Oolite source (pinned upstream `OoliteProject/oolite@21978c37b2f11c8664adf3e2062efc1d0c875979`, with established GFOS vendor-tree prerequisites) has advanced from 41 individually qualified Objective-C modules to a successful **complete 242-source-unit native GCC 16.2 compile/link** in scratch. The `build/oolite-meson-242.list` repository manifest is derived from actual pinned upstream Meson build files, with 242 original source entries. `build/full-link.mk` now records the source-copy/patch and link steps for reproducing this proof without editing upstream or committing locally.
+
+## Compilation and first full link evidence
+
+1. Initial whole-source audit: 237/242 files built; 5 failed. Previously qualified GFOS CPU/log and OpenGL patches resolve two. `patches/oolite/0004-gfos-polygon-glu.patch` supplies actual GFOpenGPU SGI GLU declarations for Oolite polygon tessellation; `patches/oolite/0005-gfos-miniz-stdio.patch` uses AmigaOS-supported `ftell/fseek` rather than unavailable `ftello/fseeko`. The fifth was Oolite's original Vorbis API dependency: genuine **libogg 1.3.5 and libvorbis 1.3.7** were built as temporary link-qualification compatibility dependencies. Production must instead integrate AkikoPlus `media.decode/1`, with GFOpenDatatypes fallback, as documented in `docs/OOLITE-PLATFORM-OFFLOAD-PLAN-20261118.md`. Do **not** silently count the temporary Vorbis link as the final media architecture.
+2. Link resolved actual GFOpenGPU SDL3/OpenAL/SGI GLU, target SpiderMonkey 1.8.5 archive, GNUstep Foundation, native Objective-C runtime, libffi, PNG/zlib, POSIX socket/pthread and original GFOS OXZ extraction. The existing Foundation archive lacked a usable armap; reindexing a **scratch copy** with the target `ranlib` fixed many undefined Objective-C classes. A missing native NSMessagePortNameServer object requires real `sys/socket.h` while preserving ObjC `BOOL` (`patches/gnustep/0001-gfos-messageport-objc-bool.patch`). The original GNUstep NSMessagePort object, not present in the static archive, was linked explicitly. No fake class symbol definitions were introduced.
+3. The full `m68k-amigaos-g++` **link returned 0**, generating an approximately 14 MB AmigaOS 68040 executable. The repository Makefile target `make -f Makefile -f build/full-link.mk oolite-full-original-link` reproduced the full link using the populated 242-object cache: RC 0, SHA256 `cb2ae4ac14ccf579d98dc1cbfdef6cafb957cf27c8c07009a5f25f7d6540bcc8`. A second fully clean 242-object rebuild is the next reproducibility gate; do not call it passed until its actual result is checked.
+
+## Runtime blocker (no RC yet)
+
+Staged the real original Oolite 14 MB executable plus ~99 MB upstream `Resources` into the dedicated AmigaChrome AC090/68040 lab. **First real application launch reached the Objective-C runtime but aborted before Oolite's game menu:** `objc runtime: cannot find class NXConstantString`. The binary does contain an `___objc_class_name_NXConstantString` symbol, so missing linkage alone is not a sufficient diagnosis. Investigate Objective-C module registration, class initialization order, `-fconstant-string-class` and GNUstep runtime compatibility. An exploratory link with explicit Foundation NSObject/GSString/NSString ordering also succeeded but the later guest retry stalled (`OOLITE_ORDERED_MAIN_BEGIN` without completion); it did **not** establish a fix. Guest command agent remains stuck in `run.running`, with no second startup result. Recovery/reset and fresh guest qualification are pending. Do not misrepresent the second queued/stalled run as a pass.
+
+## RC gate (must pass before release)
+
+* Native complete source compile **and clean rebuild** from pinned inputs; runnable artifact with exact source/build IDs.
+* Original executable starts, loads Oolite Resources, initializes Objective-C/Foundation/JS/SDL3/OpenAL safely, displays **Oolite's own title menu** and supports controls (not the separate splash preview).
+* Enter gameplay, render actual ship/station scene via GFOpenGPU GL, navigate/fly and dock at least once; verify frame progress and stability.
+* Play/decode original sounds through canonical GFOpenGPU OpenAL/AHI, not duplicate production libvorbis; exercise absence-of-AkikoPlus fallback, seek/EOF, shutdown.
+* Save and load game state, OXZ safety, mouse/keyboard/joystick, reset/clean exit, log evidence, independent guest screenshots and crash-free repeat runs.
+* The previous AkikoPlus/GFOpenMulticore design is a tracked optimization programme, but should not delay the first demonstrably playable baseline. All production offloads require deterministic parity and safe CPU0 ownership.
+
+**Status:** first full original source link **PASS**; guest original-game startup **FAIL / pending recovery**; actual title menu and gameplay **NOT YET**; RC1 **NOT CUT**.
