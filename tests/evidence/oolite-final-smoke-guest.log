@@ -1,0 +1,10 @@
+OOLITE_FINAL_SMOKE_BEGIN
+OOLITE_MATH_68040 quaternion_w=0.70711 quaternion_z=0.70711 matrix_diag_y=-0.00000 zero_diag_y=1.00000 status=PASS
+MATH_RC 0
+OOLITE_OXZ_SCHEMA good_parsed=1 good_accepted=1 bad_parsed=1 missing_title_rejected=1 status=PASS
+SCHEMA_RC 0
+OOLITE_OXZ_PREFLIGHT valid=1 entries=1 missing_rejected=1 escape_rejected=1 duplicate_rejected=1 missing_manifest_rejected=1 status=PASS
+PREFLIGHT_RC 0
+OOLITE_JS_ABI ptr=4 long=4 size_t=4 u64=8 double=8 long_double=12 big_endian=1 status=PASS
+JS_ABI_RC 0
+OOLITE_FINAL_SMOKE_END
