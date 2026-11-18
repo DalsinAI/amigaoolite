@@ -1,0 +1,3 @@
+OOLITE_JSLIB_ADAPTER_BEGIN
+OOLITE_JSLIB status=UNAVAILABLE missing=javascript.library_or_engine
+SYS:ACAgent/oolite-jslib-68040 failed returncode 77
