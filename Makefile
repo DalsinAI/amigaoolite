@@ -566,3 +566,17 @@ $(OUT)/oolite-main-gfos-68040.o: $(UPSTREAM)/src/SDL/main.m
 	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 .PHONY: oolite-core-four-objects
 oolite-core-four-objects: $(OUT)/Universe-gfos-68040.o $(OUT)/MyOpenGLView-gfos-68040.o $(OUT)/GameController-gfos-68040.o $(OUT)/oolite-main-gfos-68040.o
+
+# Three additional genuine Oolite core modules, with MiniZip from the
+# already-pinned Oolite upstream rather than synthetic ZIP headers.
+$(OUT)/ResourceManager-gfos-68040.o: $(UPSTREAM)/src/Core/ResourceManager.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(UPSTREAM)/src/Core/MiniZip -c $< -o $@
+$(OUT)/OOShipRegistry-gfos-68040.o: $(UPSTREAM)/src/Core/OOShipRegistry.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
+$(OUT)/OOSoundSource-gfos-68040.o: $(UPSTREAM)/src/Core/OOSoundSource.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
+.PHONY: oolite-core-seven-objects
+oolite-core-seven-objects: oolite-core-four-objects $(OUT)/ResourceManager-gfos-68040.o $(OUT)/OOShipRegistry-gfos-68040.o $(OUT)/OOSoundSource-gfos-68040.o
