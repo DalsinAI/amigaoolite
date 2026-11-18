@@ -452,3 +452,15 @@ $(OUT)/oolite-original-objc-event-68040: tests/oolite_js_original_ship_event_obj
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-original-objc-event
 js-original-objc-event: $(OUT)/oolite-original-objc-event-68040
+
+# Two independent original default-ship JS contexts dispatch to different ObjC
+# ships through a single game-owner Exec port; verifies zero action cross-talk.
+$(OUT)/oolite-two-original-objc-68040: tests/oolite_js_two_original_ship_objc_gate.c $(OUT)/oolite-original-objc-event-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_two_original_ship_objc_gate.c -o $(OUT)/oolite-two-original-gate.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-two-original-gate.o $(OUT)/oolite-ship-events.o $(OUT)/oolite-objc-ship-mock.o $(OUT)/oolite-objc-game-shim.o $(OUT)/OOGFOSShipEntityBackend-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-properties.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group \
+	-Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a \
+	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-two-original-objc
+js-two-original-objc: $(OUT)/oolite-two-original-objc-68040
