@@ -18,6 +18,9 @@ LONG OOGFOSScriptObjectLoad(JSTask task, CONST_STRPTR scriptGlobal,
 /* Look up the event function as a member of the script object and call with
  * self=script. Missing handlers are not an error: called=0. Error returns
  * JSERR_* from GFOS javascript.library. */
+/* Remove global script reference. Does not force GC or invalidate ship token;
+ * owner must coordinate job completion then unregister ship separately. */
+LONG OOGFOSScriptObjectDrop(JSTask task, CONST_STRPTR scriptGlobal);
 LONG OOGFOSScriptObjectEvent(JSTask task, CONST_STRPTR scriptGlobal,
                             CONST_STRPTR eventName, LONG argc,
                             JSValue *argv, LONG *called);
