@@ -1,0 +1,32 @@
+--- a/src/Core/ResourceManager.m
++++ b/src/Core/ResourceManager.m
+@@ -23,6 +23,9 @@
+ */
+ 
+ #import "ResourceManager.h"
++#if OOLITE_GFOS
++#include <stdlib.h>
++#endif
+ #import "HeadUpDisplay.h"
+ #import "MyOpenGLView.h"
+ #import "NSFileManagerOOExtensions.h"
+@@ -191,6 +194,11 @@
+ 
+ + (NSString*)builtInPath
+ {
++#if OOLITE_GFOS
++    const char *configuredRoot = getenv("OOLITE_RESOURCE_ROOT");
++    if (configuredRoot != NULL && configuredRoot[0] != 0) return [NSString stringWithUTF8String:configuredRoot];
++    return @"SYS:Oolite";
++#else
+     NSFileManager* fileManager = [NSFileManager defaultManager];
+ 
+ #if OOLITE_MAC_COCOA_UI
+@@ -207,6 +215,7 @@
+     // Fallback: Look in startingDir/../share/oolite/Resources
+     NSString* fallbackPath = [[startingDir stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"share/oolite/Resources"];
+     return [fallbackPath stringByStandardizingPath];
++#endif
+ }
+ 
+ + (NSArray*)pathsWithAddOns
