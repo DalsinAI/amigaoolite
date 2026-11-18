@@ -1,0 +1,33 @@
+--- a/src/Core/OOOXZManager.m
++++ b/src/Core/OOOXZManager.m
+@@ -26,6 +26,9 @@
+ 
+ #import "OOOXZManager.h"
+ #if OOLITE_GFOS
++#include "OOOXZPathSafety.h"
++#endif
++#if OOLITE_GFOS
+ #include <stdlib.h>
+ #endif
+ #import "GuiDisplayGen.h"
+@@ -1933,10 +1936,16 @@
+     unz_file_info64 file_info = { 0 };
+     if (unzGoToFirstFile(uf) == UNZ_OK) {
+         do {
+-            unzGetCurrentFileInfo64(uf, &file_info,
+-                rawComponentName, 512,
+-                NULL, 0,
+-                NULL, 0);
++            int nameStatus = unzGetCurrentFileInfo64(uf, &file_info,
++                rawComponentName, sizeof(rawComponentName), NULL, 0, NULL, 0);
++#if OOLITE_GFOS
++            if (nameStatus != UNZ_OK || !OOGFOSSafeOXZEntry(rawComponentName, (size_t)file_info.size_filename)) {
++                OOLog(kOOOXZErrorLog, @"Rejected unsafe OXZ archive entry");
++                error = YES;
++                break;
++            }
++#endif
++            rawComponentName[file_info.size_filename] = 0;
+             NSString* componentName = [NSString stringWithUTF8String:rawComponentName];
+             if ([componentName hasSuffix:@"/"]) {
+                 // folder
