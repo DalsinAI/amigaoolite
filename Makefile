@@ -180,3 +180,15 @@ $(OUT)/oolite-oxz-real-assets-68040: tests/oolite_oxz_real_assets_gate.m $(OUT)/
 	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite_oxz_real_assets_gate.o $(OUT)/OOOXZGFOSExtraction.o $(OUT)/OOOXZArchivePreflight.o $(OUT)/oolite_oxz_ioapi.o $(OUT)/oolite_oxz_unzip.o -L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive $(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: oxz-real-assets
 oxz-real-assets: $(OUT)/oolite-oxz-real-assets-68040
+
+# Canonical GFOpenSDK javascript.library LVO ABI (no embedded JS runtime).
+# Set GFOS_JS_SDK to the GFOpenSDK checkout root; do not copy SDK headers.
+GFOS_JS_SDK ?= ../gfopensdk
+GFOS_JS_INC := $(GFOS_JS_SDK)/Include
+GFOS_JS_NDK := $(PREFIX)/m68k-amigaos/ndk-include.vendor
+GFOS_JS_FLAGS := -std=gnu11 -O2 -m68040 -m68881 -noixemul -I $(GFOS_JS_INC) -I $(GFOS_JS_NDK) -I src/Core
+$(OUT)/oolite-jslib-68040: tests/oolite_jslib_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h $(GFOS_JS_INC)/libraries/javascript.h $(GFOS_JS_INC)/inline/javascript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_jslib_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: jslib-bridge
+jslib-bridge: $(OUT)/oolite-jslib-68040
