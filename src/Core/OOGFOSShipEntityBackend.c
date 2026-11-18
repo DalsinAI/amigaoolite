@@ -12,11 +12,27 @@ void OOGFOSShipEntityRegistryInit(struct OOGFOSShipEntityRegistry *r)
 }
 ULONG OOGFOSShipEntityRegister(struct OOGFOSShipEntityRegistry *r,void *ship)
 {
-    return r && ship ? OOGFOSShipTokensAdd(&r->tokens,ship) : 0;
+    void *retained;
+    ULONG token;
+    if (!r || !ship) return 0;
+    /* Allocation and ObjC refcount operations happen on the game task.
+     * A successful token owns one strong reference until unregister. */
+    retained=OOGFOSShipObjCRetain(ship);
+    if (!retained) return 0;
+    token=OOGFOSShipTokensAdd(&r->tokens,retained);
+    if (!token) OOGFOSShipObjCRelease(retained);
+    return token;
 }
 int OOGFOSShipEntityUnregister(struct OOGFOSShipEntityRegistry *r,ULONG token)
 {
-    return r ? OOGFOSShipTokensRemove(&r->tokens,token) : 0;
+    void *ship;
+    if (!r) return 0;
+    ship=OOGFOSShipTokensLookup(&r->tokens,token);
+    if (!ship || !OOGFOSShipTokensRemove(&r->tokens,token)) return 0;
+    /* Invalidate the token first. Any future JS job with this token is
+     * rejected; release only after no owner-task access can resolve it. */
+    OOGFOSShipObjCRelease(ship);
+    return 1;
 }
 static int shipGet(void *context,ULONG token,unsigned property,LONG *out)
 {
