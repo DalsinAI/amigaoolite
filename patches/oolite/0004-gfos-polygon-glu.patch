@@ -1,0 +1,12 @@
+--- a/src/Core/OOPolygonSprite.m
++++ b/src/Core/OOPolygonSprite.m
+@@ -40,6 +40,9 @@
+ */
+ 
+ #import "OOPolygonSprite.h"
++#if OOLITE_GFOS
++#include <GL/glu.h> /* canonical GFOpenGPU SGI GLU tessellator */
++#endif
+ #import "OOCollectionExtractors.h"
+ #import "OOGraphicsResetManager.h"
+ #import "OOMacroOpenGL.h"
