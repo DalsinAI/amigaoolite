@@ -491,3 +491,10 @@ $(OUT)/oolite-script-removal-68040: tests/oolite_js_script_removal_gate.c src/Co
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-script-removal
 js-script-removal: $(OUT)/oolite-script-removal-68040
+
+# Queued requests MUST NOT reach owner after Seal, even when using Serve not CancelQueued.
+$(OUT)/oolite-js-seal-queued-68040: tests/oolite_js_game_dispatch_seal_queued_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSGameDispatch.h src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_seal_queued_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-seal-queued
+js-seal-queued: $(OUT)/oolite-js-seal-queued-68040
