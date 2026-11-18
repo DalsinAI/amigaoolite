@@ -216,3 +216,22 @@ $(OUT)/oolite-mozjs-stage-68040: tests/oolite_js_stage_gate.cpp $(MOZJS_STATIC)
 	$(CROSS_CXX) -O2 -m68040 -m68881 -noixemul $(OUT)/oolite_js_stage_gate.o -L $(GFOS_DEPS_LIB) -Wl,--start-group $(MOZJS_STATIC) -lpthread -lm -lsocket -lz -Wl,--end-group -o $@
 .PHONY: mozjs-stage
 mozjs-stage: $(OUT)/oolite-mozjs-stage-68040
+
+# Full *upstream* OOOXZManager.m object qualification for first 68040 boot.
+# Apply pinned Oolite patches 0001, 0004, 0006, 0007, 0008, 0009, 0011
+# and separate pinned mozillajs-linux patch 0010. This is NOT whole-game link.
+# Sound is explicitly disabled until the real OpenAudio bridge is qualified;
+# no fabricated OpenAL or SDL3 headers are used in this native bootstrap.
+$(OUT)/OOOXZManager-68040.o: $(UPSTREAM)/src/Core/OOOXZManager.m $(UPSTREAM)/src/Core/OOSound.h $(UPSTREAM)/src/Core/Universe.h $(MOZJS_BUILD)/js-config.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul \
+	-DOOLITE_GFOS=1 -DOOLITE_OPENAL=0 -DOOLITE_ESPEAK=0 -DGNUSTEP_BASE_LIBRARY=1 \
+	-I $(GFOS_BASE_DIR)/Headers -I src/Core -I $(UPSTREAM)/src/Core \
+	-I $(UPSTREAM)/src/Core/Entities -I $(UPSTREAM)/src/Core/Materials \
+	-I $(UPSTREAM)/src/Core/Tables -I $(UPSTREAM)/src/Core/MiniZip \
+	-I $(UPSTREAM)/src/Core/Scripting -I $(UPSTREAM)/src/SDL \
+	-I $(MOZJS)/js/src -I $(MOZJS_BUILD) \
+	-I $(PREFIX)/m68k-amigaos/include -I $(PREFIX)/m68k-amigaos/ndk-include.vendor \
+	-I $(PREFIX)/m68k-amigaos/port-deps/include -c $< -o $@
+.PHONY: oxz-manager-object
+oxz-manager-object: $(OUT)/OOOXZManager-68040.o
