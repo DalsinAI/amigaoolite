@@ -1,0 +1,66 @@
+--- a/src/Core/OOOXZManager.m
++++ b/src/Core/OOOXZManager.m
+@@ -25,6 +25,9 @@
+ */
+ 
+ #import "OOOXZManager.h"
++#if OOLITE_GFOS
++#include <stdlib.h>
++#endif
+ #import "GuiDisplayGen.h"
+ #import "MyOpenGLView.h"
+ #import "NSDataOOExtensions.h"
+@@ -219,6 +222,10 @@
+  * location. */
+ - (NSString*)installPath
+ {
++#if OOLITE_GFOS
++    const char *root = getenv("OO_MANAGEDADDONSDIR");
++    return root != NULL && root[0] ? [NSString stringWithUTF8String:root] : @"SYS:Oolite/ManagedAddOns";
++#else
+     const char* managedAddOnsEnv = SDL_getenv("OO_MANAGEDADDONSDIR");
+ 
+     if (managedAddOnsEnv) {
+@@ -240,11 +247,16 @@
+         }
+     }
+     return nil;
++#endif
+ }
+ 
+ /* The extract path for OXZs . */
+ - (NSString*)extractAddOnsPath
+ {
++#if OOLITE_GFOS
++    const char *root = getenv("OO_ADDONSEXTRACTDIR");
++    return root != NULL && root[0] ? [NSString stringWithUTF8String:root] : @"SYS:Oolite/AddOns";
++#else
+     const char* addOnsExtractEnv = SDL_getenv("OO_ADDONSEXTRACTDIR");
+ 
+     if (addOnsExtractEnv) {
+@@ -260,11 +272,17 @@
+         return [[NSHomeDirectory() stringByAppendingPathComponent:@".Oolite"] stringByAppendingPathComponent:@"AddOns"];
+ #endif
+     }
++#endif
+ }
+ 
+ /* Add additional AddOns paths */
+ - (NSArray*)additionalAddOnsPaths
+ {
++#if OOLITE_GFOS
++    const char *dirs = getenv("OO_ADDITIONALADDONSDIRS");
++    if (dirs == NULL || dirs[0] == 0) return [NSArray array];
++    return [[NSString stringWithUTF8String:dirs] componentsSeparatedByString:@","];
++#else
+     const char* additionalAddOnsEnv = SDL_getenv("OO_ADDITIONALADDONSDIRS");
+ 
+     if (additionalAddOnsEnv) {
+@@ -272,6 +290,7 @@
+         return [envStr componentsSeparatedByString:@","];
+     }
+     return [NSArray array];
++#endif
+ }
+ 
+ - (NSString*)extractionBasePathForIdentifier:(NSString*)identifier andVersion:(NSString*)version
