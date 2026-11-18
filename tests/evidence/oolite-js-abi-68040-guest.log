@@ -1,0 +1,4 @@
+OOLITE_JS_ABI_BEGIN
+OOLITE_JS_ABI ptr=4 long=4 size_t=4 u64=8 double=8 long_double=12 big_endian=1 status=PASS
+OOLITE_JS_ABI_RC 0
+OOLITE_JS_ABI_END
