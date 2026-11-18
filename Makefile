@@ -100,3 +100,16 @@ $(OUT)/oolite-upstream-plist-68040: $(OUT)/OOPListParsing.o $(OUT)/oolite_upstre
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: upstream-plist
 upstream-plist: $(OUT)/oolite-upstream-plist-68040
+
+# Real upstream RanrotWithSeed seeded chunks: deterministic single CPU0
+# baseline for future Team 4 OMC_RunRange speedup tests, not multicore yet.
+$(OUT)/oolite-rng-cpu0-68040: tests/oolite_rng_cpu0_baseline.c $(RNG_SRC)
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -std=gnu11 -O2 -m68040 -m68881 -noixemul -I $(RNG_INC) $^ -lm -o $@
+$(OUT)/oolite-rng-cpu0-host: tests/oolite_rng_cpu0_baseline.c $(RNG_SRC)
+	@mkdir -p $(OUT)
+	$(HOST_CC) -std=gnu11 -O2 -I $(RNG_INC) $^ -lm -o $@
+.PHONY: rng-cpu0-baseline rng-cpu0-host-check
+rng-cpu0-baseline: $(OUT)/oolite-rng-cpu0-68040
+rng-cpu0-host-check: $(OUT)/oolite-rng-cpu0-host
+	$(OUT)/oolite-rng-cpu0-host
