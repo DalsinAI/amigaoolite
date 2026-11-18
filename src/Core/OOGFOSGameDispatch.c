@@ -92,6 +92,32 @@ int OOGFOSGameDispatchSeal(struct OOGFOSGameDispatch *d)
     Permit();
     return ok;
 }
+LONG OOGFOSGameDispatchCancelQueued(struct OOGFOSGameDispatch *d)
+{
+    struct Message *raw;
+    struct OOGFOSGameMessage *m;
+    LONG cancelled = 0;
+    if (!d || FindTask(NULL) != d->gameTask || !d->gamePort) return -1;
+    if (!OOGFOSGameDispatchSeal(d)) return -1;
+    /* No new GET/SET can be enqueued after Seal. GetMsg is owner-task-only;
+     * status=0 returns ownership of each stack-backed message to its sender. */
+    while ((raw = GetMsg(d->gamePort)) != NULL) {
+        m = (struct OOGFOSGameMessage *)raw;
+        if (raw->mn_Length == sizeof(*m) && m->magic == OOGFOS_RPC_MAGIC &&
+            m->op == OOGFOS_DISPATCH_DONE) {
+            d->resultCode = m->status;
+            d->result = m->value;
+            d->completions++;
+        } else {
+            if (raw->mn_Length == sizeof(*m) && m->magic == OOGFOS_RPC_MAGIC)
+                m->status = 0;
+            cancelled++;
+            d->cancelled++;
+        }
+        if (raw->mn_ReplyPort) ReplyMsg(raw);
+    }
+    return cancelled;
+}
 int OOGFOSGameDispatchTryClose(struct OOGFOSGameDispatch *d)
 {
     struct MsgPort *port;
