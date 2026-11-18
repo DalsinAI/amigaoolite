@@ -229,6 +229,15 @@ int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d)
         if (raw->mn_ReplyPort) ReplyMsg(raw);
         return -1;
     }
+    /* Seal also protects requests already queued before admission closed.
+     * CancelQueued handles draining in bulk; Serve must enforce the same
+     * boundary when the owner services an earlier queued message instead. */
+    if (d->sealed && m->op != OOGFOS_DISPATCH_DONE) {
+        m->status = 0;
+        d->cancelled++;
+        ReplyMsg(raw);
+        return 0;
+    }
     if (m->op == OOGFOS_DISPATCH_GET) {
         m->status = d->routeBackend ?
             (m->token ? d->routeBackend->getLong(d->owner, m->token, m->property, &m->value) : 0) :
