@@ -1,0 +1,4 @@
+OOLITE_MOZJS_BEGIN
+OOLITE_MOZJS_68040 runtime=1 context=1 global=1 eval=1 value=5050 status=PASS
+OOLITE_MOZJS_RC 0
+OOLITE_MOZJS_END
