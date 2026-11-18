@@ -1,0 +1,62 @@
+/* Native AmigaOS adapter to the existing GFOS javascript.library.
+ * Does not embed JavaScriptCore or SpiderMonkey.
+ * GPL-2.0-or-later.
+ */
+#include "OOGFOSJavaScript.h"
+#include <exec/libraries.h>
+#include <proto/exec.h>
+#include <proto/javascript.h>
+#include <libraries/javascript.h>
+#include <string.h>
+
+/* Canonical proto/javascript.h declares this library base. */
+struct Library *JavaScriptBase = NULL;
+
+int OOGFOSJSOpen(struct OOGFOSJS *s)
+{
+    if (!s) return 0;
+    memset(s, 0, sizeof(*s));
+    s->library = OpenLibrary((CONST_STRPTR)JAVASCRIPTNAME, JAVASCRIPTVERSION);
+    if (!s->library) return 0;
+    JavaScriptBase = s->library;
+    s->task = JS_NewTask(NULL);
+    if (!s->task) {
+        CloseLibrary(s->library);
+        s->library = NULL;
+        JavaScriptBase = NULL;
+        return 0;
+    }
+    return 1;
+}
+
+LONG OOGFOSJSEvaluateLong(struct OOGFOSJS *s, CONST_STRPTR src,
+                         CONST_STRPTR filename, LONG *out)
+{
+    JSValue result = NULL;
+    LONG code;
+    if (!s || !s->task || !src || !out) return JSERR_BADARGS;
+    JavaScriptBase = s->library;
+    code = JS_Evaluate(s->task, src, -1, filename ? filename : (CONST_STRPTR)"oolite.js", &result);
+    if (code != JSERR_OK) return code;
+    code = JS_ToLong(s->task, result, out);
+    if (result) JS_Free(s->task, result);
+    return code;
+}
+
+LONG OOGFOSJSErrorText(struct OOGFOSJS *s, STRPTR buffer, LONG size)
+{
+    if (!s || !s->task || !buffer || size < 1) return JSERR_BADARGS;
+    JavaScriptBase = s->library;
+    return JS_ErrorText(s->task, buffer, size);
+}
+
+void OOGFOSJSClose(struct OOGFOSJS *s)
+{
+    if (!s) return;
+    JavaScriptBase = s->library;
+    if (s->task) JS_EndTask(s->task);
+    if (s->library) CloseLibrary(s->library);
+    s->task = NULL;
+    s->library = NULL;
+    JavaScriptBase = NULL;
+}
