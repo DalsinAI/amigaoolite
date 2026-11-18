@@ -14,6 +14,7 @@ struct OOGFOSGameDispatch {
     void *owner;
     const struct OOGFOSShipBackend *ownerBackend;
     ULONG inFlight; /* protected by Forbid/Permit with gamePort */
+    ULONG sealed; /* stop new GET/SET; allow DONE for queued JS jobs */
     ULONG requests;
     ULONG completions;
     LONG result;
@@ -22,6 +23,8 @@ struct OOGFOSGameDispatch {
 int OOGFOSGameDispatchInit(struct OOGFOSGameDispatch *d, void *owner,
                            const struct OOGFOSShipBackend *ownerBackend);
 /* Owner-task close: 1 if port closed, 0 if requests still in-flight/wrong task. */
+/* Owner task can stop admitting new property operations without dropping DONE. */
+int OOGFOSGameDispatchSeal(struct OOGFOSGameDispatch *d);
 int OOGFOSGameDispatchTryClose(struct OOGFOSGameDispatch *d);
 /* Compatibility wrapper: does NOT close if there are outstanding messages. */
 void OOGFOSGameDispatchClose(struct OOGFOSGameDispatch *d);
