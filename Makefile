@@ -498,3 +498,10 @@ $(OUT)/oolite-js-seal-queued-68040: tests/oolite_js_game_dispatch_seal_queued_ga
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_seal_queued_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-seal-queued
 js-seal-queued: $(OUT)/oolite-js-seal-queued-68040
+
+# Frame-loop-safe nonblocking GFOS JS -> game owner Exec message queue pump.
+$(OUT)/oolite-js-game-poll-68040: tests/oolite_js_game_dispatch_poll_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSGameDispatch.h src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_poll_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-game-poll
+js-game-poll: $(OUT)/oolite-js-game-poll-68040
