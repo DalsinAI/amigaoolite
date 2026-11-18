@@ -1,0 +1,23 @@
+OOLITE_OPENAL_MODULE_BEGIN
+ALInfo: ALC 1.1, default device "AHI Voices"
+ALInfo: device "AHI Voices"
+ALInfo: device "AHI Mix"
+ALInfo: ALC_ENUMERATION_EXT yes
+ALInfo: ALC_EXT_disconnect yes
+ALInfo: ALC_EXT_CAPTURE yes
+ALInfo: ALC_EXT_EFX no
+ALInfo: ALC_ENUMERATE_ALL_EXT no
+ALInfo: AL_VERSION "1.1 OpenAL.module 2"
+ALInfo: AL_RENDERER "AHI Voices"
+ALInfo: AL_VENDOR "AmiCradle Team"
+ALInfo: AL_EXTENSIONS "AL_EXT_EXPONENT_DISTANCE AL_EXT_FLOAT32 AL_EXT_LINEAR_DISTANCE AL_EXT_MCFORMATS AL_EXT_OFFSET"
+ALInfo: ALC_EXTENSIONS "ALC_ENUMERATION_EXT ALC_EXT_CAPTURE ALC_EXT_disconnect"
+ALInfo: attribute 0x1007 = 44100
+ALInfo: attribute 0x1008 = 50
+ALInfo: attribute 0x1009 = 0
+ALInfo: attribute 0x1010 = 256
+ALInfo: attribute 0x1011 = 16
+ALInfo: connected
+ALInfo: all as expected
+OOLITE_OPENAL_MODULE_RC 0
+OOLITE_OPENAL_MODULE_END
