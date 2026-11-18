@@ -1,0 +1,54 @@
+--- a/src/Core/OOOXZManager.m
++++ b/src/Core/OOOXZManager.m
+@@ -28,6 +28,7 @@
+ #if OOLITE_GFOS
+ #include "OOOXZPathSafety.h"
+ #include "OOOXZArchivePreflight.h"
++#include "OOOXZGFOSExtraction.h"
+ #endif
+ #if OOLITE_GFOS
+ #include <stdlib.h>
+@@ -299,7 +300,11 @@
+ 
+ - (NSString*)extractionBasePathForIdentifier:(NSString*)identifier andVersion:(NSString*)version
+ {
++#if OOLITE_GFOS
++    NSString* basePath = [self extractAddOnsPath];
++#else
+     NSString* basePath = [[ResourceManager userRootPaths] lastObject];
++#endif
+     NSString* rawMainDir = [NSString stringWithFormat:@"%@-%@.off", identifier, version];
+ 
+     NSCharacterSet* blacklist = [NSCharacterSet characterSetWithCharactersInString:@"'#%^&{}[]/~|\\?<,:\" "];
+@@ -1909,15 +1914,16 @@
+         [extractionLog appendString:DESC(@"oolite-oxzmanager-extract-log-no-original")];
+         return [extractionLog autorelease];
+     }
+-    const char* zipname = [oxzfile UTF8String];
+ #if OOLITE_GFOS
+-    /* Validate the complete archive before creating any directories or files. */
+-    if (!OOGFOSPreflightOXZ(zipname, NULL)) {
+-        OOLog(kOOOXZErrorLog, @"Rejected unsafe OXZ archive before extraction");
+-        [extractionLog appendString:DESC(@"oolite-oxzmanager-extract-log-bad-original")];
+-        return [extractionLog autorelease];
++    if (!OOGFOSExtractOXZ(oxzfile, path)) {
++        OOLog(kOOOXZErrorLog, @"Native OXZ extraction failed: %@", oxzfile);
++        [extractionLog appendString:DESC(@"oolite-oxzmanager-extract-log-sub-failed")];
++    } else {
++        [extractionLog appendFormat:DESC(@"oolite-oxzmanager-extract-log-extracted-to-@"), path];
+     }
+-#endif
++    return [extractionLog autorelease];
++#else
++    const char* zipname = [oxzfile UTF8String];
+     unzFile uf = NULL;
+     uf = unzOpen64(zipname);
+     if (uf == NULL) {
+@@ -2011,6 +2017,7 @@
+     }
+ 
+     return [extractionLog autorelease];
++#endif
+ }
+ 
+ - (void)connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response
