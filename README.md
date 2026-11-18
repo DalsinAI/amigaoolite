@@ -34,3 +34,7 @@ This repo is a port overlay and validation home until a full source branch is re
 ## First OpenGPU geometry port patch — compiled
 
 `patches/0001-gfos-native-GL-geometry.patch` adds a narrowly guarded `OOLITE_GFOS` path to Oolite's `src/Core/OOOpenGLOnly.h`, using the native `GFOpenGPU` `<GL/gl.h>` and `<GL/glext.h>` for geometry-only source. The upstream `OOPlanetData.c` icosphere mesh arrays then **cross-compile successfully** as a real 68040 native AmigaOS object. Run `make planet-object` after applying the patch to the pinned upstream tree. This proves the mesh data compilation; it **does not** imply Oolite's GLU, shader, SDL3 or full graphics engine is ported. Missing target GLU headers are a known later step, not concealed by a fake header.
+
+## 18 November — native guest engine and Foundation qualification
+
+The original Oolite galaxy RNG module now **runs in an AmigaChrome AC090 68040 guest**, with exact Linux-vs-Amiga Ranrot values/checksum and exit code 0. More importantly, an **unmodified upstream Oolite Objective-C Foundation module** (`OOIsNumberLiteral.m`) now compiles and links against native GFOpenGNUstep 1.31.1, and **12 of 12 Objective-C number-literal cases PASS in the guest (exit 0)**. The new `make foundation-number` target reproduces the Oolite+Foundation linked binary. Details and guest logs: `docs/FOUNDATION-NATIVE-GUEST.md`, `tests/evidence/`. This does *not* imply the full Oolite engine is playable or all Foundation APIs are implemented.
