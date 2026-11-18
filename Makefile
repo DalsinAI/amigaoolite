@@ -67,3 +67,18 @@ $(OUT)/oolite-resource-68040: $(OUT)/oolite_resource_probe.o
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: resource-probe
 resource-probe: $(OUT)/oolite-resource-68040
+
+# Loads actual, unmodified Oolite Config/*.plist via native AmigaDOS and
+# GFOpenGNUstep NSPropertyListSerialization. Fixture assets must be retrieved
+# from the pinned upstream Oolite commit and staged in SYS:Oolite/Config/.
+$(OUT)/oolite_actual_plist_probe.o: tests/oolite_actual_plist_probe.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul \
+	-I $(GFOS_BASE_DIR)/Headers -c $< -o $@
+$(OUT)/oolite-real-assets-68040: $(OUT)/oolite_actual_plist_probe.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $< -L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) \
+	-Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a \
+	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: real-assets
+real-assets: $(OUT)/oolite-real-assets-68040
