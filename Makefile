@@ -682,3 +682,13 @@ $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_SDL))): $(OUT)/
 	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
 .PHONY: oolite-core-twentynine-objects
 oolite-core-twentynine-objects: oolite-core-seventeen-objects $(GFOS_VISUAL_MORE_OBJECTS)
+
+# Original Oolite SpiderMonkey-facing script object compilation (not runtime
+# compatibility with GFOS javascript.library; that remains a separate gate).
+GFOS_OOLITE_SCRIPT_SET := OOJSGlobal OOJSOolite OOJSShip OOJSPlayerShip OOJSPlayer OOJSScript OOJSFrameCallbacks OOJSEntity OOJSSystem OOJSMission OOJSMissionVariables OOJSCall
+GFOS_OOLITE_SCRIPT_OBJECTS := $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_OOLITE_SCRIPT_SET)))
+$(GFOS_OOLITE_SCRIPT_OBJECTS): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/Core/Scripting/%.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+.PHONY: oolite-core-fortyone-objects
+oolite-core-fortyone-objects: oolite-core-twentynine-objects $(GFOS_OOLITE_SCRIPT_OBJECTS)
