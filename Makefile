@@ -519,3 +519,11 @@ $(OUT)/oolite-js-game-frame-hook-68040: tests/oolite_js_game_frame_hook_gate.c s
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_frame_hook_gate.c src/Core/OOGFOSGameFrame.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-game-frame-hook
 js-game-frame-hook: $(OUT)/oolite-js-game-frame-hook-68040
+
+# Compile-only true Objective-C/Foundation + GFOS frame-header ABI gate.
+# No Exec BOOL typedef may leak into Universe.m; ObjC BOOL is 8-bit.
+$(OUT)/oolite-universe-frame-header-68040.o: tests/oolite_universe_frame_header_gate.m src/Core/OOGFOSGameFrame.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -x objective-c -std=gnu11 -Wall -Wextra -Werror -Wno-expansion-to-defined -O2 -m68040 -m68881 -noixemul -I $(GFOS_BASE_DIR)/Headers -I src/Core -c $< -o $@
+.PHONY: universe-frame-objc-abi
+universe-frame-objc-abi: $(OUT)/oolite-universe-frame-header-68040.o
