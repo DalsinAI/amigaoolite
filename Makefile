@@ -376,3 +376,30 @@ $(OUT)/oolite-js-token-capacity-68040: tests/oolite_ship_token_capacity_gate.c s
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_ship_token_capacity_gate.c src/Core/OOGFOSShipTokens.c -o $@
 .PHONY: js-token-capacity
 js-token-capacity: $(OUT)/oolite-js-token-capacity-68040
+
+# GFOS shared javascript.library -> Exec game task -> actual GNU Objective-C
+# selectors, with pinned Oolite OOTypes; test uses a controlled ShipEntity class.
+$(OUT)/OOGFOSShipEntityBackend-objc.o: src/Core/OOGFOSShipEntityBackend.m src/Core/OOGFOSShipEntitySelectors.h $(UPSTREAM)/src/Core/OOTypes.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -DGNUSTEP_BASE_LIBRARY=1 \
+	-I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(UPSTREAM)/src/Core/Tables \
+	-I $(UPSTREAM)/src/SDL -I src/Core -c $< -o $@
+$(OUT)/oolite-objc-ship-mock.o: tests/oolite_objc_ship_mock.m src/Core/OOGFOSShipEntitySelectors.h $(UPSTREAM)/src/Core/OOTypes.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -DGNUSTEP_BASE_LIBRARY=1 \
+	-I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(UPSTREAM)/src/Core/Tables \
+	-I $(UPSTREAM)/src/SDL -I src/Core -c $< -o $@
+$(OUT)/oolite-js-objc-bridge-68040: tests/oolite_js_shipentity_objc_gate.c src/Core/OOGFOSShipEntityBackend.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipTokens.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c $(OUT)/OOGFOSShipEntityBackend-objc.o $(OUT)/oolite-objc-ship-mock.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_shipentity_objc_gate.c -o $(OUT)/oolite-js-objc-gate.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSShipEntityBackend.c -o $(OUT)/oolite-objc-game-shim.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSGameDispatch.c -o $(OUT)/oolite-objc-dispatch.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSShipTokens.c -o $(OUT)/oolite-objc-tokens.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSShipProperties.c -o $(OUT)/oolite-objc-properties.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSJavaScript.c -o $(OUT)/oolite-objc-jslib.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-js-objc-gate.o $(OUT)/oolite-objc-ship-mock.o $(OUT)/oolite-objc-game-shim.o $(OUT)/OOGFOSShipEntityBackend-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-properties.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group \
+	-Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a \
+	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-objc-bridge
+js-objc-bridge: $(OUT)/oolite-js-objc-bridge-68040
