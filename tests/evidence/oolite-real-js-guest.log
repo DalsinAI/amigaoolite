@@ -1,0 +1,6 @@
+OOLITE_REAL_JS_BEGIN
+OOLITE_REAL_JS name=oolite-default-player-script bytes=1110 opened=1 rc=0 property=1 status=PASS
+OOLITE_REAL_JS name=oolite-default-effect-script bytes=1185 opened=1 rc=0 property=1 status=PASS
+OOLITE_REAL_JS_TOTAL passed=2 total=2 status=PASS
+OOLITE_REAL_JS_RC 0
+OOLITE_REAL_JS_END
