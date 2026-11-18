@@ -1,0 +1,10 @@
+OOLITE_DISPATCH_REGRESSION_BEGIN
+OOLITE_JS_GAME_DISPATCH bound=1 post=0 completed=1 requests=6 writes=3 wrong_task=0 on_owner=0 sum=90 status=PASS
+OOLITE_DISPATCH_NORMAL_RC 0
+OOLITE_JS_GAME_REJECT bound=1 post=0 completed=1 requests=3 writes=0 wrong_task=0 on_owner=0 sum=3 status=PASS
+OOLITE_DISPATCH_REJECT_RC 0
+OOLITE_GAME_TWO_JS_TASKS bound=1,1 posts=0,0 complete=2 rpc=4 writes=2 wrong_task=0 same_task=0,0 values=44,42 joined=0,0 done=1,1 status=PASS
+OOLITE_DISPATCH_TWO_TASKS_RC 0
+OOLITE_GAME_SAFE_CLOSE bound=1,1 posts=0,0 complete=2 rpc=4 writes=2 wrong_task=0 same_task=0,0 values=44,42 joined=0,0 done=1,1 inflight=0 busy_reject=1 owner_reject=1 closed=1 post_reject=1 status=PASS
+OOLITE_DISPATCH_SAFE_CLOSE_RC 0
+OOLITE_DISPATCH_REGRESSION_END
