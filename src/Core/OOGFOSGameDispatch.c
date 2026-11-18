@@ -10,6 +10,27 @@ struct OOGFOSGameMessage {
     LONG value;
     LONG status;
 };
+/* Publish under Forbid: TryClose cannot delete the target between the
+ * live-port check and PutMsg. The owner MUST keep the dispatch struct alive
+ * and join queued JS_Post jobs before freeing it. */
+static int sendTracked(struct OOGFOSGameDispatch *d, struct OOGFOSGameMessage *m)
+{
+    int sent = 0;
+    Forbid();
+    if (d->gamePort && FindTask(NULL) != d->gameTask) {
+        d->inFlight++;
+        PutMsg(d->gamePort, &m->msg);
+        sent = 1;
+    }
+    Permit();
+    return sent;
+}
+static void finishTracked(struct OOGFOSGameDispatch *d)
+{
+    Forbid();
+    if (d->inFlight) d->inFlight--;
+    Permit();
+}
 static int dispatchRPC(struct OOGFOSGameDispatch *d, ULONG op,
                        unsigned property, LONG *value)
 {
@@ -17,7 +38,7 @@ static int dispatchRPC(struct OOGFOSGameDispatch *d, ULONG op,
     struct OOGFOSGameMessage m;
     struct Message *received;
     int accepted;
-    if (!d || !d->gamePort || !value) return 0;
+    if (!d || !value) return 0;
     reply = CreateMsgPort();
     if (!reply) return 0;
     memset(&m, 0, sizeof(m));
@@ -27,12 +48,13 @@ static int dispatchRPC(struct OOGFOSGameDispatch *d, ULONG op,
     m.op = op;
     m.property = property;
     m.value = *value;
-    PutMsg(d->gamePort, &m.msg);
+    if (!sendTracked(d, &m)) { DeleteMsgPort(reply); return 0; }
     WaitPort(reply);
     received = GetMsg(reply);
     accepted = received == &m.msg && m.magic == OOGFOS_RPC_MAGIC && m.status == 1;
     if (accepted) *value = m.value;
     DeleteMsgPort(reply);
+    finishTracked(d);
     return accepted;
 }
 int OOGFOSGameDispatchInit(struct OOGFOSGameDispatch *d, void *owner,
@@ -47,12 +69,26 @@ int OOGFOSGameDispatchInit(struct OOGFOSGameDispatch *d, void *owner,
     d->gamePort = CreateMsgPort();
     return d->gamePort != NULL;
 }
+int OOGFOSGameDispatchTryClose(struct OOGFOSGameDispatch *d)
+{
+    struct MsgPort *port;
+    if (!d || FindTask(NULL) != d->gameTask) return 0;
+    Forbid();
+    if (!d->gamePort || d->inFlight) {
+        Permit();
+        return 0;
+    }
+    port = d->gamePort;
+    d->gamePort = NULL;
+    Permit();
+    /* Only the owner task may dispose the port, and it has no outstanding
+     * senders. Clients must still be joined before freeing the dispatch. */
+    DeleteMsgPort(port);
+    return 1;
+}
 void OOGFOSGameDispatchClose(struct OOGFOSGameDispatch *d)
 {
-    if (!d || !d->gamePort || FindTask(NULL) != d->gameTask) return;
-    /* Caller MUST join all JS_Post users and drain replies first. */
-    DeleteMsgPort(d->gamePort);
-    d->gamePort = NULL;
+    (void)OOGFOSGameDispatchTryClose(d);
 }
 int OOGFOSGameDispatchGet(void *state, unsigned property, LONG *value)
 {
@@ -76,7 +112,7 @@ int OOGFOSGameDispatchDone(struct OOGFOSGameDispatch *d, LONG rc, LONG value)
     struct MsgPort *reply;
     struct OOGFOSGameMessage m;
     struct Message *r;
-    if (!d || !d->gamePort) return 0;
+    if (!d) return 0;
     reply = CreateMsgPort();
     if (!reply) return 0;
     memset(&m, 0, sizeof(m));
@@ -86,10 +122,11 @@ int OOGFOSGameDispatchDone(struct OOGFOSGameDispatch *d, LONG rc, LONG value)
     m.op = OOGFOS_DISPATCH_DONE;
     m.value = value;
     m.status = rc;
-    PutMsg(d->gamePort, &m.msg);
+    if (!sendTracked(d, &m)) { DeleteMsgPort(reply); return 0; }
     WaitPort(reply);
     r = GetMsg(reply);
     DeleteMsgPort(reply);
+    finishTracked(d);
     return r == &m.msg;
 }
 int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d)
