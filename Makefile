@@ -305,3 +305,10 @@ $(OUT)/oolite-ship-properties-68040: tests/oolite_ship_properties_gate.c src/Cor
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_ship_properties_gate.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: ship-properties
 ship-properties: $(OUT)/oolite-ship-properties-68040
+
+# Reject out-of-range and stale OOJSShip property operations without mutation.
+$(OUT)/oolite-ship-reject-68040: tests/oolite_ship_properties_reject_gate.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSShipProperties.h src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_ship_properties_reject_gate.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: ship-reject
+ship-reject: $(OUT)/oolite-ship-reject-68040
