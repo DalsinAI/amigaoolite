@@ -355,3 +355,10 @@ $(OUT)/oolite-js-ship-routes-68040: tests/oolite_js_game_dispatch_route_gate.c s
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_route_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-ship-routes
 js-ship-routes: $(OUT)/oolite-js-ship-routes-68040
+
+# Controlled game owner cancellation of queued JS property messages during seal.
+$(OUT)/oolite-js-cancel-68040: tests/oolite_js_game_dispatch_cancel_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSGameDispatch.h src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_cancel_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-cancel
+js-cancel: $(OUT)/oolite-js-cancel-68040
