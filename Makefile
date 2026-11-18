@@ -623,3 +623,13 @@ $(OUT)/oolite-gfos-glu-68040: tests/oolite_glu_error_gate.c
 .PHONY: oolite-core-ten-objects oolite-glu-native-gate
 oolite-core-ten-objects: oolite-core-nine-objects $(OUT)/OOOpenGL-gfos-68040.o
 oolite-glu-native-gate: $(OUT)/oolite-gfos-glu-68040
+
+# First truly visible Oolite-owned native 68040 window from original assets.
+# Separate splash preview, not a claim that the engine is linked.
+$(OUT)/oolite-native-splash-68040: tests/oolite_native_splash_view.c
+	@mkdir -p $(OUT)
+	@test -r $(GFOS_SDL3_HEADERS)/SDL3/SDL.h && test -r $(GFOS_SDL3_LIB_DIR)/libSDL3.a || { echo 'Need actual GFOpenGPU SDL3 kit header and stub library' >&2; exit 1; }
+	$(CROSS_CC) -std=gnu11 -O2 -Wall -Wextra -Werror -m68040 -m68881 -noixemul -I $(GFOS_SDL3_HEADERS) $< -L $(GFOS_SDL3_LIB_DIR) -lSDL3 -lm -lamiga -o $@
+GFOS_SDL3_LIB_DIR ?= ../gfopenrtg/build
+.PHONY: oolite-native-splash
+oolite-native-splash: $(OUT)/oolite-native-splash-68040
