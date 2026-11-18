@@ -1,0 +1,57 @@
+--- a/src/Core/GameController.m
++++ b/src/Core/GameController.m
+@@ -77,24 +77,54 @@
+ 
+ - (id)init
+ {
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_CONTROLLER enter\n", stdout); fflush(stdout);
++#endif
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_CONTROLLER before-singleton\n", stdout); fflush(stdout);
++#endif
+     if (sSharedController != nil) {
+         [self release];
+         [NSException raise:NSInternalInconsistencyException format:@"%s: expected only one GameController to exist at a time.", __PRETTY_FUNCTION__];
+     }
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_CONTROLLER before-super\n", stdout); fflush(stdout);
++#endif
+     if ((self = [super init])) {
+         _finishedLaunching = NO;
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_CONTROLLER before-date-interval\n", stdout); fflush(stdout);
++#endif
+         last_timeInterval = [NSDate timeIntervalSinceReferenceDate];
+         delta_t = 0.01; // one hundredth of a second
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_CONTROLLER before-user-defaults\n", stdout); fflush(stdout);
++#endif
++#if OOLITE_GFOS
++        /* GFOpenGNUstep RC1 native user defaults are not qualified at early
++         * constructor stage. Use original Oolite's built-in tick default. */
++        _animationTimerInterval = MINIMUM_ANIMATION_TICK;
++#else
+         _animationTimerInterval = [[NSUserDefaults standardUserDefaults] oo_doubleForKey:@"animation_timer_interval" defaultValue:MINIMUM_ANIMATION_TICK];
++#endif
+ 
+         // rather than seeding this with the date repeatedly, seed it
+         // once here at startup
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_CONTROLLER before-seed\n", stdout); fflush(stdout);
++#endif
+         ranrot_srand((uint32_t)[[NSDate date] timeIntervalSince1970]); // reset randomiser with current time
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_CONTROLLER before-splash-date\n", stdout); fflush(stdout);
++#endif
+         _splashStart = [[NSDate alloc] init];
+     }
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_CONTROLLER before-return\n", stdout); fflush(stdout);
++#endif
+     return self;
+ }
+ 
