@@ -113,3 +113,15 @@ $(OUT)/oolite-rng-cpu0-host: tests/oolite_rng_cpu0_baseline.c $(RNG_SRC)
 rng-cpu0-baseline: $(OUT)/oolite-rng-cpu0-68040
 rng-cpu0-host-check: $(OUT)/oolite-rng-cpu0-host
 	$(OUT)/oolite-rng-cpu0-host
+
+# Oolite numeric workload via Team 4's canonical gfopenmulticore.library.
+# Requires Team 4 header-only include root from gfopenmulticore main, NOT
+# vendored or copied into this repository. Real OMC_RunRange / OMC_AddGrant.
+OMC_INCLUDE ?= ../gfopenmulticore/include
+$(OUT)/oolite-rng-omc-range-68040: tests/oolite_rng_omc_range.c $(RNG_SRC)
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -std=gnu11 -O2 -m68040 -m68881 -noixemul \
+	-I $(OMC_INCLUDE) -I $(PREFIX)/m68k-amigaos/ndk-include.vendor \
+	-I $(RNG_INC) $^ -lm -o $@
+.PHONY: rng-omc-range
+rng-omc-range: $(OUT)/oolite-rng-omc-range-68040
