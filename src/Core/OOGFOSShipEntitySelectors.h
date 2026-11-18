@@ -6,6 +6,9 @@
 /* These numeric codes must match OOGFOS_SHIP_* in OOGFOSShipProperties.h. */
 enum { OOGFOS_OOJS_BOUNTY=1, OOGFOS_OOJS_HOME_SYSTEM=2,
        OOGFOS_OOJS_MAX_ESCORTS=3 };
+/* Game-owner-only ObjC ownership bridge, no ObjC runtime types in C. */
+void *OOGFOSShipObjCRetain(void *ship);
+void OOGFOSShipObjCRelease(void *ship);
 int OOGFOSShipObjCGetLong(void *ship, unsigned property, int32_t *out);
 int OOGFOSShipObjCSetLong(void *ship, unsigned property, int32_t value);
 #endif
