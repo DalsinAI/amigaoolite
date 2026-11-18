@@ -18,3 +18,7 @@ OOLITE_OXZ_REAL_ASSETS_END
 Native binary SHA256 `c0098df2ef6bce62330f1ae888cf9ed78a124d107b9b77fd2e2eab5caaf4f40a`.
 
 Qualification is of native extraction and Foundation data loading, not gameplay. Full OOOXZManager itself has not linked. Neither version compatibility nor dependency resolution nor user-facing install/update UI is validated.
+
+## Rebuilt-current-preflight qualification
+
+After requiring a root manifest in `OOOXZArchivePreflight.c`, the full `make oxz-real-assets` target was rebuilt and tested afresh in the same native 68040 guest. The test destination was changed to `SYS:Oolite/AddOns/GFOSRealAssetsRepro.oxp` to avoid overwriting its earlier successful installation. The rebuilt executable SHA-256 was `340a88b47b07ded2eda4266e2c6b011a6798fdc9c6a24e4978bb00f9d3a3e56d` and it passed with shell exit 0; exact stdout is `tests/evidence/oolite-oxz-real-assets-repro-guest.log`. This is the current source qualification, superseding the earlier standalone build fingerprint.
