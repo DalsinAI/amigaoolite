@@ -1,0 +1,6 @@
+OOLITE_ORIGINAL_DUAL_REPRO_BEGIN
+OOLITE_ORIGINAL_OBJC_EVENT bytes=3757 bound=1 methods=3 actions=4 rpc=4 completed=1 result=1 closed=1 status=PASS
+OOLITE_ORIGINAL_REBUILT_RC 0
+OOLITE_TWO_ORIGINAL_JS bytes=3757 jobs=0,0 done=2 rpc=8 calls=3,3 actions=4,5 results=1,1 closed=1 status=PASS
+OOLITE_TWO_ORIGINAL_REBUILT_RC 0
+OOLITE_ORIGINAL_DUAL_REPRO_END
