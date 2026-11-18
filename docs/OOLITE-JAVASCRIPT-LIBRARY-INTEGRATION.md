@@ -36,3 +36,20 @@ SYS:ACAgent/oolite-jslib-68040 failed returncode 77
 ## Repository merge status
 
 At audit time, `DalsinAI/amigaoolite` had one branch (`main`) and no open pull requests. Earlier verified code/evidence was already on main. This SDK adapter and its build/documentation are additional commits on main; there is no pending pull request to merge. Do not claim a full-game release or runnable Oolite from a compile-only JavaScript adapter.
+
+## Host-class seam (follow-up)
+
+`OOGFOSJSExposeHostClass` and `OOGFOSJSSetGlobalFunction` are now present in the actual native adapter. They call the canonical `JS_RegisterClass`, `JS_Wrap`, `JS_Global`, `JS_SetProp`, `JS_NewFunction` and `JS_Free` vectors. `tests/oolite_jslib_hostclass_gate.c` defines an Oolite-style ship probe with two integer fields and a script-callable `tonnage()` method, then evaluates `ship.cargo + ship.fuel + (ship.tonnage() - 42)` expecting 42. The host callback creates its result through `JS_NewLong` and does not call the Oolite process's libc from the script engine task. This verifies the **build contract**, not real game ship objects or callbacks executing in guest.
+
+The `make jslib-hostclass` target has cross-compiled and linked **byte-for-byte identically** with the direct GCC16 build, using canonical GFOpenSDK headers. Native executable SHA-256 `b0ad59fa5b99eb9e889af1b0f7195fe5eb9fa254ef8b75db9c25b3c75c814cad`. No new SDK code or separate runtime has been introduced. The class table, callback and native object must remain valid while a JS wrapper is live. Full Oolite entity ownership, GC release callbacks, locking and task-affinity still need integration and guest testing.
+
+## CI/release artifacts located and staged
+
+The owning `DalsinAI/gfopenbrowser` `jslib.yml` run **44203191890** completed successfully for revision `7538c366c…`; its published `javascript-library-68040` artifact contains `javascript.library` and the Shell `JS` program. The owning browser **v0.9.0-rc3** release includes `Libs/JavaScript/JavaScriptEngine` (about 20 MB), `Libs/json.library` and compatible ICU data. These specific binaries were copied into **only** the isolated Oolite guest folder-backed `DH0/Libs`, with ICU at `DH0/Libs/JavaScript/Unicode/icudt78b.dat`. SHA-256s as staged:
+
+- javascript.library: `a0a03528a7adc7e905e5cc32a4982c2d9108f52a12f040b0b964575a035d0921`
+- JavaScriptEngine: `389091de698479a37fffbbddd7cf2dc86fbe91d388d1eb49af6c0cbcbbb0c362`
+- json.library: `a2f1143e0c167a7cc8fa21f398f312daba4dc6c3752f16fc5e9ba0b940c310f2`
+- ICU data: `74dab575ac0bf687cb976cf84d25e608cd9cf2a19ce076cb1ec03bd46d9f1af0`
+
+An immediate retry failed to complete because the **AmigaChrome native emulator was delayed in kernel buffer/disk I/O**, with the guest Shell script queued/running but no new command evidence. The matching host/bridge were brought up on localhost ports 9141/9140, and the emulator process was observed in uninterruptible disk waits (`wait_on_buffer`, `balance_dirty_pages`, `folio_wait_bit_common`). This is a host-lab reliability observation, **not proof of a `javascript.library` execution failure or success**. Preserve the guest script and outputs before recovery, and do not mark either the expression or host-class test as guest-passed until it emits RC 0 from the booted system.
