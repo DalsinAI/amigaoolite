@@ -50,3 +50,7 @@ Environment: `CC=m68k-amigaos-gcc`, `CXX=m68k-amigaos-g++`, `AR=m68k-amigaos-ar`
 - Allocation and stack handling need real Amiga hardware and low-memory stress qualification; do not label the current binary a production release.
 
 Keep this JavaScript runtime initially CPU0-owned; numerical side jobs can use Team 4's canonical multicore API. No changes to their SDK.
+
+## Production architecture clarification
+
+The standalone SpiderMonkey 1.8.5 interpreter and `jsapi.h` test described in this document are **legacy upstream compatibility and independent 68k runtime experiments only**. The approved GFOS application architecture is to use the **existing shared `javascript.library` and `JavaScriptEngine` from `DalsinAI/gfopenbrowser`, with the canonical `DalsinAI/gfopensdk` LVO headers**. Do not embed, ship or link this standalone SpiderMonkey into the production Oolite application. Oolite's upstream JSAPI-heavy script bindings need a deliberate host-class/task/value adapter to the GFOS library, not a compile-only `jsapi.h` alias. See `docs/OOLITE-JAVASCRIPT-LIBRARY-INTEGRATION.md` and README for the authoritative integration decision. The native SpiderMonkey guest evidence remains valid for the separate experiment but is not a `javascript.library` test.
