@@ -1,0 +1,23 @@
+--- a/src/Core/OOOpenGLOnly.h
++++ b/src/Core/OOOpenGLOnly.h
+@@ -36,6 +36,12 @@
+ #endif // GL_GLEXT_PROTOTYPES
+ #endif // OOLITE_LINUX && !OOLITE_WINDOWS
+ 
++// GFOS: Oolite's geometry-only modules use native GFOpenGPU GL headers.
++// This does not assert that the full engine's GLU or SDL3 interfaces exist.
++#ifdef OOLITE_GFOS
++#include <GL/gl.h>
++#include <GL/glext.h>
++#else
+ // the standard SDL_opengl.h
+ #include <SDL3/SDL_opengl.h>
+ 
+@@ -60,6 +66,7 @@
+ #else
+ #define OO_MSAA_COLOR_RENDERBUFFER 0
+ #endif
++#endif /* OOLITE_GFOS */
+ 
+ #ifdef __DEFINED_GL_GLEXT_PROTOTYPES
+ #undef GL_GLEXT_PROTOTYPES
