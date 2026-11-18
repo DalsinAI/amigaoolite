@@ -320,3 +320,10 @@ $(OUT)/oolite-js-game-dispatch-68040: tests/oolite_js_game_dispatch_gate.c src/C
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-game-dispatch
 js-game-dispatch: $(OUT)/oolite-js-game-dispatch-68040
+
+# Reject invalid ship writes across actual JS task-to-game task Exec IPC.
+$(OUT)/oolite-js-game-reject-68040: tests/oolite_js_game_dispatch_reject_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSGameDispatch.h src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_reject_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-game-reject
+js-game-reject: $(OUT)/oolite-js-game-reject-68040
