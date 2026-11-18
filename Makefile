@@ -257,3 +257,12 @@ $(OUT)/oolite-real-js-68040: tests/oolite_real_js_guest_gate.c src/Core/OOGFOSJa
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_real_js_guest_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: real-js
 real-js: $(OUT)/oolite-real-js-68040
+
+# Exercise the original upstream oolite-default-ship-script.js shipSpawned
+# event using a canonical GFOS JS host class/native C legacy action callback.
+# Stage the script at SYS:Oolite/Scripts/ (do not vendor upstream assets).
+$(OUT)/oolite-ship-event-68040: tests/oolite_ship_script_event_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h $(GFOS_JS_INC)/libraries/javascript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_ship_script_event_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: ship-event
+ship-event: $(OUT)/oolite-ship-event-68040
