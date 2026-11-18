@@ -1,0 +1,4 @@
+OOLITE_OXZ_GUEST_BEGIN
+OOLITE_OXZ_PATHS managed=SYS:Oolite/ManagedAddOns addon=SYS:Oolite/AddOns extra=0 status=PASS
+OOLITE_OXZ_GUEST_RC 0
+OOLITE_OXZ_GUEST_END
