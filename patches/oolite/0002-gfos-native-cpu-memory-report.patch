@@ -1,0 +1,61 @@
+--- a/src/Core/OOCPUInfo.h
++++ b/src/Core/OOCPUInfo.h
+@@ -41,9 +41,11 @@
+ /*
+         Returns the CPU identifier string. Currently Windows and Linux only.
+ */
++#if (OOLITE_WINDOWS || OOLITE_LINUX || OOLITE_GFOS)
++NSString* OOCPUDescription(void);
+ #if (OOLITE_WINDOWS || OOLITE_LINUX)
+-NSString* OOCPUDescription(void);
+ void OOCPUID(int CPUInfo[4], int InfoType);
++#endif
+ 
+ typedef struct
+ {
+--- a/src/Core/OOCPUInfo.m
++++ b/src/Core/OOCPUInfo.m
+@@ -87,6 +87,10 @@
+ 
+     GetSystemInfo(&sysInfo);
+     sNumberOfCPUs = sysInfo.dwNumberOfProcessors;
++#elif OOLITE_GFOS
++    /* CPU0 owns the ObjC Universe. Extra cores are opt-in via the
++     * GFOpenMulticore API, not OS process-count autodetection. */
++    sNumberOfCPUs = 1;
+ #elif defined _SC_NPROCESSORS_ONLN
+     sNumberOfCPUs = sysconf(_SC_NPROCESSORS_ONLN);
+ #else
+@@ -102,6 +106,21 @@
+         OOCPUInfoInit();
+     return (sNumberOfCPUs != 0) ? sNumberOfCPUs : 1;
+ }
++
++#if OOLITE_GFOS
++#include "OOGFOSSystemInfo.h"
++NSString* OOCPUDescription(void)
++{
++    return @"m68k (GFOS AmigaOS)";
++}
++OOMemoryStatus OOSystemMemoryStatus(void)
++{
++    OOMemoryStatus m;
++    m.ooPhysicalMemory = (unsigned long long)OOGFOSMemoryTotalBytes() / (1024ULL * 1024ULL);
++    m.ooAvailableMemory = (unsigned long long)OOGFOSMemoryFreeBytes() / (1024ULL * 1024ULL);
++    return m;
++}
++#endif
+ 
+ #if (OOLITE_WINDOWS || OOLITE_LINUX)
+ #if OOLITE_LINUX
+--- a/src/Core/OOLogHeader.m
++++ b/src/Core/OOLogHeader.m
+@@ -81,6 +81,8 @@
+ #define OS_TYPE_STRING "Windows"
+ #elif OOLITE_LINUX
+ #define OS_TYPE_STRING "Linux" // Hmm, what about other unices?
++#elif OOLITE_GFOS
++#define OS_TYPE_STRING "AmigaOS (GFOS)"
+ #elif OOLITE_SDL
+ #define OS_TYPE_STRING "unknown SDL system"
+ #else
