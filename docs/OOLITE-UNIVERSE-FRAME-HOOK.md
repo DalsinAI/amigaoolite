@@ -9,10 +9,12 @@ The original `src/Core/Universe.m` has `-[Universe update:(OOTimeDelta)inDeltaT]
 The dedicated AmigaChrome AC090 AmigaOS 3.2.3 68040 guest executed the original-style JS property test via this new hook, with one packet per update and seven calls for six RPCs plus worker DONE. The native program, linked using canonical `javascript.library`, returned RC0:
 
 ```
-OOLITE_JS_FRAME_HOOK bound=1 post=0 completed=1 requests=6 writes=3 wrong_task=0 on_owner=0 sum=90 idle=2 empty_budget=0 zero_budget=-1 processed=7 installed=1 uninstalled=1 idle_frame=0 status=PASS
-OOLITE_FRAME_HOOK_RC 0
+OOLITE_JS_FRAME_HOOK bound=1 post=0 completed=1 requests=6 writes=3 wrong_task=0 on_owner=0 sum=90 idle=2 empty_budget=0 zero_budget=-1 processed=7 installed=1 uninstalled=1 idle_frame=0 foreign_frame=-1 foreign_unbind=0 status=PASS
+OOLITE_FRAME_HOOK_OWNER_RC 0
 ```
 
-`make js-game-frame-hook` and direct GCC 16.2.0 builds are byte-identical, SHA256 `db0cea32793af3b3e924ee9be7551738a435c8e12d58ac595d10c9c0c4783374`. Raw guest output: `tests/evidence/oolite-game-frame-hook-guest.log`.
+`make js-game-frame-hook` and direct GCC 16.2.0 builds are byte-identical, SHA256 `602fbe7233526801e432b0d3b38e8cafc0325f7ab27013b636fea1ad4c58b02e`. Raw guest output: `tests/evidence/oolite-game-frame-hook-guest.log`.
 
 Remaining blockers include full Oolite dependency build, actual `Universe` runtime, startup of GFOS scripting for live ship instances, renderer/audio integration, and bounded client-side waits. The message budget is a **count**, not a wall-time limit. A long-running callback may still delay the frame. The hook is OFF by default and must not be enabled for production until proper lifecycle management and the complete game build pass.
+
+The requalified guest test also invokes frame update and unbind from the **foreign JS task**: both refuse the operation (`foreign_frame=-1`, `foreign_unbind=0`) while the game-task owner remains correct. This is a guard test, not a claim of cross-task lifetime safety if a game owner crashes.
