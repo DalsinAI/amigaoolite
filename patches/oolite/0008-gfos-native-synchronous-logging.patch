@@ -1,0 +1,73 @@
+--- a/src/Core/OOLogOutputHandler.m
++++ b/src/Core/OOLogOutputHandler.m
+@@ -36,6 +36,11 @@
+ #include <SDL3/SDL_stdinc.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#if OOLITE_GFOS
++#include <sys/stat.h>
++#include <errno.h>
++static FILE *sGFOSLogFile = NULL;
++#endif
+ 
+ #undef NSLog // We need to be able to call the real NSLog.
+ 
+@@ -113,6 +118,20 @@
+     if (sInited)
+         return;
+ 
++#if OOLITE_GFOS
++    /* GFOpenGNUstep's async logger depends on NSConditionLock/NSRunLoop,
++     * which is not yet qualified in the native 68040 guest. Preserve real
++     * logging through libc and avoid introducing a background ObjC task. */
++    if (mkdir("Logs", 0777) != 0 && errno != EEXIST)
++        fputs("Oolite GFOS: Logs directory unavailable; stderr fallback\n", stderr);
++    sGFOSLogFile = fopen("Logs/Latest.log", "a");
++    sLogger = nil;
++    sWriteToStderr = YES;
++    sInited = YES;
++    atexit(OOLogOutputHandlerClose);
++    return;
++#endif
++
+ #if SET_CRASH_REPORTER_INFO
+     InitCrashReporterInfo();
+ #endif
+@@ -146,6 +165,15 @@
+ 
+ void OOLogOutputHandlerClose(void)
+ {
++#if OOLITE_GFOS
++    if (sGFOSLogFile != NULL) {
++        fflush(sGFOSLogFile);
++        fclose(sGFOSLogFile);
++        sGFOSLogFile = NULL;
++    }
++    sInited = NO;
++    return;
++#endif
+     if (sInited) {
+         sWriteToStderr = YES;
+         sInited = NO;
+@@ -178,6 +206,21 @@
+ 
+ void OOLogOutputHandlerPrint(NSString* string)
+ {
++#if OOLITE_GFOS
++    const char *line = [string UTF8String];
++    if (line == NULL) return;
++    if (sGFOSLogFile != NULL) {
++        fputs(line, sGFOSLogFile);
++        fputc('\n', sGFOSLogFile);
++        fflush(sGFOSLogFile);
++    }
++    if (sWriteToStdout) {
++        fputs(line, stdout); fputc('\n', stdout); fflush(stdout);
++    } else if (sWriteToStderr) {
++        fputs(line, stderr); fputc('\n', stderr); fflush(stderr);
++    }
++    return;
++#endif
+     if (sInited && sLogger != nil && !sWriteToStdout)
+         [sLogger asyncLogMessage:string];
+ 
