@@ -1,0 +1,85 @@
+--- a/src/Core/OOPListParsing.m
++++ b/src/Core/OOPListParsing.m
+@@ -23,20 +23,29 @@
+ */
+ 
+ #import "OOPListParsing.h"
++#if OOLITE_GFOS
++/* Early boot: OXZ integration is deferred until the actual archive manager
++ * is built. This backend handles real mounted AmigaDOS resource files. */
++#import <Foundation/Foundation.h>
++#include <stdio.h>
++#else
+ #import "NSDataOOExtensions.h"
+ #import "OOLogging.h"
+ #import "OOStringParsing.h"
+ #import "Universe.h"
++#endif
+ #include <ctype.h>
+ #include <string.h>
+ 
+-#if !OOLITE_GNUSTEP
++#if !OOLITE_GNUSTEP || OOLITE_GFOS
+ #define NO_DYNAMIC_PLIST_DTD_CHANGE
+ #endif
+ 
++#if !OOLITE_GFOS
+ static NSString* const kOOLogPListFoundationParseError = @"plist.parse.failed";
+ static NSString* const kOOLogPListWrongType = @"plist.wrongType";
+ static NSString* const kOOLogPListInformation = @"plist.information";
++#endif
+ 
+ #ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
+ static NSData* ChangeDTDIfApplicable(NSData* data);
+@@ -52,9 +61,11 @@
+ 
+     if (whereFrom == nil)
+         whereFrom = @"<data in memory>";
++#if !OOLITE_GFOS
+     if (UNIVERSE != nil) {
+         OOLog(kOOLogPListInformation, @"Parsing %@ as a property list.", whereFrom);
+     }
++#endif
+ 
+     if (data != nil) {
+ #ifndef NO_DYNAMIC_PLIST_DTD_CHANGE
+@@ -73,7 +84,11 @@
+             if (whereFrom == nil)
+                 whereFrom = @"<data in memory>";
+ 
++#if OOLITE_GFOS
++            fprintf(stderr, "GFOS Oolite plist parse failure\n");
++#else
+             OOLog(kOOLogPListFoundationParseError, @"Failed to parse %@ as a property list.\n%@", whereFrom, error);
++#endif
+         }
+     }
+ 
+@@ -172,7 +187,15 @@
+ */
+ static NSData* CopyDataFromFile(NSString* path)
+ {
++#if OOLITE_GFOS
++    /* Strict plain-file path until OXZ archive support is integrated.
++     * Do not silently treat an OXZ virtual path as a regular file. */
++    if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxz"])
++        return nil;
++    return [[NSData alloc] initWithContentsOfFile:path];
++#else
+     return [[NSData oo_dataWithOXZFile:path] retain];
++#endif
+ #if 0
+ // without OXZ extension. Code to be deleted once everything is working
+ #if OOLITE_MAC_OS_X
+@@ -226,7 +249,11 @@
+ static id ValueIfClass(id value, Class class)
+ {
+     if (value != nil && ![value isKindOfClass:class]) {
++#if OOLITE_GFOS
++        fprintf(stderr, "GFOS Oolite plist type mismatch\n");
++#else
+         OOLog(kOOLogPListWrongType, @"Property list is wrong type - expected %@, got %@.", class, [value class]);
++#endif
+         value = nil;
+     }
+     return value;
