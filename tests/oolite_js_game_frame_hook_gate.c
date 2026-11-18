@@ -29,11 +29,13 @@ static int setShip(void *ptr, unsigned key, LONG value) {
     }
     s->writes++;return 1;
 }
-struct Job { struct OOGFOSGameDispatch *dispatch; struct Task *gameTask; LONG callbacksOnOwner; };
+struct Job { struct OOGFOSGameDispatch *dispatch; struct Task *gameTask; LONG callbacksOnOwner; LONG foreignFrameResult; LONG foreignBindResult; };
 static LONG scriptJob(JSTask task, APTR userdata) {
     struct Job *job=(struct Job *)userdata;
     JSValue result=NULL;
     LONG value=-1;
+    job->foreignFrameResult=OOGFOSGameFrameUpdate();
+    job->foreignBindResult=OOGFOSGameFrameBind(NULL,0);
     LONG rc=JS_Evaluate(task,
         (CONST_STRPTR)"ship.bounty=44;ship.homeSystem=42;ship.maxEscorts=4;ship.bounty+ship.homeSystem+ship.maxEscorts;",
         -1,(CONST_STRPTR)"oolite-game-dispatch.js", &result);
@@ -68,6 +70,7 @@ int main(void) {
     handle.valid=1;
     bound=OOGFOSJSExposeHostClass(&js,OOGFOSShipClass(),&handle,(CONST_STRPTR)"ship");
     job.dispatch=&dispatch;job.gameTask=ship.ownerTask;job.callbacksOnOwner=-1;
+    job.foreignFrameResult=-2;job.foreignBindResult=-2;
     if(bound) post=JS_Post(js.task,scriptJob,&job,0);
     if(bound && post==JSERR_OK) {
         do {
@@ -77,14 +80,14 @@ int main(void) {
         } while (dispatch.completions==0 && ret==1);
     }
     uninstalled=OOGFOSGameFrameBind(NULL,0);
-    ok=unbound==0 && idleFrame==0 && installed && uninstalled && bound && post==JSERR_OK && empty==2 && emptyBudget==0 && invalidBudget==-1 && processed==7 && dispatch.completions==1 &&
+    ok=unbound==0 && idleFrame==0 && job.foreignFrameResult==-1 && job.foreignBindResult==0 && installed && uninstalled && bound && post==JSERR_OK && empty==2 && emptyBudget==0 && invalidBudget==-1 && processed==7 && dispatch.completions==1 &&
         dispatch.resultCode==JSERR_OK && dispatch.result==90 &&
         ship.writes==3 && ship.bounty==44 && ship.home==42 && ship.escorts==4 &&
         ship.wrongTask==0 && job.callbacksOnOwner==0 && dispatch.requests==6;
-    printf("OOLITE_JS_FRAME_HOOK bound=%d post=%ld completed=%lu requests=%lu writes=%ld wrong_task=%ld on_owner=%ld sum=%ld idle=%d empty_budget=%ld zero_budget=%ld processed=%d installed=%d uninstalled=%d idle_frame=%ld status=%s\n",
+    printf("OOLITE_JS_FRAME_HOOK bound=%d post=%ld completed=%lu requests=%lu writes=%ld wrong_task=%ld on_owner=%ld sum=%ld idle=%d empty_budget=%ld zero_budget=%ld processed=%d installed=%d uninstalled=%d idle_frame=%ld foreign_frame=%ld foreign_unbind=%ld status=%s\n",
         bound,(long)post,(unsigned long)dispatch.completions,(unsigned long)dispatch.requests,
         (long)ship.writes,(long)ship.wrongTask,(long)job.callbacksOnOwner,
-        (long)dispatch.result,empty,(long)emptyBudget,(long)invalidBudget,processed,installed,uninstalled,(long)idleFrame,ok?"PASS":"FAIL");fflush(stdout);
+        (long)dispatch.result,empty,(long)emptyBudget,(long)invalidBudget,processed,installed,uninstalled,(long)idleFrame,(long)job.foreignFrameResult,(long)job.foreignBindResult,ok?"PASS":"FAIL");fflush(stdout);
     OOGFOSShipInvalidate(&handle);
     OOGFOSJSClose(&js);
     OOGFOSGameDispatchClose(&dispatch);
