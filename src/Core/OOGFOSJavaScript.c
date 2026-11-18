@@ -60,3 +60,39 @@ void OOGFOSJSClose(struct OOGFOSJS *s)
     s->library = NULL;
     JavaScriptBase = NULL;
 }
+
+int OOGFOSJSExposeHostClass(struct OOGFOSJS *s,
+                           const struct JSHostClass *hostClass,
+                           APTR object, CONST_STRPTR globalName)
+{
+    JSClass klass;
+    JSValue global = NULL, wrapper = NULL;
+    LONG code = JSERR_BADARGS;
+    if (!s || !s->task || !hostClass || !object || !globalName) return 0;
+    JavaScriptBase = s->library;
+    klass = JS_RegisterClass(s->task, hostClass);
+    if (!klass) return 0;
+    wrapper = JS_Wrap(s->task, klass, object);
+    if (!wrapper) return 0;
+    global = JS_Global(s->task);
+    if (global) code = JS_SetProp(s->task, global, globalName, wrapper);
+    if (global) JS_Free(s->task, global);
+    JS_Free(s->task, wrapper);
+    return code == JSERR_OK;
+}
+
+int OOGFOSJSSetGlobalFunction(struct OOGFOSJS *s,
+                             CONST_STRPTR name, JSMethodFunc callback, APTR data)
+{
+    JSValue global = NULL, func = NULL;
+    LONG code = JSERR_BADARGS;
+    if (!s || !s->task || !name || !callback) return 0;
+    JavaScriptBase = s->library;
+    func = JS_NewFunction(s->task, name, callback, data);
+    if (!func) return 0;
+    global = JS_Global(s->task);
+    if (global) code = JS_SetProp(s->task, global, name, func);
+    if (global) JS_Free(s->task, global);
+    JS_Free(s->task, func);
+    return code == JSERR_OK;
+}
