@@ -4,6 +4,8 @@
 
 ## Real guest stdout and result
 
+The final guest test also uses `NSFileManager contentsOfDirectoryAtPath:error:` to enumerate the mounted `SYS:Oolite/Config` directory and returned `OOLITE_CONFIG_ENUMERATE files=8 status=PASS`. The guest completed with `OOLITE_REAL_CONFIG_ENUM_RC 0`.
+
 The test uses native `NSFileManager fileExistsAtPath:`, `NSData dataWithContentsOfFile:` and `NSPropertyListSerialization propertyListFromData:mutabilityOption:format:errorDescription:`. It verifies successful OpenStep (format 1) parsing, expected Objective-C array/dictionary types and reference entry counts, including Oolite's **intentionally empty/deprecated** pirate-victim-roles list. The guest's AmigaDOS paths are `SYS:Oolite/Config/<filename>` on the mounted System volume.
 
 | Source file | Bytes | Entries | Result |
@@ -17,11 +19,11 @@ The test uses native `NSFileManager fileExistsAtPath:`, `NSData dataWithContents
 | descriptions.plist | 110,079 | 1,186 | PASS |
 | planetinfo.plist | 2,713,698 | 2,050 | PASS |
 
-**Actual guest:** `OOLITE_REAL_ASSETS_PASS files=8 failed=0`, shell `OOLITE_REAL_8ASSETS_RC 0`; raw `tests/evidence/oolite-8-real-assets-guest.log`. `planetinfo.plist` takes longer than the smaller data files, but finished normally. This is real UTF-8/OpenStep parsing (with GNUstep's historic parser), not a placeholder, host-side parse or synthetic array.
+**Actual guest:** `OOLITE_REAL_ASSETS_PASS files=8 failed=0`, shell `OOLITE_REAL_CONFIG_ENUM_RC 0`; raw `tests/evidence/oolite-8-real-assets-guest.log`. `planetinfo.plist` takes longer than the smaller data files, but finished normally. This is real UTF-8/OpenStep parsing (with GNUstep's historic parser), not a placeholder, host-side parse or synthetic array.
 
 ## Reproduction and scope
 
-The `real-assets` Makefile target builds `tests/oolite_actual_plist_probe.m` as a native AmigaOS loadseg binary using the same GCC16, GFOpenGNUstep Base, libobjc and libffi as the working RC1.1. It reproducibly produced SHA256 `04a2f277f32b6762a701283582d5a9e9693b6b471d29b39e143345fe4e0569a9`, matching the actual guest-tested binary. The original OpenStep `.plist` files must be downloaded from the pinned upstream commit and staged at `SYS:Oolite/Config/` **on a verified mounted guest volume** before running `SYS:ACAgent/oolite-real-assets-68040`. Do not assume a host-side DH1 folder mounts DH1: (see `RESOURCE-FILESYSTEM-GUEST.md`).
+The `real-assets` Makefile target builds `tests/oolite_actual_plist_probe.m` as a native AmigaOS loadseg binary using the same GCC16, GFOpenGNUstep Base, libobjc and libffi as the working RC1.1. It reproducibly produced SHA256 `47a97ee53ff510a514922ae292d6637a11a97d3bc2c48efa7cc987168a6cf9bb`, matching the actual guest-tested binary. The original OpenStep `.plist` files must be downloaded from the pinned upstream commit and staged at `SYS:Oolite/Config/` **on a verified mounted guest volume** before running `SYS:ACAgent/oolite-real-assets-68040`. Do not assume a host-side DH1 folder mounts DH1: (see `RESOURCE-FILESYSTEM-GUEST.md`).
 
 ## What's not yet working
 
