@@ -1,0 +1,25 @@
+--- a/src/Core/OOOXZManager.m
++++ b/src/Core/OOOXZManager.m
+@@ -27,6 +27,7 @@
+ #import "OOOXZManager.h"
+ #if OOLITE_GFOS
+ #include "OOOXZPathSafety.h"
++#include "OOOXZArchivePreflight.h"
+ #endif
+ #if OOLITE_GFOS
+ #include <stdlib.h>
+@@ -1909,6 +1910,14 @@
+         return [extractionLog autorelease];
+     }
+     const char* zipname = [oxzfile UTF8String];
++#if OOLITE_GFOS
++    /* Validate the complete archive before creating any directories or files. */
++    if (!OOGFOSPreflightOXZ(zipname, NULL)) {
++        OOLog(kOOOXZErrorLog, @"Rejected unsafe OXZ archive before extraction");
++        [extractionLog appendString:DESC(@"oolite-oxzmanager-extract-log-bad-original")];
++        return [extractionLog autorelease];
++    }
++#endif
+     unzFile uf = NULL;
+     uf = unzOpen64(zipname);
+     if (uf == NULL) {
