@@ -1,0 +1,13 @@
+--- a/src/SDL/EXRSnapshotSupport/miniz.c
++++ b/src/SDL/EXRSnapshotSupport/miniz.c
+@@ -2924,7 +2924,9 @@
+ #define MZ_FCLOSE fclose
+ #define MZ_FREAD fread
+ #define MZ_FWRITE fwrite
+-#ifdef __STRICT_ANSI__
++#if defined(__STRICT_ANSI__) || defined(OOLITE_GFOS)
++/* AmigaOS libc does not declare ftello/fseeko; use supported stdio.
++ * AmigaOS standard file offsets are limited to 32 bits on this backend. */
+ #define MZ_FTELL64 ftell
+ #define MZ_FSEEK64 fseek
+ #else
