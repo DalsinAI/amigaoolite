@@ -12,6 +12,8 @@ int main(int argc, char **argv)
     SDL_Texture *texture = NULL;
     SDL_Surface *surface = NULL;
     const char *path = argc > 1 ? argv[1] : "SYS:Oolite/Resources/Images/splash.bmp";
+    const char *capture = argc > 2 ? argv[2] : NULL;
+    int captured = 0;
     int rc = 1;
     int ticks = 0;
     const int width = 640, height = 480;
@@ -51,9 +53,26 @@ int main(int argc, char **argv)
             printf("OOLITE_SPLASH RENDER_FAIL %s\n",SDL_GetError());
             goto done;
         }
+        if (capture && !captured && ticks == 10) {
+            SDL_Surface *image = SDL_RenderReadPixels(renderer, NULL);
+            if (!image) {
+                printf("OOLITE_SPLASH CAPTURE_FAIL %s\n", SDL_GetError());
+                goto done;
+            }
+            if (!SDL_SaveBMP(image, capture)) {
+                printf("OOLITE_SPLASH SAVE_FAIL %s\n", SDL_GetError());
+                SDL_DestroySurface(image);
+                goto done;
+            }
+            SDL_DestroySurface(image);
+            captured = 1;
+            printf("OOLITE_SPLASH CAPTURED=%s\n", capture);
+            fflush(stdout);
+        }
         SDL_RenderPresent(renderer);
         SDL_Delay(50);
     }
+    if (capture && !captured) goto done;
     rc=0;
 done:
     if (texture) SDL_DestroyTexture(texture);
