@@ -24,6 +24,14 @@
 #include "OOGFOSShipEntitySelectors.h"
 #include <limits.h>
 
+void *OOGFOSShipObjCRetain(void *ship)
+{
+    return ship ? [(id)ship retain] : (void *)0;
+}
+void OOGFOSShipObjCRelease(void *ship)
+{
+    if (ship) [(id)ship release];
+}
 int OOGFOSShipObjCGetLong(void *raw,unsigned property,int32_t *out)
 {
     ShipEntity *ship=(ShipEntity *)raw;
