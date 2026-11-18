@@ -290,3 +290,10 @@ $(OUT)/oolite-js-identity-68040: tests/oolite_jslib_identity_gate.c src/Core/OOG
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_jslib_identity_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-identity
 js-identity: $(OUT)/oolite-js-identity-68040
+
+# JS host-object release on script task shutdown (does not prove in-task GC).
+$(OUT)/oolite-js-release-68040: tests/oolite_jslib_release_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h $(GFOS_JS_INC)/libraries/javascript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_jslib_release_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-release
+js-release: $(OUT)/oolite-js-release-68040
