@@ -17,7 +17,8 @@ static int sendTracked(struct OOGFOSGameDispatch *d, struct OOGFOSGameMessage *m
 {
     int sent = 0;
     Forbid();
-    if (d->gamePort && FindTask(NULL) != d->gameTask) {
+    if (d->gamePort && FindTask(NULL) != d->gameTask &&
+        (!d->sealed || m->op == OOGFOS_DISPATCH_DONE)) {
         d->inFlight++;
         PutMsg(d->gamePort, &m->msg);
         sent = 1;
@@ -68,6 +69,15 @@ int OOGFOSGameDispatchInit(struct OOGFOSGameDispatch *d, void *owner,
     d->ownerBackend = ownerBackend;
     d->gamePort = CreateMsgPort();
     return d->gamePort != NULL;
+}
+int OOGFOSGameDispatchSeal(struct OOGFOSGameDispatch *d)
+{
+    int ok = 0;
+    if (!d || FindTask(NULL) != d->gameTask) return 0;
+    Forbid();
+    if (d->gamePort) { d->sealed = 1; ok = 1; }
+    Permit();
+    return ok;
 }
 int OOGFOSGameDispatchTryClose(struct OOGFOSGameDispatch *d)
 {
