@@ -1,0 +1,7 @@
+OOLITE_WORLD_REPRO_BEGIN
+OOLITE_WORLD_SCRIPT name=oolite-tutorial bytes=41798 rc=0 check=1 status=PASS
+OOLITE_WORLD_SCRIPT name=oolite-populator bytes=73124 rc=0 check=1 status=PASS
+OOLITE_WORLD_SCRIPT name=oolite-conditions bytes=3335 rc=0 check=1 status=PASS
+OOLITE_WORLD_SCRIPT_TOTAL passed=3 total=3 status=PASS
+OOLITE_WORLD_REPRO_RC 0
+OOLITE_WORLD_REPRO_END
