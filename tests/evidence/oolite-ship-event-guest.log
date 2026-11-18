@@ -1,0 +1,4 @@
+OOLITE_SHIP_EVENT_BEGIN
+OOLITE_SHIP_EVENT bytes=3757 opened=1 wrapped=1 calls=1 actions=1 removed=1 rc=0 status=PASS
+OOLITE_SHIP_EVENT_RC 0
+OOLITE_SHIP_EVENT_END
