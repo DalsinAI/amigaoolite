@@ -8,11 +8,22 @@
 #include "OOGFOSShipProperties.h"
 
 enum { OOGFOS_DISPATCH_GET=1, OOGFOS_DISPATCH_SET=2, OOGFOS_DISPATCH_DONE=3 };
+struct OOGFOSGameRouteBackend {
+    int (*getLong)(void *owner, ULONG token, unsigned property, LONG *value);
+    int (*setLong)(void *owner, ULONG token, unsigned property, LONG value);
+};
+struct OOGFOSGameDispatch;
+/* Caller-owned, stable while wrappers may call it; never pass ShipEntity here. */
+struct OOGFOSGameShipProxy {
+    struct OOGFOSGameDispatch *dispatch;
+    ULONG token;
+};
 struct OOGFOSGameDispatch {
     struct MsgPort *gamePort;
     struct Task *gameTask; /* only owner may service or destroy the port */
     void *owner;
     const struct OOGFOSShipBackend *ownerBackend;
+    const struct OOGFOSGameRouteBackend *routeBackend;
     ULONG inFlight; /* protected by Forbid/Permit with gamePort */
     ULONG sealed; /* stop new GET/SET; allow DONE for queued JS jobs */
     ULONG requests;
@@ -28,6 +39,10 @@ int OOGFOSGameDispatchSeal(struct OOGFOSGameDispatch *d);
 int OOGFOSGameDispatchTryClose(struct OOGFOSGameDispatch *d);
 /* Compatibility wrapper: does NOT close if there are outstanding messages. */
 void OOGFOSGameDispatchClose(struct OOGFOSGameDispatch *d);
+/* Routed mode: identity is a game-task-validated token, not a cross-task pointer. */
+int OOGFOSGameDispatchInitRouted(struct OOGFOSGameDispatch *d, void *owner,
+                                const struct OOGFOSGameRouteBackend *backend);
+const struct OOGFOSShipBackend *OOGFOSGameShipProxyBackend(void);
 int OOGFOSGameDispatchGet(void *state, unsigned property, LONG *value);
 int OOGFOSGameDispatchSet(void *state, unsigned property, LONG value);
 /* Pump ONE message on the owner's game task. Return 1 on job completion. */
