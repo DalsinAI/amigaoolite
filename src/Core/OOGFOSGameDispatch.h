@@ -28,6 +28,7 @@ struct OOGFOSGameDispatch {
     ULONG sealed; /* stop new GET/SET; allow DONE for queued JS jobs */
     ULONG requests;
     ULONG completions;
+    ULONG cancelled;
     LONG result;
     LONG resultCode;
 };
@@ -36,6 +37,9 @@ int OOGFOSGameDispatchInit(struct OOGFOSGameDispatch *d, void *owner,
 /* Owner-task close: 1 if port closed, 0 if requests still in-flight/wrong task. */
 /* Owner task can stop admitting new property operations without dropping DONE. */
 int OOGFOSGameDispatchSeal(struct OOGFOSGameDispatch *d);
+/* Owner seals admission, rejects queued properties by replying status=0,
+ * preserves queued worker completion packets. Does NOT stop running callbacks. */
+LONG OOGFOSGameDispatchCancelQueued(struct OOGFOSGameDispatch *d);
 int OOGFOSGameDispatchTryClose(struct OOGFOSGameDispatch *d);
 /* Compatibility wrapper: does NOT close if there are outstanding messages. */
 void OOGFOSGameDispatchClose(struct OOGFOSGameDispatch *d);
