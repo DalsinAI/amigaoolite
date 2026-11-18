@@ -505,3 +505,10 @@ $(OUT)/oolite-js-game-poll-68040: tests/oolite_js_game_dispatch_poll_gate.c src/
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_poll_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-game-poll
 js-game-poll: $(OUT)/oolite-js-game-poll-68040
+
+# Frame-loop-safe bounded GFOS JS game owner message pump.
+$(OUT)/oolite-js-frame-budget-68040: tests/oolite_js_game_dispatch_frame_budget_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSGameDispatch.h src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_frame_budget_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-frame-budget
+js-frame-budget: $(OUT)/oolite-js-frame-budget-68040
