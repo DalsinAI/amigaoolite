@@ -1,12 +1,13 @@
 /* Optional Oolite Universe frame integration for shared GFOS javascript.library.
- * GPL-2.0-or-later. Owner task retains and shuts down dispatcher. */
+ * GPL-2.0-or-later. Owner task retains and shuts down dispatcher.
+ * This header must be safe for Objective-C: never include AmigaOS exec/types.h
+ * here, because it defines BOOL as 16-bit while objc/objc.h uses 8-bit BOOL.
+ */
 #ifndef OOLITE_GFOS_GAME_FRAME_H
 #define OOLITE_GFOS_GAME_FRAME_H
-#include "OOGFOSGameDispatch.h"
-/* Must be invoked on the owner task after the dispatch has been initialized.
- * A NULL dispatch uninstalls. Never free a dispatch until uninstalled and
- * all worker callbacks have joined, and the dispatch is safely closed. */
-int OOGFOSGameFrameBind(struct OOGFOSGameDispatch *dispatch, ULONG budget);
-/* Called at the start of -[Universe update:]. Returns -1 if wrong task. */
-LONG OOGFOSGameFrameUpdate(void);
+struct OOGFOSGameDispatch;
+/* m68k AmigaOS ULONG/LONG are 32-bit unsigned/signed int. Keep ABI stable
+ * without dragging Exec's BOOL typedef into Objective-C Universe.m. */
+int OOGFOSGameFrameBind(struct OOGFOSGameDispatch *dispatch, unsigned int budget);
+int OOGFOSGameFrameUpdate(void);
 #endif
