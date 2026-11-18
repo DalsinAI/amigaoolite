@@ -54,3 +54,18 @@ OOLITE_OMC_BOARD_ONLY_RC 0
 ```
 
 Exact evidence: `tests/evidence/oolite-omc-boardonly-guest.log`. The board-only flag worked; the output matched CPU0. No PiStorm hardware performance claim.
+
+## Final strict-placement gate
+
+A final strengthened source revision now treats a `BOARD_ONLY` job returning `omj_Where!=OMCW_BOARD` as a **test failure**, not merely a diagnostic. The cross-compiled binary SHA256 is `28a1aafb2a6053eb67aa5ce87f21f6eaba013d7da178ac63dbbc8d0c9b77e949`. The actual native guest ran that new build and passed:
+
+```
+OOLITE_OMC_LIBRARY version=0 revision=6
+OOLITE_OMC_CPU0 call=0 status=0 where=1 failed=16 cores=10 hash=081dedd2 ticks=113 tick_hz=1000
+OOLITE_OMC_ANY call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=26 tick_hz=1000
+OOLITE_OMC_BOARD_ONLY call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=29 tick_hz=1000
+OOLITE_OMC_PASS errors=0
+OOLITE_OMC_FINAL_GATE_RC 0
+```
+
+This latest test is the authoritative source build and raw test output `tests/evidence/oolite-omc-final-guest.log`. Earlier guest logs remain for cold-start and repeated performance context. Full game rendering is still NOT tested.
