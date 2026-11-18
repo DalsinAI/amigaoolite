@@ -63,6 +63,8 @@ int OOGFOSGameDispatchGet(void *state, unsigned property, LONG *value);
 int OOGFOSGameDispatchSet(void *state, unsigned property, LONG value);
 /* Pump ONE message on the owner's game task. Return 1 on job completion. */
 int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d);
+/* Frame-loop-safe nonblocking pump: 2 empty, 0 RPC, 1 DONE, -1 error. */
+int OOGFOSGameDispatchPoll(struct OOGFOSGameDispatch *d);
 /* Signals completion from javascript.library JS_Post callback task. */
 int OOGFOSGameDispatchDone(struct OOGFOSGameDispatch *d, LONG rc, LONG value);
 const struct OOGFOSShipBackend *OOGFOSGameDispatchBackend(void);
