@@ -171,3 +171,12 @@ $(OUT)/oolite-math-68040: tests/oolite_math_68040_gate.c $(UPSTREAM)/src/Core/OO
 	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -DOOLITE_GFOS=1 -m68040 -m68881 -noixemul -I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(UPSTREAM)/src/Core/Tables -I $(PREFIX)/m68k-amigaos/include -I $(OXZ_DEPS)/include tests/oolite_math_68040_gate.c -L $(OXZ_DEPS)/lib -L $(GFOS_LIBNIX_LIB) -lm -lobjc -o $@
 .PHONY: math-68040
 math-68040: $(OUT)/oolite-math-68040
+
+# Extract and parse *real* original upstream Oolite Config/shipdata.plist from
+# an OXZ assembled locally from the pinned source. The OXZ asset is not
+# committed here; stage as SYS:Oolite/real-assets.oxz for guest qualification.
+$(OUT)/oolite-oxz-real-assets-68040: tests/oolite_oxz_real_assets_gate.m $(OUT)/oolite-oxz-extraction-68040
+	$(CROSS_CC) -O2 -m68040 -m68881 -noixemul -I $(GFOS_BASE_DIR)/Headers -I src/Core -c tests/oolite_oxz_real_assets_gate.m -o $(OUT)/oolite_oxz_real_assets_gate.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite_oxz_real_assets_gate.o $(OUT)/OOOXZGFOSExtraction.o $(OUT)/OOOXZArchivePreflight.o $(OUT)/oolite_oxz_ioapi.o $(OUT)/oolite_oxz_unzip.o -L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive $(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: oxz-real-assets
+oxz-real-assets: $(OUT)/oolite-oxz-real-assets-68040
