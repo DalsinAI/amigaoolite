@@ -327,3 +327,10 @@ $(OUT)/oolite-js-game-reject-68040: tests/oolite_js_game_dispatch_reject_gate.c 
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_reject_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-game-reject
 js-game-reject: $(OUT)/oolite-js-game-reject-68040
+
+# Two independent JavaScript task heaps issuing concurrent Exec RPCs to one game owner.
+$(OUT)/oolite-js-two-tasks-68040: tests/oolite_js_game_dispatch_two_tasks_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSGameDispatch.h src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_two_tasks_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-two-tasks
+js-two-tasks: $(OUT)/oolite-js-two-tasks-68040
