@@ -547,3 +547,22 @@ $(OUT)/Universe-gfos-68040.o: $(UNIVERSE_WORK)/src/Core/Universe.m src/Core/OOGF
 	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -fobjc-exceptions -DNDEBUG -m68040 -m68881 -noixemul -DOOLITE_GFOS=1 -DOOLITE_BIG_ENDIAN=1 -DGL_GLEXT_PROTOTYPES=1 -DOOLITE_GFOS_GAME_DISPATCH=1 -DGNUSTEP_BASE_LIBRARY=1 -I src/Core -I $(GFOS_JS_INC) -I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(UPSTREAM)/src/Core/Tables -I $(UPSTREAM)/src/Core/Entities -I $(UPSTREAM)/src/Core/Materials -I $(UPSTREAM)/src/Core/Scripting -I $(UPSTREAM)/src/Core/Debug -I $(UPSTREAM)/src/SDL -I $(PREFIX)/m68k-amigaos/ndk-include.vendor -I $(PREFIX)/m68k-amigaos/include -I $(PREFIX)/m68k-amigaos/port-deps/include -I $(GFOS_JS185_HEADERS) -I $(GFOS_SDL3_HEADERS) -I $(GFOS_OPENAL_HEADERS) -c $< -o $@
 .PHONY: universe-gfos-object
 universe-gfos-object: $(OUT)/Universe-gfos-68040.o
+
+# Four real original Oolite engine application objects (NOT a full link).
+# Uses pinned GFOpenGPU SDL3/OpenAL headers and target SpiderMonkey 1.8.5.
+GFOS_OOLITE_ID ?= 1.93.1-255
+GFOS_OOLITE_BUILDER ?= AmiCradle Team
+GFOS_OOLITE_DATE ?= 2026-11-18
+GFOS_OOLITE_OBJFLAGS := -x objective-c -std=gnu11 -O2 -fobjc-exceptions -DNDEBUG -m68040 -m68881 -noixemul -DOOLITE_GFOS=1 -DOOLITE_BIG_ENDIAN=1 -DGL_GLEXT_PROTOTYPES=1 -DGNUSTEP_BASE_LIBRARY=1 -DOO_VERSION_FULL='"$(GFOS_OOLITE_ID)"' -DOO_BUILDER='"$(GFOS_OOLITE_BUILDER)"' -DOO_BUILD_DATE='"$(GFOS_OOLITE_DATE)"'
+GFOS_OOLITE_INCLUDES := -I src/Core -I $(GFOS_JS_INC) -I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(UPSTREAM)/src/Core/Tables -I $(UPSTREAM)/src/Core/Entities -I $(UPSTREAM)/src/Core/Materials -I $(UPSTREAM)/src/Core/Scripting -I $(UPSTREAM)/src/Core/Debug -I $(UPSTREAM)/src/Core/OXPVerifier -I $(UPSTREAM)/src/SDL -I $(PREFIX)/m68k-amigaos/ndk-include.vendor -I $(PREFIX)/m68k-amigaos/include -I $(PREFIX)/m68k-amigaos/port-deps/include -I $(GFOS_JS185_HEADERS) -I $(GFOS_SDL3_HEADERS) -I $(GFOS_OPENAL_HEADERS)
+$(OUT)/MyOpenGLView-gfos-68040.o: $(UPSTREAM)/src/SDL/MyOpenGLView.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
+$(OUT)/GameController-gfos-68040.o: $(UPSTREAM)/src/Core/GameController.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
+$(OUT)/oolite-main-gfos-68040.o: $(UPSTREAM)/src/SDL/main.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
+.PHONY: oolite-core-four-objects
+oolite-core-four-objects: $(OUT)/Universe-gfos-68040.o $(OUT)/MyOpenGLView-gfos-68040.o $(OUT)/GameController-gfos-68040.o $(OUT)/oolite-main-gfos-68040.o
