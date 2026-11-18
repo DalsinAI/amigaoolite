@@ -1,0 +1,4 @@
+OOLITE_SHIP_ACTIONS_REPRO_BEGIN
+OOLITE_SHIP_ACTIONS bytes=3757 legacy=3 actions=4 damage=1 explode=1 amount=170 radius_x2=65 factor_x4=1 removed=1 status=PASS
+OOLITE_SHIP_ACTIONS_REPRO_RC 0
+OOLITE_SHIP_ACTIONS_REPRO_END
