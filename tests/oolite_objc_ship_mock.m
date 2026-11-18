@@ -28,9 +28,10 @@
 - (OOShipGroup *)escortGroup;
 - (BOOL)isPlayer;
 @end
+static unsigned long testShipDeallocations=0;
 @implementation ShipEntity
 - (id)init { self=[super init];if(self){_bounty=10;_home=7;_maxEscorts=2;_group=[[OOShipGroup alloc]init];}return self; }
-- (void)dealloc {[_group release];[super dealloc];}
+- (void)dealloc {testShipDeallocations++;[_group release];[super dealloc];}
 - (OOCreditsQuantity)bounty{return _bounty;}
 - (void)setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason{_bounty=amount;_reason=reason;}
 - (OOSystemID)homeSystem{return _home;}
@@ -54,3 +55,5 @@ int OOGFOSTestObjCReasonByScript(void){return kOOLegalStatusReasonByScript;}
 void OOGFOSTestObjCShipSetPlayer(void *raw,int value){ ((ShipEntity *)raw)->_testPlayer=(value!=0); }
 void OOGFOSTestObjCShipSetGroupSize(void *raw,unsigned value){ [((ShipEntity *)raw)->_group setTestCount:value]; }
 void OOGFOSTestObjCShipSetBounty64(void *raw,uint64_t value){ ((ShipEntity *)raw)->_bounty=value; }
+
+unsigned long OOGFOSTestObjCShipDeallocations(void){return testShipDeallocations;}
