@@ -152,3 +152,14 @@ $(OUT)/oolite-oxz-extraction-68040: tests/oolite_oxz_rollback_gate.m src/Core/OO
 	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite_oxz_rollback_gate.o $(OUT)/OOOXZGFOSExtraction.o $(OUT)/OOOXZArchivePreflight.o $(OUT)/oolite_oxz_ioapi.o $(OUT)/oolite_oxz_unzip.o -L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive $(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: oxz-extract
 oxz-extract: $(OUT)/oolite-oxz-extraction-68040
+
+# Four-field Oolite OXZ manifest schema qualification with original Oolite
+# MiniZip and GNUstep Base; not a full OOOXZManager build or version gate.
+$(OUT)/oolite-oxz-schema-68040: tests/oolite_oxz_manifest_schema_gate.m $(OXZ_MINIZIP)/ioapi.c $(OXZ_MINIZIP)/unzip.c $(UPSTREAM)/src/Core/OOManifestProperties.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -O2 -m68040 -m68881 -noixemul -I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(OXZ_MINIZIP) -I $(OXZ_DEPS)/include -c tests/oolite_oxz_manifest_schema_gate.m -o $(OUT)/oolite_oxz_schema_gate.o
+	$(CROSS_CC) -O2 -m68040 -m68881 -noixemul -DOOLITE_GFOS=1 -I $(OXZ_MINIZIP) -I $(OXZ_DEPS)/include -c $(OXZ_MINIZIP)/ioapi.c -o $(OUT)/oolite_oxz_schema_ioapi.o
+	$(CROSS_CC) -O2 -m68040 -m68881 -noixemul -DOOLITE_GFOS=1 -I $(OXZ_MINIZIP) -I $(OXZ_DEPS)/include -c $(OXZ_MINIZIP)/unzip.c -o $(OUT)/oolite_oxz_schema_unzip.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite_oxz_schema_gate.o $(OUT)/oolite_oxz_schema_ioapi.o $(OUT)/oolite_oxz_schema_unzip.o -L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive $(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: oxz-schema
+oxz-schema: $(OUT)/oolite-oxz-schema-68040
