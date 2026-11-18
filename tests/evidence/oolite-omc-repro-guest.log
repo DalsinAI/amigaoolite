@@ -1,0 +1,8 @@
+OOLITE_OMC_REPRO_BEGIN
+OOLITE_OMC_LIBRARY version=0 revision=6
+OOLITE_OMC_CPU0 call=0 status=0 where=1 failed=16 cores=10 hash=081dedd2 ticks=159 tick_hz=1000
+OOLITE_OMC_ANY call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=26 tick_hz=1000
+OOLITE_OMC_ANY_BOARD_ELIGIBLE call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=27 tick_hz=1000
+OOLITE_OMC_PASS errors=0
+OOLITE_OMC_REPRO_RC 0
+OOLITE_OMC_REPRO_END
