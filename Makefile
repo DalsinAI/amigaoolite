@@ -527,3 +527,23 @@ $(OUT)/oolite-universe-frame-header-68040.o: tests/oolite_universe_frame_header_
 	$(CROSS_CC) -x objective-c -std=gnu11 -Wall -Wextra -Werror -Wno-expansion-to-defined -O2 -m68040 -m68881 -noixemul -I $(GFOS_BASE_DIR)/Headers -I src/Core -c $< -o $@
 .PHONY: universe-frame-objc-abi
 universe-frame-objc-abi: $(OUT)/oolite-universe-frame-header-68040.o
+
+# Pinned unmodified upstream Oolite Universe.m + opt-in GFOS frame pump.
+# The upstream checkout stays untouched. All includes are REAL pinned target
+# libraries, never fabricated SDL/OpenAL or JSAPI headers.
+GFOS_SDL3_HEADERS ?= ../gfopenrtg/build/include
+GFOS_OPENAL_HEADERS ?= ../gfopenrtg/library/modules/openal/include
+GFOS_JS185_HEADERS ?= ../mozjs/js/src/build/dist/include
+UNIVERSE_PATCH := patches/oolite/0001-gfos-universe-frame-pump.patch
+UNIVERSE_WORK := $(OUT)/universe-gfos-patched
+$(UNIVERSE_WORK)/src/Core/Universe.m: $(UPSTREAM)/src/Core/Universe.m $(UNIVERSE_PATCH)
+	@mkdir -p $(UNIVERSE_WORK)/src/Core
+	@test "$$(git -C $(UPSTREAM) rev-parse HEAD)" = 21978c37b2f11c8664adf3e2062efc1d0c875979 || { echo 'Universe upstream SHA mismatch; cannot apply pinned patch' >&2; exit 1; }
+	@cp $(UPSTREAM)/src/Core/Universe.m $@
+	@cd $(UNIVERSE_WORK) && patch -s -p1 < $(abspath $(UNIVERSE_PATCH))
+$(OUT)/Universe-gfos-68040.o: $(UNIVERSE_WORK)/src/Core/Universe.m src/Core/OOGFOSGameFrame.h
+	@mkdir -p $(OUT)
+	@test -r $(GFOS_SDL3_HEADERS)/SDL3/SDL_video.h && test -r $(GFOS_OPENAL_HEADERS)/AL/al.h && test -r $(GFOS_JS185_HEADERS)/jsapi.h || { echo 'Need real GFOS SDL3/OpenAL and pinned SpiderMonkey 1.8.5 headers' >&2; exit 1; }
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -fobjc-exceptions -DNDEBUG -m68040 -m68881 -noixemul -DOOLITE_GFOS=1 -DOOLITE_BIG_ENDIAN=1 -DGL_GLEXT_PROTOTYPES=1 -DOOLITE_GFOS_GAME_DISPATCH=1 -DGNUSTEP_BASE_LIBRARY=1 -I src/Core -I $(GFOS_JS_INC) -I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(UPSTREAM)/src/Core/Tables -I $(UPSTREAM)/src/Core/Entities -I $(UPSTREAM)/src/Core/Materials -I $(UPSTREAM)/src/Core/Scripting -I $(UPSTREAM)/src/Core/Debug -I $(UPSTREAM)/src/SDL -I $(PREFIX)/m68k-amigaos/ndk-include.vendor -I $(PREFIX)/m68k-amigaos/include -I $(PREFIX)/m68k-amigaos/port-deps/include -I $(GFOS_JS185_HEADERS) -I $(GFOS_SDL3_HEADERS) -I $(GFOS_OPENAL_HEADERS) -c $< -o $@
+.PHONY: universe-gfos-object
+universe-gfos-object: $(OUT)/Universe-gfos-68040.o
