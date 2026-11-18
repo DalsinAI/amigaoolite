@@ -1,4 +1,5 @@
 #include "OOGFOSGameFrame.h"
+#include "OOGFOSGameDispatch.h"
 #include <proto/exec.h>
 /* The game task alone owns this pointer. It is not accessed by JS tasks. */
 static struct OOGFOSGameDispatch *sDispatch;
