@@ -137,3 +137,18 @@ $(OUT)/oolite-oxz-preflight-68040: tests/oolite_oxz_preflight_gate.c src/Core/OO
 	$(CROSS_CC) $(OXZ_FLAGS) tests/oolite_oxz_preflight_gate.c src/Core/OOOXZArchivePreflight.c $(OXZ_MINIZIP)/ioapi.c $(OXZ_MINIZIP)/unzip.c -L $(OXZ_DEPS)/lib -lz -o $@
 .PHONY: oxz-preflight
 oxz-preflight: $(OUT)/oolite-oxz-preflight-68040
+
+# Native Oolite OXZ extraction and failed-install cleanup gate.
+# Requires the pinned upstream MiniZip with patch 0005 applied.
+# The GFOS OOOXZManager bridge is patch 0008; this target exercises its
+# extraction helper without falsely claiming the whole manager is linked.
+$(OUT)/oolite-oxz-extraction-68040: tests/oolite_oxz_rollback_gate.m src/Core/OOOXZGFOSExtraction.m src/Core/OOOXZGFOSExtraction.h src/Core/OOOXZArchivePreflight.c src/Core/OOOXZPathSafety.h $(OXZ_MINIZIP)/ioapi.c $(OXZ_MINIZIP)/unzip.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -O2 -m68040 -m68881 -noixemul -I $(GFOS_BASE_DIR)/Headers -I src/Core -I $(OXZ_MINIZIP) -I $(OXZ_DEPS)/include -c tests/oolite_oxz_rollback_gate.m -o $(OUT)/oolite_oxz_rollback_gate.o
+	$(CROSS_CC) -O2 -m68040 -m68881 -noixemul -I $(GFOS_BASE_DIR)/Headers -I src/Core -I $(OXZ_MINIZIP) -I $(OXZ_DEPS)/include -c src/Core/OOOXZGFOSExtraction.m -o $(OUT)/OOOXZGFOSExtraction.o
+	$(CROSS_CC) -O2 -m68040 -m68881 -noixemul -I src/Core -I $(OXZ_MINIZIP) -I $(OXZ_DEPS)/include -c src/Core/OOOXZArchivePreflight.c -o $(OUT)/OOOXZArchivePreflight.o
+	$(CROSS_CC) -O2 -m68040 -m68881 -noixemul -I $(OXZ_MINIZIP) -I $(OXZ_DEPS)/include -DOOLITE_GFOS=1 -c $(OXZ_MINIZIP)/ioapi.c -o $(OUT)/oolite_oxz_ioapi.o
+	$(CROSS_CC) -O2 -m68040 -m68881 -noixemul -I $(OXZ_MINIZIP) -I $(OXZ_DEPS)/include -DOOLITE_GFOS=1 -c $(OXZ_MINIZIP)/unzip.c -o $(OUT)/oolite_oxz_unzip.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite_oxz_rollback_gate.o $(OUT)/OOOXZGFOSExtraction.o $(OUT)/OOOXZArchivePreflight.o $(OUT)/oolite_oxz_ioapi.o $(OUT)/oolite_oxz_unzip.o -L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive $(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: oxz-extract
+oxz-extract: $(OUT)/oolite-oxz-extraction-68040
