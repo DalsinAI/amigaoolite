@@ -96,3 +96,12 @@ int OOGFOSJSSetGlobalFunction(struct OOGFOSJS *s,
     JS_Free(s->task, func);
     return code == JSERR_OK;
 }
+
+LONG OOGFOSJSEvaluateSource(struct OOGFOSJS *s,
+                            CONST_STRPTR src, CONST_STRPTR filename)
+{
+    if (!s || !s->task || !src) return JSERR_BADARGS;
+    JavaScriptBase = s->library;
+    return JS_Evaluate(s->task, src, -1,
+                       filename ? filename : (CONST_STRPTR)"oolite.js", NULL);
+}
