@@ -235,3 +235,10 @@ $(OUT)/OOOXZManager-68040.o: $(UPSTREAM)/src/Core/OOOXZManager.m $(UPSTREAM)/src
 	-I $(PREFIX)/m68k-amigaos/port-deps/include -c $< -o $@
 .PHONY: oxz-manager-object
 oxz-manager-object: $(OUT)/OOOXZManager-68040.o
+
+# Native script-to-Oolite-host-object binding gate, on the same shared engine.
+$(OUT)/oolite-jslib-hostclass-68040: tests/oolite_jslib_hostclass_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h $(GFOS_JS_INC)/libraries/javascript.h $(GFOS_JS_INC)/inline/javascript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_jslib_hostclass_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: jslib-hostclass
+jslib-hostclass: $(OUT)/oolite-jslib-hostclass-68040
