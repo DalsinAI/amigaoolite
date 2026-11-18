@@ -23,3 +23,7 @@ First successful object: 102 KiB, SHA-256 `0910790c29825e0d88936916881c9b774f1f4
 5. The actual screen/game startup is not yet running. Do not publish a playable release claim before first window, menu, world startup, input, save/load and runtime logs are proven.
 
 All source/evidence is in DalsinAI/amigaoolite, with upstream source and licensing retained in its pinned repositories. Team 4 multicore and other canonical SDKs were not modified.
+
+## Integration policy clarified
+
+This full upstream `OOOXZManager.m` **object-compilation gate** used the source-compatible pinned SpiderMonkey headers to prove the upstream Objective-C module can compile on native 68040. It is not a game link recipe. The production GFOS port must use the canonical GFOpenSDK `javascript.library` ABI and the GFOpenBrowser JavaScriptEngine/host-class adapter; embedding the separately qualified static SpiderMonkey interpreter into the final Oolite application would violate the current architecture decision. The sound-disabled compile flag likewise applies only to initial source qualification, not a claim of completed OpenAudio integration. See the current README and `docs/OOLITE-JAVASCRIPT-LIBRARY-INTEGRATION.md`.
