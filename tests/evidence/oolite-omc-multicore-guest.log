@@ -1,0 +1,23 @@
+OOLITE_MULTICORE_REPEAT_BEGIN
+OOLITE_REPEAT_1
+OOLITE_OMC_LIBRARY version=0 revision=6
+OOLITE_OMC_CPU0 call=0 status=0 where=1 failed=16 cores=10 hash=081dedd2 ticks=201 tick_hz=1000
+OOLITE_OMC_ANY call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=35 tick_hz=1000
+OOLITE_OMC_ANY_BOARD_ELIGIBLE call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=51 tick_hz=1000
+OOLITE_OMC_PASS errors=0
+OOLITE_REPEAT_1_RC 0
+OOLITE_REPEAT_2
+OOLITE_OMC_LIBRARY version=0 revision=6
+OOLITE_OMC_CPU0 call=0 status=0 where=1 failed=16 cores=10 hash=081dedd2 ticks=108 tick_hz=1000
+OOLITE_OMC_ANY call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=44 tick_hz=1000
+OOLITE_OMC_ANY_BOARD_ELIGIBLE call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=40 tick_hz=1000
+OOLITE_OMC_PASS errors=0
+OOLITE_REPEAT_2_RC 0
+OOLITE_REPEAT_3
+OOLITE_OMC_LIBRARY version=0 revision=6
+OOLITE_OMC_CPU0 call=0 status=0 where=1 failed=16 cores=10 hash=081dedd2 ticks=125 tick_hz=1000
+OOLITE_OMC_ANY call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=43 tick_hz=1000
+OOLITE_OMC_ANY_BOARD_ELIGIBLE call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=30 tick_hz=1000
+OOLITE_OMC_PASS errors=0
+OOLITE_REPEAT_3_RC 0
+OOLITE_MULTICORE_REPEAT_END
