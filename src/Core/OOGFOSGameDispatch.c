@@ -215,15 +215,15 @@ int OOGFOSGameDispatchDone(struct OOGFOSGameDispatch *d, LONG rc, LONG value)
     finishTracked(d);
     return r == &m.msg;
 }
-int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d)
+static int dispatchServeNext(struct OOGFOSGameDispatch *d, int wait)
 {
     struct Message *raw;
     struct OOGFOSGameMessage *m;
     int done=0;
     if (!d || !d->gamePort || FindTask(NULL) != d->gameTask) return -1;
-    WaitPort(d->gamePort);
+    if (wait) WaitPort(d->gamePort);
     raw = GetMsg(d->gamePort);
-    if (!raw) return -1;
+    if (!raw) return wait ? -1 : 2;
     m = (struct OOGFOSGameMessage *)raw;
     if (raw->mn_Length != sizeof(*m) || m->magic != OOGFOS_RPC_MAGIC) {
         if (raw->mn_ReplyPort) ReplyMsg(raw);
@@ -260,4 +260,16 @@ int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d)
     } else m->status = 0;
     ReplyMsg(raw);
     return done;
+}
+
+/* Non-blocking service for a live Universe/game frame. 2 means empty queue;
+ * 0 is ordinary RPC/cancel, 1 is JS worker DONE, -1 invalid owner/message.
+ * A caller must bound messages per frame to avoid starving gameplay. */
+int OOGFOSGameDispatchPoll(struct OOGFOSGameDispatch *d)
+{
+    return dispatchServeNext(d, 0);
+}
+int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d)
+{
+    return dispatchServeNext(d, 1);
 }
