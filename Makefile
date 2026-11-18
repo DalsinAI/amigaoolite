@@ -312,3 +312,11 @@ $(OUT)/oolite-ship-reject-68040: tests/oolite_ship_properties_reject_gate.c src/
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_ship_properties_reject_gate.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: ship-reject
 ship-reject: $(OUT)/oolite-ship-reject-68040
+
+# Experimental bounded Oolite game-task property IPC using Exec message ports.
+# Javascript executes on the shared JS task; owner services requests on game task.
+$(OUT)/oolite-js-game-dispatch-68040: tests/oolite_js_game_dispatch_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSGameDispatch.h src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-game-dispatch
+js-game-dispatch: $(OUT)/oolite-js-game-dispatch-68040
