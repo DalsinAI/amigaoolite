@@ -8,6 +8,8 @@ struct OOGFOSShipEntityRegistry {
     struct OOGFOSShipTokenTable tokens;
 };
 void OOGFOSShipEntityRegistryInit(struct OOGFOSShipEntityRegistry *registry);
+/* Register retains the ObjC ship on the game task; unregister invalidates
+ * token before releasing that registry reference. Caller owns other refs. */
 ULONG OOGFOSShipEntityRegister(struct OOGFOSShipEntityRegistry *registry,void *ship);
 int OOGFOSShipEntityUnregister(struct OOGFOSShipEntityRegistry *registry,ULONG token);
 const struct OOGFOSGameRouteBackend *OOGFOSShipEntityGameBackend(void);
