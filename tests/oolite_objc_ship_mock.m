@@ -12,12 +12,15 @@
 - (void)setTestCount:(NSUInteger)count {_count=count;}
 @end
 @interface ShipEntity : NSObject {
+@public
     OOCreditsQuantity _bounty;
     OOSystemID _home;
     uint8_t _maxEscorts;
     OOLegalStatusReason _reason;
     OOShipGroup *_group;
     BOOL _testPlayer;
+    int32_t _legacyCalls;
+    int32_t _legacyActions;
 }
 - (OOCreditsQuantity)bounty;
 - (void)setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason;
@@ -27,6 +30,9 @@
 - (void)setMaxEscortCount:(uint8_t)newCount;
 - (OOShipGroup *)escortGroup;
 - (BOOL)isPlayer;
+- (void)testRecordLegacyCount:(int)count;
+- (int32_t)testLegacyCalls;
+- (int32_t)testLegacyActions;
 @end
 static unsigned long testShipDeallocations=0;
 @implementation ShipEntity
@@ -40,6 +46,9 @@ static unsigned long testShipDeallocations=0;
 - (void)setMaxEscortCount:(uint8_t)value{_maxEscorts=value;}
 - (OOShipGroup *)escortGroup{return _group;}
 - (BOOL)isPlayer{return _testPlayer;}
+- (void)testRecordLegacyCount:(int)count {_legacyCalls++;_legacyActions+=count;}
+- (int32_t)testLegacyCalls{return _legacyCalls;}
+- (int32_t)testLegacyActions{return _legacyActions;}
 @end
 void *OOGFOSTestObjCShipNew(void){return [[ShipEntity alloc]init];}
 void OOGFOSTestObjCShipFree(void *raw){[(id)raw release];}
@@ -57,3 +66,15 @@ void OOGFOSTestObjCShipSetGroupSize(void *raw,unsigned value){ [((ShipEntity *)r
 void OOGFOSTestObjCShipSetBounty64(void *raw,uint64_t value){ ((ShipEntity *)raw)->_bounty=value; }
 
 unsigned long OOGFOSTestObjCShipDeallocations(void){return testShipDeallocations;}
+
+int OOGFOSTestObjCRecordLegacy(void *raw,int count){
+ if(!raw || count<0)return 0;
+ [(ShipEntity *)raw testRecordLegacyCount:count];
+ return 1;
+}
+int OOGFOSTestObjCGetLegacyCounts(void *raw,long *calls,long *actions){
+ if(!raw || !calls || !actions)return 0;
+ *calls=(long)[(ShipEntity *)raw testLegacyCalls];
+ *actions=(long)[(ShipEntity *)raw testLegacyActions];
+ return 1;
+}
