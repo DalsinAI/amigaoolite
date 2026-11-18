@@ -1,0 +1,4 @@
+OOLITE_JS_GAME_REJECT_BEGIN
+OOLITE_JS_GAME_REJECT bound=1 post=0 completed=1 requests=3 writes=0 wrong_task=0 on_owner=0 sum=3 status=PASS
+OOLITE_JS_GAME_REJECT_RC 0
+OOLITE_JS_GAME_REJECT_END
