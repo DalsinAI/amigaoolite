@@ -19,3 +19,11 @@ host-check: $(RNG_SRC) $(RNG_GATE)
 	@$(OUT)/oolite-rng-host
 clean:
 	rm -rf $(OUT)
+
+# Requires applying patches/0001-gfos-native-GL-geometry.patch to pinned
+# upstream. Deliberately does NOT substitute fake SDL3/GLU headers.
+.PHONY: planet-object
+planet-object: $(OUT)/OOPlanetData.o
+$(OUT)/OOPlanetData.o: $(UPSTREAM)/src/Core/OOPlanetData.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -std=gnu11 -O2 -DOOLITE_GFOS=1 -m68040 -m68881 -noixemul -I $(PREFIX)/m68k-amigaos/include -I $(RNG_INC) -c $< -o $@
