@@ -1,0 +1,4 @@
+OOLITE_OBJC_MINIMAL_BEGIN
+objc runtime: cannot find class NXConstantString
+Program aborted
+SYS:ACAgent/oolite_objc_probe_68040 failed returncode 127
