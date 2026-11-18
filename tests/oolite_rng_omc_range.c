@@ -25,13 +25,13 @@ static uint32_t hash_results(const ULONG *a) {
     for(i=0;i<CHUNKS;i++) { combined=(combined<<5)|(combined>>27); combined^=a[i]; }
     return combined;
 }
-static int run(struct OMCJob *j, ULONG *out, ULONG target, const char *tag) {
+static int run(struct OMCJob *j, ULONG *out, ULONG target, ULONG flags, const char *tag) {
     ULONG args[1], failed=0xffffffffUL, n=CHUNKS; LONG err, grant_err;
     OMC_JobInit(j);
     j->omj_Entry=(APTR)oolite_rng_worker;
     args[0]=(ULONG)out;
     j->omj_Args=args; j->omj_NArgs=1;
-    j->omj_Target=target; j->omj_StackSize=8192;
+    j->omj_Target=target; j->omj_Flags=flags; j->omj_StackSize=8192;
     grant_err=OMC_AddGrant(j,out,OMC_GRANTSIZE(n*4),OMCG_READ|OMCG_WRITE);
     if(grant_err!=OMCERR_OK) {
         printf("OOLITE_OMC_%s GRANT_FAIL %ld\n", tag,(long)grant_err);return 1;
@@ -59,10 +59,10 @@ int main(void) {
     units=OMC_CoreCount();
     out=OMC_AllocGrant(OMC_PAGESIZE,OMCAF_CLEAR|OMCAF_PAGE);
     if(!out) { puts("OOLITE_OMC_ALLOC_FAIL");CloseLibrary(OpenMulticoreBase);return 5; }
-    bad+=run(&job,out,OMC_CPU0,"CPU0");
-    bad+=run(&job,out,OMC_ANY,"ANY");
+    bad+=run(&job,out,OMC_CPU0,0,"CPU0");
+    bad+=run(&job,out,OMC_ANY,0,"ANY");
     if(units) {
-        int r=run(&job,out,OMC_ANY,"ANY_BOARD_ELIGIBLE");
+        int r=run(&job,out,OMC_ANY,OMCF_BOARD,"BOARD_ONLY");
         bad+=r;
         if(!r && job.omj_Where!=OMCW_BOARD) puts("OOLITE_OMC_NO_BOARD_PLACEMENT");
     }
