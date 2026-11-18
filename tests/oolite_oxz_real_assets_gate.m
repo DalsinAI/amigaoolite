@@ -5,7 +5,7 @@
 int main(int argc,char **argv) {
     char *env[]={NULL}; GSInitializeProcess(argc,argv,env);
     NSAutoreleasePool *pool=[[NSAutoreleasePool alloc]init];
-    NSString *destination=@"SYS:Oolite/AddOns/GFOSRealAssetsProbe.oxp";
+    NSString *destination=@"SYS:Oolite/AddOns/GFOSRealAssetsRepro.oxp";
     BOOL extracted=OOGFOSExtractOXZ(@"SYS:Oolite/real-assets.oxz",destination);
     NSData *shipdata=[NSData dataWithContentsOfFile:[destination stringByAppendingPathComponent:@"Config/shipdata.plist"]];
     NSString *err=nil; NSPropertyListFormat format=0;
