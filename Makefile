@@ -334,3 +334,10 @@ $(OUT)/oolite-js-two-tasks-68040: tests/oolite_js_game_dispatch_two_tasks_gate.c
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_two_tasks_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-two-tasks
 js-two-tasks: $(OUT)/oolite-js-two-tasks-68040
+
+# Exec-port shutdown rejects active clients, self-deadlock and post-close access.
+$(OUT)/oolite-js-safe-close-68040: tests/oolite_js_game_dispatch_safe_close_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSGameDispatch.h src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_safe_close_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-safe-close
+js-safe-close: $(OUT)/oolite-js-safe-close-68040
