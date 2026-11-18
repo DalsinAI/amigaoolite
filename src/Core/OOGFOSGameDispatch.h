@@ -1,0 +1,31 @@
+/* Exec-message dispatch for GFOS JavaScript -> Oolite game task.
+ * GPL-2.0-or-later; uses caller-owned game task and no new engine/process.
+ */
+#ifndef OOLITE_GFOS_GAME_DISPATCH_H
+#define OOLITE_GFOS_GAME_DISPATCH_H
+#include <exec/types.h>
+#include <exec/ports.h>
+#include "OOGFOSShipProperties.h"
+
+enum { OOGFOS_DISPATCH_GET=1, OOGFOS_DISPATCH_SET=2, OOGFOS_DISPATCH_DONE=3 };
+struct OOGFOSGameDispatch {
+    struct MsgPort *gamePort;
+    struct Task *gameTask; /* only owner may service or destroy the port */
+    void *owner;
+    const struct OOGFOSShipBackend *ownerBackend;
+    ULONG requests;
+    ULONG completions;
+    LONG result;
+    LONG resultCode;
+};
+int OOGFOSGameDispatchInit(struct OOGFOSGameDispatch *d, void *owner,
+                           const struct OOGFOSShipBackend *ownerBackend);
+void OOGFOSGameDispatchClose(struct OOGFOSGameDispatch *d);
+int OOGFOSGameDispatchGet(void *state, unsigned property, LONG *value);
+int OOGFOSGameDispatchSet(void *state, unsigned property, LONG value);
+/* Pump ONE message on the owner's game task. Return 1 on job completion. */
+int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d);
+/* Signals completion from javascript.library JS_Post callback task. */
+int OOGFOSGameDispatchDone(struct OOGFOSGameDispatch *d, LONG rc, LONG value);
+const struct OOGFOSShipBackend *OOGFOSGameDispatchBackend(void);
+#endif
