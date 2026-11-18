@@ -464,3 +464,17 @@ $(OUT)/oolite-two-original-objc-68040: tests/oolite_js_two_original_ship_objc_ga
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-two-original-objc
 js-two-original-objc: $(OUT)/oolite-two-original-objc-68040
+
+# Production-shaped per-ship JS objects on ONE shared JS task: native object
+# creation, unmodified upstream source load, JS_Call event dispatch, optional
+# one-shot events, distinct game-owner Objective-C ships.
+$(OUT)/oolite-script-objects-68040: tests/oolite_js_script_objects_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSScriptObjects.h $(OUT)/oolite-original-objc-event-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_script_objects_gate.c -o $(OUT)/oolite-script-objects-gate.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptObjects.c -o $(OUT)/oolite-script-objects-core.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-script-objects-gate.o $(OUT)/oolite-script-objects-core.o $(OUT)/oolite-ship-events.o $(OUT)/oolite-objc-ship-mock.o $(OUT)/oolite-objc-game-shim.o $(OUT)/OOGFOSShipEntityBackend-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-properties.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group \
+	-Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a \
+	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-script-objects
+js-script-objects: $(OUT)/oolite-script-objects-68040
