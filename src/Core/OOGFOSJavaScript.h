@@ -5,6 +5,7 @@
 #ifndef OOLITE_GFOS_JAVASCRIPT_H
 #define OOLITE_GFOS_JAVASCRIPT_H
 #include <exec/types.h>
+#include <libraries/javascript.h>
 
 struct OOGFOSJS {
     APTR task;
@@ -18,5 +19,12 @@ LONG OOGFOSJSEvaluateLong(struct OOGFOSJS *state, CONST_STRPTR source,
                          CONST_STRPTR filename, LONG *value);
 /* Report engine's most recent error, length excluding the final NUL. */
 LONG OOGFOSJSErrorText(struct OOGFOSJS *state, STRPTR buffer, LONG size);
+/* Host object must outlive its JS wrapper; JSHostClass slots stay valid. */
+int OOGFOSJSExposeHostClass(struct OOGFOSJS *state,
+                           const struct JSHostClass *hostClass,
+                           APTR object, CONST_STRPTR globalName);
+/* Expose a native callback on the JS global; callback runs on script task. */
+int OOGFOSJSSetGlobalFunction(struct OOGFOSJS *state,
+                             CONST_STRPTR name, JSMethodFunc callback, APTR data);
 void OOGFOSJSClose(struct OOGFOSJS *state);
 #endif
