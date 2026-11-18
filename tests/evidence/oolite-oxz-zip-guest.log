@@ -1,0 +1,4 @@
+OOLITE_OXZ_ZIP_BEGIN
+OOLITE_OXZ_ZIP path=SYS:Oolite/fixture.oxz entry=manifest.plist bytes=53 status=PASS
+OOLITE_OXZ_ZIP_RC 0
+OOLITE_OXZ_ZIP_END
