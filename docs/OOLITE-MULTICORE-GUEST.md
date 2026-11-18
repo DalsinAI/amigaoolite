@@ -16,7 +16,7 @@ All runs returned `OMCERR_OK`, `failed=16`, the **correct Linux/reference checks
 | Repeat 3 | 125 ms | 43 ms | 30 ms |
 | Makefile-rebuilt binary | 159 ms | 26 ms | 27 ms |
 
-Guest clock reports `CLOCKS_PER_SEC=1000`. These timings vary due to emulator load and cold-start overhead. **The cold board invocation was slower than CPU0; warmed board runs were typically faster** for this batched workload. Not a statistically controlled benchmark or physical PiStorm result. The board-only flag `OMCF_BOARD` and true no-card fallback still need explicit independent tests before calling this an all-machine qualification.
+Guest clock reports `CLOCKS_PER_SEC=1000`. These timings vary due to emulator load and cold-start overhead. **The cold board invocation was slower than CPU0; warmed board runs were typically faster** for this batched workload. Not a statistically controlled benchmark or physical PiStorm result. The explicit `OMCF_BOARD` case was subsequently tested and passed in the guest, while **true no-card fallback remains untested**.
 
 ### Reproducibility
 
@@ -38,4 +38,19 @@ Exact stdout `tests/evidence/oolite-omc-repro-guest.log`; extended timings `test
 - **GFOS / CPU0 owns** Objective-C universe, filesystem, script engine, NSRunLoop, OpenGPU/OpenGfx/OpenAudio calls and all mutable game state. Extra cores handle pure, bounded numeric work with Fast RAM grants. No duplicate thread/worker engine.
 - Next Oolite candidates: planet terrain/icosphere generation, procedural texture maths, object transforms and physics kernels. Only offload after proving deterministic results, output ownership and scheduling/transfer overhead; update frame-time and CPU0-responsiveness measurements, not just throughput.
 - Team 4's proposed GFOpenSDK PR #72 is **not yet merged**; that host native-jobs API is separately validated on daletop at host level but was **not used** for this 68k `OMC_RunRange` test.
-- Confirm the multithreading board under different cores counts, forced `OMCF_BOARD`, absent-board CPU0 fallback, cancellation/timeouts and grant isolation; repeat on physical PiStorm before asserting hardware performance. No Oolite full gameplay or video rendering proven by this test.
+- Confirm the multicore board under different core counts, absent-board CPU0 fallback, cancellation/timeouts and grant isolation; repeat on physical PiStorm before asserting hardware performance. No Oolite full gameplay or video rendering proven by this test.
+
+## Explicit board-only execution (follow-up)
+
+`tests/oolite_rng_omc_range.c` now explicitly sets `job.omj_Flags=OMCF_BOARD` for its `BOARD_ONLY` case, while keeping `OMC_CPU0` and `OMC_ANY` tests. The Makefile-rebuilt native binary (SHA256 `21937fe08f8f0c8986867d758323d2275801929731a5c07bb626684404d945b8`) ran inside the same guest and returned:
+
+```
+OOLITE_OMC_LIBRARY version=0 revision=6
+OOLITE_OMC_CPU0 call=0 status=0 where=1 failed=16 cores=10 hash=081dedd2 ticks=99 tick_hz=1000
+OOLITE_OMC_ANY call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=30 tick_hz=1000
+OOLITE_OMC_BOARD_ONLY call=0 status=0 where=2 failed=16 cores=10 hash=081dedd2 ticks=22 tick_hz=1000
+OOLITE_OMC_PASS errors=0
+OOLITE_OMC_BOARD_ONLY_RC 0
+```
+
+Exact evidence: `tests/evidence/oolite-omc-boardonly-guest.log`. The board-only flag worked; the output matched CPU0. No PiStorm hardware performance claim.
