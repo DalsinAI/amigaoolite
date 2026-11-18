@@ -1,0 +1,4 @@
+OOLITE_TWO_JS_JOIN_BEGIN
+OOLITE_GAME_TWO_JS_TASKS bound=1,1 posts=0,0 complete=2 rpc=4 writes=2 wrong_task=0 same_task=0,0 values=44,42 joined=0,0 done=1,1 status=PASS
+OOLITE_TWO_JS_JOIN_RC 0
+OOLITE_TWO_JS_JOIN_END
