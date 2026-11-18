@@ -161,6 +161,26 @@ static int routedSet(void *context, unsigned property, LONG value)
     if (!p || !p->dispatch || !p->token) return 0;
     return dispatchRPC(p->dispatch, OOGFOS_DISPATCH_SET, p->token, property, &value);
 }
+int OOGFOSGameDispatchSetAction(struct OOGFOSGameDispatch *d,
+                               OOGFOSGameActionFunc action)
+{
+    if (!d || !d->gamePort || FindTask(NULL)!=d->gameTask) return 0;
+    Forbid();
+    if (d->inFlight || d->sealed) { Permit(); return 0; }
+    d->actionBackend=action;
+    Permit();
+    return 1;
+}
+int OOGFOSGameShipAction(struct OOGFOSGameShipProxy *proxy,
+                        unsigned action, LONG argument, LONG *result)
+{
+    LONG value=argument;
+    if (!proxy || !proxy->dispatch || !proxy->token || !result) return 0;
+    if (!dispatchRPC(proxy->dispatch,OOGFOS_DISPATCH_ACTION,
+                     proxy->token,action,&value)) return 0;
+    *result=value;
+    return 1;
+}
 const struct OOGFOSShipBackend *OOGFOSGameShipProxyBackend(void)
 {
     static const struct OOGFOSShipBackend backend={routedGet,routedSet};
@@ -218,6 +238,10 @@ int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d)
         m->status = d->routeBackend ?
             (m->token ? d->routeBackend->setLong(d->owner, m->token, m->property, m->value) : 0) :
             d->ownerBackend->setLong(d->owner, m->property, m->value);
+        d->requests++;
+    } else if (m->op == OOGFOS_DISPATCH_ACTION) {
+        m->status = d->actionBackend && m->token ?
+            d->actionBackend(d->owner,m->token,m->property,m->value,&m->value) : 0;
         d->requests++;
     } else if (m->op == OOGFOS_DISPATCH_DONE) {
         d->resultCode = m->status;
