@@ -1,0 +1,10 @@
+OOLITE_OBJ_OWNERSHIP_SUITE_BEGIN
+OOLITE_JS_OBJC_BRIDGE bound=1 rpc=6 done=1 value=90 bounty=44 home=42 escorts=4 legal_reason=2 closed=1 status=PASS
+OOLITE_OBJ_OWN_REG1_RC 0
+OOLITE_JS_OBJC_RULES bound=1 rpc=6 done=1 value=3 bounty=0 home=0 escorts=2 legal_reason=2 closed=1 status=PASS
+OOLITE_OBJ_OWN_REG2_RC 0
+OOLITE_JS_OBJC_GUARDS player=1 group=1 bounty64=1 escorts=2 requests=3 complete=3 closed=1 status=PASS
+OOLITE_OBJ_OWN_REG3_RC 0
+OOLITE_JS_OBJC_OWNERSHIP bound=1 rpc=6 done=1 value=90 bounty=44 home=42 escorts=4 legal_reason=2 retained=1 freed=1 closed=1 status=PASS
+OOLITE_OBJ_OWN_REG4_RC 0
+OOLITE_OBJ_OWNERSHIP_SUITE_END
