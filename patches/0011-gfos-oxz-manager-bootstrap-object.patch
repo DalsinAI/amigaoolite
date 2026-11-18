@@ -1,0 +1,50 @@
+--- a/src/Core/OOOXZManager.m
++++ b/src/Core/OOOXZManager.m
+@@ -34,7 +34,17 @@
+ #include <stdlib.h>
+ #endif
+ #import "GuiDisplayGen.h"
++#if OOLITE_GFOS
++/* The manager only sends these two view messages. Native display is
++ * provided by OpenGPU; do not import SDL3 video interfaces here. */
++@interface NSObject (OOOXZManagerViewMessages)
++- (void)resetTypedString;
++- (void)stringToClipboard:(NSString *)text;
++@end
++
++#else
+ #import "MyOpenGLView.h"
++#endif
+ #import "NSDataOOExtensions.h"
+ #import "NSFileManagerOOExtensions.h"
+ #import "NSStringOOExtensions.h"
+--- a/src/Core/OOSound.h
++++ b/src/Core/OOSound.h
+@@ -45,7 +45,9 @@
+ 
+ #import "OOFoundation.h"
+ 
++#ifndef OOLITE_OPENAL
+ #define OOLITE_OPENAL 1
++#endif
+ 
+ #if OOLITE_OPENAL
+ #import "OOALMusic.h"
+--- a/src/Core/Universe.h
++++ b/src/Core/Universe.h
+@@ -839,6 +839,7 @@
+ NSString* OOLookUpDescriptionPRIV(NSString* key);
+ NSString* OOLookUpPluralDescriptionPRIV(NSString* key, NSInteger count);
+ 
++#if OOLITE_OPENAL
+ @interface OOSound (OOCustomSounds)
+ 
+ + (id)soundWithCustomSoundKey:(NSString*)key;
+@@ -846,6 +847,7 @@
+ 
+ @end
+ 
++#endif
+ @interface OOSoundSource (OOCustomSounds)
+ 
+ + (id)sourceWithCustomSoundKey:(NSString*)key;
