@@ -362,3 +362,17 @@ $(OUT)/oolite-js-cancel-68040: tests/oolite_js_game_dispatch_cancel_gate.c src/C
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_cancel_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-cancel
 js-cancel: $(OUT)/oolite-js-cancel-68040
+
+# Native 68040 Oolite game-task 4095-slot generation tokens; stale slot reuse.
+$(OUT)/oolite-js-token-table-68040: tests/oolite_js_game_dispatch_token_table_gate.c src/Core/OOGFOSShipTokens.c src/Core/OOGFOSShipTokens.h src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_token_table_gate.c src/Core/OOGFOSShipTokens.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-token-table
+js-token-table: $(OUT)/oolite-js-token-table-68040
+
+# Standalone full-capacity, overflow and generation retirement test.
+$(OUT)/oolite-js-token-capacity-68040: tests/oolite_ship_token_capacity_gate.c src/Core/OOGFOSShipTokens.c src/Core/OOGFOSShipTokens.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_ship_token_capacity_gate.c src/Core/OOGFOSShipTokens.c -o $@
+.PHONY: js-token-capacity
+js-token-capacity: $(OUT)/oolite-js-token-capacity-68040
