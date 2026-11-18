@@ -1,4 +1,5 @@
-OOLITE_REAL_8ASSETS_BEGIN
+OOLITE_REAL_CONFIG_ENUM_BEGIN
+OOLITE_CONFIG_ENUMERATE files=8 status=PASS
 OOLITE_PLIST_demoships.plist exists=1 bytes=308 entries=27 format=1 status=PASS
 OOLITE_PLIST_global-settings.plist exists=1 bytes=1318 entries=3 format=1 status=PASS
 OOLITE_PLIST_pirate-victim-roles.plist exists=1 bytes=466 entries=0 format=1 status=PASS
@@ -8,5 +9,5 @@ OOLITE_PLIST_shipdata.plist exists=1 bytes=128966 entries=194 format=1 status=PA
 OOLITE_PLIST_descriptions.plist exists=1 bytes=110079 entries=1186 format=1 status=PASS
 OOLITE_PLIST_planetinfo.plist exists=1 bytes=2713698 entries=2050 format=1 status=PASS
 OOLITE_REAL_ASSETS_PASS files=8 failed=0
-OOLITE_REAL_8ASSETS_RC 0
-OOLITE_REAL_8ASSETS_END
+OOLITE_REAL_CONFIG_ENUM_RC 0
+OOLITE_REAL_CONFIG_ENUM_END
