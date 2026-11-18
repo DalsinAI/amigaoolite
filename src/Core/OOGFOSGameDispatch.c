@@ -273,3 +273,22 @@ int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d)
 {
     return dispatchServeNext(d, 1);
 }
+
+/* Service no more than budget queued packets during one Oolite game frame.
+ * Never sleeps; a bounded poll prevents a busy script from starving frames.
+ * Returns count of processed packets, -1 invalid owner/request or zero budget.
+ * Caller may inspect d->completions for worker DONE notifications. */
+LONG OOGFOSGameDispatchPumpFrame(struct OOGFOSGameDispatch *d, ULONG budget)
+{
+    LONG processed = 0;
+    int rc;
+    if (!d || !budget || !d->gamePort || FindTask(NULL) != d->gameTask)
+        return -1;
+    while ((ULONG)processed < budget) {
+        rc = OOGFOSGameDispatchPoll(d);
+        if (rc == 2) break;
+        if (rc < 0) return -1;
+        processed++;
+    }
+    return processed;
+}
