@@ -249,3 +249,11 @@ $(OUT)/oolite-jslib-install-68040: tests/oolite_jslib_install_probe.c
 	$(CROSS_CC) -std=gnu11 -O2 -m68040 -m68881 -noixemul -I $(GFOS_JS_NDK) $< -o $@
 .PHONY: jslib-install
 jslib-install: $(OUT)/oolite-jslib-install-68040
+
+# Load unmodified pinned Oolite Resources/Scripts/*.js from SYS:Oolite/Scripts
+# and execute through the canonical shared javascript.library, without bundling JS.
+$(OUT)/oolite-real-js-68040: tests/oolite_real_js_guest_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h $(GFOS_JS_INC)/libraries/javascript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_real_js_guest_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: real-js
+real-js: $(OUT)/oolite-real-js-68040
