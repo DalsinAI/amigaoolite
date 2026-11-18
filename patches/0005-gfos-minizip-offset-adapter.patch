@@ -1,0 +1,22 @@
+--- a/src/Core/MiniZip/ioapi.c
++++ b/src/Core/MiniZip/ioapi.c
+@@ -23,6 +23,19 @@
+ 
+ #include "ioapi.h"
+ 
++#if OOLITE_GFOS
++/* Guest stdio uses signed 32-bit offsets; reject oversized ZIP64 seeks. */
++#include <limits.h>
++#define fopen64 fopen
++#define ftello64 ftell
++static int gfos_fseeko64(FILE *stream, ZPOS64_T offset, int origin)
++{
++    if (offset > (ZPOS64_T)LONG_MAX) return -1;
++    return fseek(stream, (long)offset, origin);
++}
++#define fseeko64 gfos_fseeko64
++#endif
++
+ voidpf call_zopen64(const zlib_filefunc64_32_def* pfilefunc, const void* filename, int mode)
+ {
+     if (pfilefunc->zfile_func64.zopen64_file != NULL)
