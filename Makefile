@@ -414,3 +414,15 @@ $(OUT)/oolite-js-objc-rules-68040: tests/oolite_js_shipentity_objc_rules_gate.c 
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-objc-rules
 js-objc-rules: $(OUT)/oolite-js-objc-rules-68040
+
+# Native GFOS shared-JS/Exec/ObjC guard test: player escorts, group floor,
+# oversized 64-bit bounty rejected rather than silently narrowing to LONG.
+$(OUT)/oolite-js-objc-guards-68040: tests/oolite_js_shipentity_objc_guard_gate.c tests/oolite_objc_ship_mock.m $(OUT)/oolite-js-objc-bridge-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_shipentity_objc_guard_gate.c -o $(OUT)/oolite-js-objc-guards-gate.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-js-objc-guards-gate.o $(OUT)/oolite-objc-ship-mock.o $(OUT)/oolite-objc-game-shim.o $(OUT)/OOGFOSShipEntityBackend-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-properties.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group \
+	-Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a \
+	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-objc-guards
+js-objc-guards: $(OUT)/oolite-js-objc-guards-68040
