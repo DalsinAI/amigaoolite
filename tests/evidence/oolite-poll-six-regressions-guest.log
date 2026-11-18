@@ -1,0 +1,20 @@
+OOLITE_POLL_REGRESSIONS_BEGIN
+TEST_oolite-js-game-poll-68040
+OOLITE_JS_GAME_POLL bound=1 post=0 completed=1 requests=6 writes=3 wrong_task=0 on_owner=0 sum=90 idle=2 processed=6 status=PASS
+TEST_RC 0
+TEST_oolite-js-game-dispatch-68040
+OOLITE_JS_GAME_DISPATCH bound=1 post=0 completed=1 requests=6 writes=3 wrong_task=0 on_owner=0 sum=90 status=PASS
+TEST_RC 0
+TEST_oolite-js-safe-close-68040
+OOLITE_GAME_SAFE_CLOSE bound=1,1 posts=0,0 complete=2 rpc=4 writes=2 wrong_task=0 same_task=0,0 values=44,42 joined=0,0 done=1,1 inflight=0 busy_reject=1 owner_reject=1 closed=1 post_reject=1 status=PASS
+TEST_RC 0
+TEST_oolite-js-seal-queued-68040
+OOLITE_SEAL_QUEUED sealed=1 rejected=1 requests=0 owner_reads=0 writes=0 result=1 joined=0 close=1 status=PASS
+TEST_RC 0
+TEST_oolite-js-ship-routes-68040
+OOLITE_GAME_SHIP_ROUTES bound=1,1 jobs=0,0 complete=2 requests=8 writes=2 stale=1 wrong_task=0 first=91 second=43 closed=1 status=PASS
+TEST_RC 0
+TEST_oolite-js-token-table-68040
+OOLITE_GAME_SHIP_TOKENS bound=1,1,1 jobs=0,0 complete=2 requests=9 writes=2 stale=1 wrong_task=0 first=91 second=73 closed=1 old=4097 new=8193 status=PASS
+TEST_RC 0
+OOLITE_POLL_REGRESSIONS_END
