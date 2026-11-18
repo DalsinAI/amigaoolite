@@ -1,0 +1,13 @@
+--- a/Source/NSMessagePortNameServer.m
++++ b/Source/NSMessagePortNameServer.m
+@@ -53,6 +53,10 @@
+ #  include	<fcntl.h>
+ #endif
+ 
++/* Keep Exec BOOL out of Objective-C Foundation interface. */
++#define BOOL GFOSSocketBOOL
++#include <sys/socket.h>
++#undef BOOL
+ #include <sys/un.h>
+ 
+ /* Older systems (Solaris) compatibility */
