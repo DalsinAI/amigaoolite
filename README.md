@@ -30,3 +30,7 @@ CHECKSUM 774 20090
 6. **Guest validation:** first full application startup, splash/menu, trading, hyperspace, combat, saves, OXP load, joystick, audio and measured frame rate; then standalone Installer and GFOpenUp Part. No RC before runtime proof.
 
 This repo is a port overlay and validation home until a full source branch is ready. Keep upstream pinned and push all changes/evidence to GitHub; avoid local git commits.
+
+## First OpenGPU geometry port patch — compiled
+
+`patches/0001-gfos-native-GL-geometry.patch` adds a narrowly guarded `OOLITE_GFOS` path to Oolite's `src/Core/OOOpenGLOnly.h`, using the native `GFOpenGPU` `<GL/gl.h>` and `<GL/glext.h>` for geometry-only source. The upstream `OOPlanetData.c` icosphere mesh arrays then **cross-compile successfully** as a real 68040 native AmigaOS object. Run `make planet-object` after applying the patch to the pinned upstream tree. This proves the mesh data compilation; it **does not** imply Oolite's GLU, shader, SDL3 or full graphics engine is ported. Missing target GLU headers are a known later step, not concealed by a fake header.
