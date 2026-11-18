@@ -438,3 +438,17 @@ $(OUT)/oolite-js-ownership-68040: tests/oolite_js_shipentity_ownership_gate.c te
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-ownership
 js-ownership: $(OUT)/oolite-js-ownership-68040
+
+# Unmodified upstream Oolite default ship script -> GFOS JavaScript event host
+# -> Exec game task -> native Objective-C receiver (controlled test fixture).
+# Stage pinned upstream script at SYS:Oolite/Scripts/oolite-default-ship-script.js.
+$(OUT)/oolite-original-objc-event-68040: tests/oolite_js_original_ship_event_objc_gate.c src/Core/OOGFOSShipEvents.c src/Core/OOGFOSShipEvents.h src/Core/OOGFOSGameDispatch.c $(OUT)/oolite-js-objc-bridge-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_original_ship_event_objc_gate.c -o $(OUT)/oolite-original-objc-event-gate.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSShipEvents.c -o $(OUT)/oolite-ship-events.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-original-objc-event-gate.o $(OUT)/oolite-ship-events.o $(OUT)/oolite-objc-ship-mock.o $(OUT)/oolite-objc-game-shim.o $(OUT)/OOGFOSShipEntityBackend-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-properties.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group \
+	-Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a \
+	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-original-objc-event
+js-original-objc-event: $(OUT)/oolite-original-objc-event-68040
