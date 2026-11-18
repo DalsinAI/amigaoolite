@@ -1,0 +1,63 @@
+--- a/src/Core/OOLogging.m
++++ b/src/Core/OOLogging.m
+@@ -35,6 +35,13 @@
+ #import "OOLoggingExtended.h"
+ #import "OOPListParsing.h"
+ #import "ResourceManager.h"
++
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++#include <stdio.h>
++#define GFOS_LOG_TRACE(mark) do { fputs("OOLITE_GFOS_LOG " mark "\n", stdout); fflush(stdout); } while(0)
++#else
++#define GFOS_LOG_TRACE(mark) ((void)0)
++#endif
+ 
+ #undef NSLog // We need to be able to call the real NSLog.
+ 
+@@ -533,30 +540,45 @@
+ 
+ void OOLoggingInit(void)
+ {
++    GFOS_LOG_TRACE("enter");
+     NSAutoreleasePool* pool = nil;
+ 
+     if (sInited)
+         return;
+ 
+     pool = [[NSAutoreleasePool alloc] init];
++    GFOS_LOG_TRACE("after-pool");
+ 
+     sLock = [[NSLock alloc] init];
++    GFOS_LOG_TRACE("after-lock-alloc");
+     [sLock setName:@"OOLogging lock"];
++    GFOS_LOG_TRACE("after-lock-name");
+     if (sLock == nil)
+         exit(EXIT_FAILURE);
+ 
+ #ifndef OOLOG_NO_FILE_NAME
+     sFileNamesCache = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks, NSObjectMapValueCallBacks, 100);
++    GFOS_LOG_TRACE("after-filename-cache");
+ #endif
+ 
+     sInited = YES; // Must be before OOLogOutputHandlerInit().
++    GFOS_LOG_TRACE("before-output-handler");
+     OOLogOutputHandlerInit();
++    GFOS_LOG_TRACE("after-output-handler");
+ 
+     OOPrintLogHeader();
+-
++    GFOS_LOG_TRACE("after-print-header");
++
++#if OOLITE_GFOS
++    fputs("Oolite GFOS: early logging preferences deferred\n", stderr);
++    fflush(stderr);
++#else
+     LoadExplicitSettings();
++#endif
++    GFOS_LOG_TRACE("after-load-settings");
+ 
+     [pool release];
++    GFOS_LOG_TRACE("after-release");
+ }
+ 
+ void OOLoggingTerminate(void)
