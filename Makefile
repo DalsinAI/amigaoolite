@@ -297,3 +297,11 @@ $(OUT)/oolite-js-release-68040: tests/oolite_jslib_release_gate.c src/Core/OOGFO
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_jslib_release_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-release
 js-release: $(OUT)/oolite-js-release-68040
+
+# Original OOJSShip numeric property names via safe script-task accessors;
+# guest test uses a controlled backend, NOT the full ShipEntity implementation.
+$(OUT)/oolite-ship-properties-68040: tests/oolite_ship_properties_gate.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSShipProperties.h src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h $(GFOS_JS_INC)/libraries/javascript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_ship_properties_gate.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: ship-properties
+ship-properties: $(OUT)/oolite-ship-properties-68040
