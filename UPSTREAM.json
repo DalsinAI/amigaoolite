@@ -1,0 +1,8 @@
+{
+  "name": "Oolite",
+  "official_repo": "https://github.com/OoliteProject/oolite",
+  "commit": "21978c37b2f11c8664adf3e2062efc1d0c875979",
+  "source_licence": "GPL-2.0-or-later",
+  "art_assets_and_config": "See upstream LICENSE.md: GPL-2.0-or-later or CC-BY-NC-SA-3.0",
+  "status": "native 68040 upstream galaxy RNG compilation passed; whole game not ported"
+}
