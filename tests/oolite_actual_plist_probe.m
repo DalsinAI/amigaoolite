@@ -16,6 +16,11 @@ int main(int argc, char **argv) {
   const BOOL arrays[]={YES,NO,YES,NO,NO,NO,NO,NO};
   GSInitializeProcess(argc,argv,env);
   NSAutoreleasePool *pool=[[NSAutoreleasePool alloc] init];
+  NSError *dirError=nil;
+  NSArray *listing=[[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"SYS:Oolite/Config" error:&dirError];
+  BOOL listed=(listing!=nil && [listing count]>=8);
+  printf("OOLITE_CONFIG_ENUMERATE files=%lu status=%s\n",(unsigned long)[listing count],listed?"PASS":"FAIL"); fflush(stdout);
+  if (!listed)fails++;
   for(unsigned i=0;i<8;i++) {
     NSString *file=[NSString stringWithFormat:@"SYS:Oolite/Config/%s",filenames[i]];
     BOOL exists=[[NSFileManager defaultManager] fileExistsAtPath:file];
