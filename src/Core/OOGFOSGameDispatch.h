@@ -65,6 +65,8 @@ int OOGFOSGameDispatchSet(void *state, unsigned property, LONG value);
 int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d);
 /* Frame-loop-safe nonblocking pump: 2 empty, 0 RPC, 1 DONE, -1 error. */
 int OOGFOSGameDispatchPoll(struct OOGFOSGameDispatch *d);
+/* Nonblocking; service at most budget requests/completions per game frame. */
+LONG OOGFOSGameDispatchPumpFrame(struct OOGFOSGameDispatch *d, ULONG budget);
 /* Signals completion from javascript.library JS_Post callback task. */
 int OOGFOSGameDispatchDone(struct OOGFOSGameDispatch *d, LONG rc, LONG value);
 const struct OOGFOSShipBackend *OOGFOSGameDispatchBackend(void);
