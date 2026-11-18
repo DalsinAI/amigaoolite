@@ -274,3 +274,11 @@ $(OUT)/oolite-ship-actions-68040: tests/oolite_ship_script_actions_gate.c src/Co
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_ship_script_actions_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: ship-actions
 ship-actions: $(OUT)/oolite-ship-actions-68040
+
+# Real Oolite tutorial, populator and equipment conditions script gate.
+# Stage originals from pinned Oolite upstream in SYS:Oolite/Scripts.
+$(OUT)/oolite-world-js-68040: tests/oolite_world_scripts_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h $(GFOS_JS_INC)/libraries/javascript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_world_scripts_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: world-js
+world-js: $(OUT)/oolite-world-js-68040
