@@ -266,3 +266,11 @@ $(OUT)/oolite-ship-event-68040: tests/oolite_ship_script_event_gate.c src/Core/O
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_ship_script_event_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: ship-event
 ship-event: $(OUT)/oolite-ship-event-68040
+
+# Actual Oolite default ship script: setup, launch, death and missile events
+# through canonical GFOS host classes; stage pinned upstream source separately.
+$(OUT)/oolite-ship-actions-68040: tests/oolite_ship_script_actions_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h $(GFOS_JS_INC)/libraries/javascript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_ship_script_actions_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: ship-actions
+ship-actions: $(OUT)/oolite-ship-actions-68040
