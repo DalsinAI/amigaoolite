@@ -125,3 +125,15 @@ $(OUT)/oolite-rng-omc-range-68040: tests/oolite_rng_omc_range.c $(RNG_SRC)
 	-I $(RNG_INC) $^ -lm -o $@
 .PHONY: rng-omc-range
 rng-omc-range: $(OUT)/oolite-rng-omc-range-68040
+
+# OXZ preflight using the pinned upstream MiniZip library. Apply patch 0005
+# to UPSTREAM/src/Core/MiniZip/ioapi.c before invoking this target. Do not
+# enable full OXZ installation on the strength of this qualification alone.
+OXZ_MINIZIP := $(UPSTREAM)/src/Core/MiniZip
+OXZ_DEPS := $(PREFIX)/m68k-amigaos/port-deps
+OXZ_FLAGS := -std=gnu11 -O2 -m68040 -m68881 -noixemul -DOOLITE_GFOS=1 -I src/Core -I $(OXZ_MINIZIP) -I $(OXZ_DEPS)/include
+$(OUT)/oolite-oxz-preflight-68040: tests/oolite_oxz_preflight_gate.c src/Core/OOOXZArchivePreflight.c src/Core/OOOXZPathSafety.h src/Core/OOOXZArchivePreflight.h $(OXZ_MINIZIP)/ioapi.c $(OXZ_MINIZIP)/unzip.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(OXZ_FLAGS) tests/oolite_oxz_preflight_gate.c src/Core/OOOXZArchivePreflight.c $(OXZ_MINIZIP)/ioapi.c $(OXZ_MINIZIP)/unzip.c -L $(OXZ_DEPS)/lib -lz -o $@
+.PHONY: oxz-preflight
+oxz-preflight: $(OUT)/oolite-oxz-preflight-68040
