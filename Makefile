@@ -512,3 +512,10 @@ $(OUT)/oolite-js-frame-budget-68040: tests/oolite_js_game_dispatch_frame_budget_
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_frame_budget_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-frame-budget
 js-frame-budget: $(OUT)/oolite-js-frame-budget-68040
+
+# Optional, game-task-owned frame hook for pinned original Universe.m update.
+$(OUT)/oolite-js-game-frame-hook-68040: tests/oolite_js_game_frame_hook_gate.c src/Core/OOGFOSGameFrame.c src/Core/OOGFOSGameFrame.h src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_frame_hook_gate.c src/Core/OOGFOSGameFrame.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-game-frame-hook
+js-game-frame-hook: $(OUT)/oolite-js-game-frame-hook-68040
