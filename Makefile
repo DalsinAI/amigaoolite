@@ -341,3 +341,10 @@ $(OUT)/oolite-js-safe-close-68040: tests/oolite_js_game_dispatch_safe_close_gate
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_safe_close_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-safe-close
 js-safe-close: $(OUT)/oolite-js-safe-close-68040
+
+# Seal game task IPC so queued JS jobs can complete without admitting new ship operations.
+$(OUT)/oolite-js-seal-68040: tests/oolite_js_game_dispatch_seal_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSGameDispatch.h src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_game_dispatch_seal_gate.c src/Core/OOGFOSGameDispatch.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-seal
+js-seal: $(OUT)/oolite-js-seal-68040
