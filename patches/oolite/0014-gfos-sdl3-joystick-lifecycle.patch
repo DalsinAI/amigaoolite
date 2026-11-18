@@ -1,0 +1,28 @@
+--- a/src/SDL/OOSDLJoystickManager.m
++++ b/src/SDL/OOSDLJoystickManager.m
+@@ -45,11 +45,6 @@
+     }
+     if (stickCount) {
+         for (i = 0; i < stickCount; i++) {
+-            // it's doubtful MAX_STICKS will ever get exceeded, but
+-            // we need to be defensive.
+-            if (i > MAX_STICKS)
+-                break;
+-
+             stick[i] = SDL_OpenJoystick(joystickIds[i]);
+             if (stick[i]) {
+                 [idMap setObject:[NSNumber numberWithInt:i] forKey:[NSString stringWithFormat:@"%d", joystickIds[i]]];
+@@ -66,6 +61,13 @@
+ 
+ - (void)dealloc
+ {
++    int i;
++    for (i = 0; i < stickCount; i++) {
++        if (stick[i] != NULL) {
++            SDL_CloseJoystick(stick[i]);
++            stick[i] = NULL;
++        }
++    }
+     [joystickIdMap release];
+     [super dealloc];
+ }
