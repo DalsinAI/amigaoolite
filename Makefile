@@ -580,3 +580,26 @@ $(OUT)/OOSoundSource-gfos-68040.o: $(UPSTREAM)/src/Core/OOSoundSource.m
 	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 .PHONY: oolite-core-seven-objects
 oolite-core-seven-objects: oolite-core-four-objects $(OUT)/ResourceManager-gfos-68040.o $(OUT)/OOShipRegistry-gfos-68040.o $(OUT)/OOSoundSource-gfos-68040.o
+
+# GFOS Oolite native AmigaOS system reporting; do not compile x86 CPUID on 68k.
+OO_GFOS_OS_PATCH := patches/oolite/0002-gfos-native-cpu-memory-report.patch
+OO_GFOS_OS_DIR := $(OUT)/gfos-os-patched
+$(OO_GFOS_OS_DIR)/.ready: $(OO_GFOS_OS_PATCH) $(UPSTREAM)/src/Core/OOCPUInfo.m $(UPSTREAM)/src/Core/OOCPUInfo.h $(UPSTREAM)/src/Core/OOLogHeader.m
+	@mkdir -p $(OO_GFOS_OS_DIR)/src/Core
+	@test "$$(git -C $(UPSTREAM) rev-parse HEAD)" = 21978c37b2f11c8664adf3e2062efc1d0c875979 || { echo 'Oolite OS-patch upstream mismatch' >&2; exit 1; }
+	@cp $(UPSTREAM)/src/Core/OOCPUInfo.m $(UPSTREAM)/src/Core/OOCPUInfo.h $(UPSTREAM)/src/Core/OOLogHeader.m $(OO_GFOS_OS_DIR)/src/Core/
+	@cd $(OO_GFOS_OS_DIR) && patch -s -p1 < $(abspath $(OO_GFOS_OS_PATCH))
+	@touch $@
+$(OUT)/OOGFOSSystemInfo-68040.o: src/Core/OOGFOSSystemInfo.c src/Core/OOGFOSSystemInfo.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c $< -o $@
+$(OUT)/OOCPUInfo-gfos-68040.o: $(OO_GFOS_OS_DIR)/.ready src/Core/OOGFOSSystemInfo.h
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(OO_GFOS_OS_DIR)/src/Core -c $(OO_GFOS_OS_DIR)/src/Core/OOCPUInfo.m -o $@
+$(OUT)/OOLogHeader-gfos-68040.o: $(OO_GFOS_OS_DIR)/.ready
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(OO_GFOS_OS_DIR)/src/Core -c $(OO_GFOS_OS_DIR)/src/Core/OOLogHeader.m -o $@
+$(OUT)/oolite-gfos-system-info-68040: tests/oolite_gfos_system_info_gate.c src/Core/OOGFOSSystemInfo.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) $^ -o $@
+.PHONY: oolite-core-nine-objects oolite-system-info-gate
+oolite-core-nine-objects: oolite-core-seven-objects $(OUT)/OOCPUInfo-gfos-68040.o $(OUT)/OOLogHeader-gfos-68040.o $(OUT)/OOGFOSSystemInfo-68040.o
+oolite-system-info-gate: $(OUT)/oolite-gfos-system-info-68040
