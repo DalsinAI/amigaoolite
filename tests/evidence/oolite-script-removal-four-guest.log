@@ -1,0 +1,10 @@
+OOLITE_SCRIPT_CLEANUP_SUITE_BEGIN
+OOLITE_ORIGINAL_OBJC_EVENT bytes=3757 bound=1 methods=3 actions=4 rpc=4 completed=1 result=1 closed=1 status=PASS
+OOLITE_CLEANUP_REG1_RC 0
+OOLITE_TWO_ORIGINAL_JS bytes=3757 jobs=0,0 done=2 rpc=8 calls=3,3 actions=4,5 results=1,1 closed=1 status=PASS
+OOLITE_CLEANUP_REG2_RC 0
+OOLITE_SCRIPT_OBJECTS bytes=3757 scripts=2 js_tasks=1 calls=3,3 actions=4,5 rpc=8 done=1 result=1 called=4 missing=0 closed=1 status=PASS
+OOLITE_CLEANUP_REG3_RC 0
+OOLITE_SHIP_SCRIPT_REMOVAL bytes=3757 scripts=2 js_tasks=1 calls=3,4 actions=4,7 rpc=11 done=2 first=1 second=1 called=1 missing=0 droppedA=1 closed=1 status=PASS
+OOLITE_CLEANUP_REG4_RC 0
+OOLITE_SCRIPT_CLEANUP_SUITE_END
