@@ -1,25 +1,64 @@
 --- a/src/SDL/main.m
 +++ b/src/SDL/main.m
-@@ -30,6 +30,9 @@
+@@ -30,6 +30,15 @@
  #import "GameController.h"
  #import "OOLoggingExtended.h"
  #import <Foundation/NSString.h>
 +#if OOLITE_GFOS
 +#import <Foundation/NSProcessInfo.h>
++#if OOLITE_GFOS_STARTUP_TRACE
++#include <stdio.h>
++#define GFOS_STARTUP_MARK(point) do { fputs("OOLITE_GFOS_STARTUP " point "\n", stdout); fflush(stdout); } while (0)
++#else
++#define GFOS_STARTUP_MARK(point) ((void)0)
++#endif
 +#endif
  
  #if OOLITE_WINDOWS
  #include <SDL3/SDL_main.h>
-@@ -77,6 +80,12 @@
+@@ -75,11 +84,23 @@
+  */
+ int main(int argc, char* argv[])
  {
++#if OOLITE_GFOS
++    GFOS_STARTUP_MARK("main-entry");
++#endif
  #if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
      int i;
-+
+ 
 +#if OOLITE_GFOS
-+    /* Native GFOpenGNUstep needs process bootstrap before using Foundation. */
 +    char *gfos_environment[] = { NULL };
 +    GSInitializeProcess(argc, argv, gfos_environment);
++    GFOS_STARTUP_MARK("after-gsinitialize");
 +#endif
- 
++
  #if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
      [NSDate class]; // See github issue #202
++#if OOLITE_GFOS
++    GFOS_STARTUP_MARK("after-nsdate");
++#endif
+ #endif
+ 
+ #if OOLITE_WINDOWS
+@@ -177,12 +198,21 @@
+     // Need this because we're not using the default run loop's autorelease
+     // pool.
+     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
++#if OOLITE_GFOS
++    GFOS_STARTUP_MARK("after-pool");
++#endif
+     OOLoggingInit();
++#if OOLITE_GFOS
++    GFOS_STARTUP_MARK("after-log-init");
++#endif
+ 
+     @try {
+         // dajt: allocate and set the NSApplication delegate manually because not
+         // using NIB to do this
+         controller = [[GameController alloc] init];
++#if OOLITE_GFOS
++        GFOS_STARTUP_MARK("after-controller-init");
++#endif
+ 
+         for (i = 1; i < argc; i++) {
+             if (strcmp("-load", argv[i]) == 0) {
