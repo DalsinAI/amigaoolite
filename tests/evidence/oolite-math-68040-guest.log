@@ -1,0 +1,4 @@
+OOLITE_MATH_BEGIN
+OOLITE_MATH_68040 quaternion_w=0.70711 quaternion_z=0.70711 matrix_diag_y=-0.00000 zero_diag_y=1.00000 status=PASS
+OOLITE_MATH_RC 0
+OOLITE_MATH_END
