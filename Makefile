@@ -633,3 +633,31 @@ $(OUT)/oolite-native-splash-68040: tests/oolite_native_splash_view.c
 GFOS_SDL3_LIB_DIR ?= ../gfopenrtg/build
 .PHONY: oolite-native-splash
 oolite-native-splash: $(OUT)/oolite-native-splash-68040
+
+# Original Oolite ship, player, GUI, GL-context and SDL input objects.
+# This is a native object compilation gate, NOT a playable game link.
+GFOS_VISUAL_SOURCES := ShipEntity PlayerEntity GuiDisplayGen OOOpenGLExtensionManager OOOpenGLStateManager MyOpenGLView+Input GameController+SDLFullScreen
+GFOS_VISUAL_OBJECTS := $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_SOURCES)))
+$(OUT)/ShipEntity-gfos-68040.o: $(UPSTREAM)/src/Core/Entities/ShipEntity.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+$(OUT)/PlayerEntity-gfos-68040.o: $(UPSTREAM)/src/Core/Entities/PlayerEntity.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+$(OUT)/GuiDisplayGen-gfos-68040.o: $(UPSTREAM)/src/Core/GuiDisplayGen.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+$(OUT)/OOOpenGLExtensionManager-gfos-68040.o: $(UPSTREAM)/src/Core/OOOpenGLExtensionManager.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+$(OUT)/OOOpenGLStateManager-gfos-68040.o: $(UPSTREAM)/src/Core/OOOpenGLStateManager.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+$(OUT)/MyOpenGLView+Input-gfos-68040.o: $(UPSTREAM)/src/SDL/MyOpenGLView+Input.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+$(OUT)/GameController+SDLFullScreen-gfos-68040.o: $(UPSTREAM)/src/SDL/GameController+SDLFullScreen.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+.PHONY: oolite-core-seventeen-objects
+oolite-core-seventeen-objects: oolite-core-ten-objects $(GFOS_VISUAL_OBJECTS)
