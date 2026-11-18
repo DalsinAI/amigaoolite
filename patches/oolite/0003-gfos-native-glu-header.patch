@@ -1,0 +1,12 @@
+--- a/src/Core/OOOpenGL.m
++++ b/src/Core/OOOpenGL.m
+@@ -23,6 +23,9 @@
+ */
+ 
+ #import "OOOpenGL.h"
++#if OOLITE_GFOS
++#include <GL/glu.h> /* native GFOpenGPU GLU; do not substitute old TinyGL symbols */
++#endif
+ #import "OOFunctionAttributes.h"
+ #import "OOLogging.h"
+ #import "OOMacroOpenGL.h"
