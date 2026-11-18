@@ -52,3 +52,18 @@ $(OUT)/oolite-foundation-68040: $(OUT)/oolite_foundation_gate.o $(OUT)/OOIsNumbe
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: foundation-number
 foundation-number: $(OUT)/oolite-foundation-68040
+
+# Native GFOS Foundation/AmigaDOS file-data gate for Oolite resource loading.
+# Stage tests/fixtures/oolite-probe.txt at SYS:ACAgent/oolite-probe.txt in the
+# Amiga guest before running. DH1 is NOT assumed to be mounted.
+$(OUT)/oolite_resource_probe.o: tests/oolite_resource_probe.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul \
+	-I $(GFOS_BASE_DIR)/Headers -c $< -o $@
+$(OUT)/oolite-resource-68040: $(OUT)/oolite_resource_probe.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $< -L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) \
+	-Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a \
+	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: resource-probe
+resource-probe: $(OUT)/oolite-resource-68040
