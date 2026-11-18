@@ -1,0 +1,23 @@
+--- a/src/Core/Universe.m
++++ b/src/Core/Universe.m
+@@ -23,6 +23,9 @@
+ */
+ 
+ #import "Universe.h"
++#if defined(OOLITE_GFOS_GAME_DISPATCH)
++#include "OOGFOSGameFrame.h"
++#endif
+ #import "AI.h"
+ #import "GameController.h"
+ #import "GuiDisplayGen.h"
+@@ -6420,6 +6423,10 @@
+ 
+ - (void)update:(OOTimeDelta)inDeltaT
+ {
++#if defined(OOLITE_GFOS_GAME_DISPATCH)
++    /* Bounded, nonblocking JS -> game-owner requests before entity updates. */
++    (void)OOGFOSGameFrameUpdate();
++#endif
+     volatile OOTimeDelta delta_t = inDeltaT * [self timeAccelerationFactor];
+     NSUInteger sessionID = _sessionID;
+     OOLog(@"universe.profile.update", @"%@", @"Begin update");
