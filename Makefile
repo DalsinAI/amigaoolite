@@ -603,3 +603,23 @@ $(OUT)/oolite-gfos-system-info-68040: tests/oolite_gfos_system_info_gate.c src/C
 .PHONY: oolite-core-nine-objects oolite-system-info-gate
 oolite-core-nine-objects: oolite-core-seven-objects $(OUT)/OOCPUInfo-gfos-68040.o $(OUT)/OOLogHeader-gfos-68040.o $(OUT)/OOGFOSSystemInfo-68040.o
 oolite-system-info-gate: $(OUT)/oolite-gfos-system-info-68040
+
+# Oolite original OOOpenGL error reporting with real SGI GLU on GFOpenGPU.
+GFOS_GLU_KIT ?= ../gfopenrtg/build/glu
+OO_GFOS_GLU_PATCH := patches/oolite/0003-gfos-native-glu-header.patch
+OO_GFOS_GLU_DIR := $(OUT)/gfos-glu-patched
+$(OO_GFOS_GLU_DIR)/src/Core/OOOpenGL.m: $(UPSTREAM)/src/Core/OOOpenGL.m $(OO_GFOS_GLU_PATCH)
+	@mkdir -p $(OO_GFOS_GLU_DIR)/src/Core
+	@test "$$(git -C $(UPSTREAM) rev-parse HEAD)" = 21978c37b2f11c8664adf3e2062efc1d0c875979 || { echo 'Oolite GLU upstream mismatch' >&2; exit 1; }
+	@cp $(UPSTREAM)/src/Core/OOOpenGL.m $@
+	@cd $(OO_GFOS_GLU_DIR) && patch -s -p1 < $(abspath $(OO_GFOS_GLU_PATCH))
+$(OUT)/OOOpenGL-gfos-68040.o: $(OO_GFOS_GLU_DIR)/src/Core/OOOpenGL.m
+	@test -r $(GFOS_GLU_KIT)/include/GL/glu.h && test -r $(GFOS_GLU_KIT)/lib/libGLU.a || { echo 'Need genuine GFOpenGPU GLU kit' >&2; exit 1; }
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+$(OUT)/oolite-gfos-glu-68040: tests/oolite_glu_error_gate.c
+	@test -r $(GFOS_GLU_KIT)/lib/libGLU.a || { echo 'Missing GFOpenGPU GLU kit' >&2; exit 1; }
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -std=gnu11 -O2 -Wall -Wextra -Werror -m68040 -m68881 -noixemul -I $(GFOS_GLU_KIT)/include $< -L $(GFOS_GLU_KIT)/lib -lGLU -L $(PREFIX)/m68k-amigaos/lib -lGL -lm -o $@
+.PHONY: oolite-core-ten-objects oolite-glu-native-gate
+oolite-core-ten-objects: oolite-core-nine-objects $(OUT)/OOOpenGL-gfos-68040.o
+oolite-glu-native-gate: $(OUT)/oolite-gfos-glu-68040
