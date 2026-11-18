@@ -1,0 +1,17 @@
+--- a/src/Core/OOLogHeader.m
++++ b/src/Core/OOLogHeader.m
+@@ -56,6 +56,14 @@
+ 
+ void OOPrintLogHeader(void)
+ {
++#if OOLITE_GFOS
++    /* The native GFOpenGNUstep RC1 lacks qualified complex NSString format
++     * startup; detailed header formatting stalls before game startup.
++     * Preserve logging, with a clear native diagnostic until fixed. */
++    fputs("Oolite GFOS: native startup; detailed log header deferred\n", stderr);
++    fflush(stderr);
++    return;
++#endif
+ // Bunch of string literal macros which are assembled into a CPU info string.
+ #if defined(__ppc__)
+ #define CPU_TYPE_STRING "PPC-32"
