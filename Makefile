@@ -478,3 +478,16 @@ $(OUT)/oolite-script-objects-68040: tests/oolite_js_script_objects_gate.c src/Co
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-script-objects
 js-script-objects: $(OUT)/oolite-script-objects-68040
+
+# Remove just one script's shared-JSTask global object, invalidate its game
+# token, reject stale native access, and keep another ship's original script
+# events running on the same JS task.
+$(OUT)/oolite-script-removal-68040: tests/oolite_js_script_removal_gate.c src/Core/OOGFOSScriptObjects.c $(OUT)/oolite-script-objects-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_script_removal_gate.c -o $(OUT)/oolite-script-removal-gate.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-script-removal-gate.o $(OUT)/oolite-script-objects-core.o $(OUT)/oolite-ship-events.o $(OUT)/oolite-objc-ship-mock.o $(OUT)/oolite-objc-game-shim.o $(OUT)/OOGFOSShipEntityBackend-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-properties.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group \
+	-Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a \
+	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-script-removal
+js-script-removal: $(OUT)/oolite-script-removal-68040
