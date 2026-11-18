@@ -1,0 +1,25 @@
+--- a/src/SDL/main.m
++++ b/src/SDL/main.m
+@@ -30,6 +30,9 @@
+ #import "GameController.h"
+ #import "OOLoggingExtended.h"
+ #import <Foundation/NSString.h>
++#if OOLITE_GFOS
++#import <Foundation/NSProcessInfo.h>
++#endif
+ 
+ #if OOLITE_WINDOWS
+ #include <SDL3/SDL_main.h>
+@@ -77,6 +80,12 @@
+ {
+ #if defined(GNUSTEP_BASE_LIBRARY) || defined(OOLITE_SDL_MAC)
+     int i;
++
++#if OOLITE_GFOS
++    /* Native GFOpenGNUstep needs process bootstrap before using Foundation. */
++    char *gfos_environment[] = { NULL };
++    GSInitializeProcess(argc, argv, gfos_environment);
++#endif
+ 
+ #if (GNUSTEP_BASE_MAJOR_VERSION == 1 && (GNUSTEP_BASE_MINOR_VERSION == 24 && GNUSTEP_BASE_SUBMINOR_VERSION >= 9) || (GNUSTEP_BASE_MINOR_VERSION > 24)) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
+     [NSDate class]; // See github issue #202
