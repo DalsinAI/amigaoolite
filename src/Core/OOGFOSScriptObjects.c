@@ -63,6 +63,19 @@ LONG OOGFOSScriptObjectLoad(JSTask task, CONST_STRPTR scriptGlobal,
     free(wrapped);
     return rc;
 }
+LONG OOGFOSScriptObjectDrop(JSTask task, CONST_STRPTR scriptGlobal)
+{
+    JSValue global;
+    LONG rc;
+    if (!task || !validName(scriptGlobal)) return JSERR_BADARGS;
+    global=JS_Global(task);
+    if (!global) return JSERR_BADARGS;
+    /* GFOS NULL JSValue represents JavaScript undefined. Dropping the global
+     * reference does not forcibly destroy scripts held by other objects. */
+    rc=JS_SetProp(task,global,scriptGlobal,NULL);
+    JS_Free(task,global);
+    return rc;
+}
 LONG OOGFOSScriptObjectEvent(JSTask task, CONST_STRPTR scriptGlobal,
                             CONST_STRPTR eventName, LONG argc,
                             JSValue *argv, LONG *called)
@@ -75,7 +88,10 @@ LONG OOGFOSScriptObjectEvent(JSTask task, CONST_STRPTR scriptGlobal,
     global=JS_Global(task);
     if (!global) goto cleanup;
     script=JS_GetProp(task,global,scriptGlobal);
-    if (!script || JS_TypeOf(task,script)!=JST_OBJECT) goto cleanup;
+    if (!script || JS_TypeOf(task,script)==JST_UNDEFINED) {
+        rc=JSERR_OK;goto cleanup;
+    }
+    if (JS_TypeOf(task,script)!=JST_OBJECT) goto cleanup;
     func=JS_GetProp(task,script,eventName);
     if (!func || JS_TypeOf(task,func)==JST_UNDEFINED) {
         rc=JSERR_OK;goto cleanup;
