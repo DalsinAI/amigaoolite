@@ -1,0 +1,62 @@
+--- a/src/Core/OOLogHeader.m
++++ b/src/Core/OOLogHeader.m
+@@ -56,6 +56,9 @@
+ 
+ void OOPrintLogHeader(void)
+ {
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_HEADER enter\n", stdout); fflush(stdout);
++#endif
+ // Bunch of string literal macros which are assembled into a CPU info string.
+ #if defined(__ppc__)
+ #define CPU_TYPE_STRING "PPC-32"
+@@ -95,6 +98,9 @@
+ #define RELEASE_VARIANT_STRING ""
+ #endif
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_HEADER feature-array\n", stdout); fflush(stdout);
++#endif
+     NSArray* featureStrings = [NSArray arrayWithObjects:
+ // User features
+ #if OOLITE_OPENAL
+@@ -150,6 +156,9 @@
+ 
+ // systemString: NSString with system type and possibly version.
+ #if (OOLITE_MAC_OS_X || !OOLITE_WINDOWS)
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_HEADER system-version\n", stdout); fflush(stdout);
++#endif
+     NSString* systemString = [NSString stringWithFormat:@OS_TYPE_STRING " %@", [[NSProcessInfo processInfo] operatingSystemVersionString]];
+ #elif OOLITE_WINDOWS
+     NSString* systemString = [NSString stringWithFormat:@OS_TYPE_STRING " %@ %@-bit", operatingSystemFullVersion(), is64BitSystem() ? @"64" : @"32"];
+@@ -166,10 +175,19 @@
+     if (versionString == nil)
+         versionString = @"<unknown version>";
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_HEADER format-header\n", stdout); fflush(stdout);
++#endif
+     NSMutableString* miscString = [NSMutableString stringWithFormat:@"Opening log for Oolite %@ by %@ (" CPU_TYPE_STRING RELEASE_VARIANT_STRING ") under %@ at %@.\n", versionString, @OO_BUILDER, systemString, [NSDate date]];
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_HEADER additional-info\n", stdout); fflush(stdout);
++#endif
+     [miscString appendString:AdditionalLogHeaderInfo()];
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_HEADER features-joined\n", stdout); fflush(stdout);
++#endif
+     NSString* featureDesc = [featureStrings componentsJoinedByString:@", "];
+     if ([featureDesc length] == 0)
+         featureDesc = @"none";
+@@ -177,6 +195,9 @@
+ 
+     [miscString appendString:@"\nNote that the contents of the log file can be adjusted by editing logcontrol.plist."];
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_HEADER before-log-send\n", stdout); fflush(stdout);
++#endif
+     OOLog(@"log.header", @"%@\n", miscString);
+ }
+ 
