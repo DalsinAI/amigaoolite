@@ -1,0 +1,32 @@
+OOLITE_GAMEBOOT_NORMAL_CLONE_BEGIN
+OOLITE_GFOS_STARTUP main-entry
+OOLITE_GFOS_STARTUP after-gsinitialize
+OOLITE_GFOS_STARTUP after-nsdate
+OOLITE_GFOS_STARTUP after-pool
+OOLITE_GFOS_LOG enter
+OOLITE_GFOS_LOG after-pool
+OOLITE_GFOS_LOG after-lock-alloc
+OOLITE_GFOS_LOG after-lock-name
+OOLITE_GFOS_LOG after-filename-cache
+OOLITE_GFOS_LOG before-output-handler
+OOLITE_GFOS_LOG after-output-handler
+Oolite GFOS: native startup; detailed log header deferred
+OOLITE_GFOS_LOG after-print-header
+Oolite GFOS: early logging preferences deferred
+OOLITE_GFOS_LOG after-load-settings
+OOLITE_GFOS_LOG after-release
+OOLITE_GFOS_STARTUP after-log-init
+OOLITE_GFOS_CONTROLLER enter
+OOLITE_GFOS_CONTROLLER before-singleton
+OOLITE_GFOS_CONTROLLER before-super
+OOLITE_GFOS_CONTROLLER before-date-interval
+OOLITE_GFOS_CONTROLLER before-user-defaults
+OOLITE_GFOS_CONTROLLER before-seed
+OOLITE_GFOS_CONTROLLER before-splash-date
+OOLITE_GFOS_CONTROLLER before-return
+OOLITE_GFOS_STARTUP after-controller-init
+OOLITE_GFOS_LAUNCH enter
+OOLITE_GFOS_LAUNCH after-pool
+OOLITE_GFOS_LAUNCH splash-entry
+OOLITE_GFOS_LAUNCH before-view-alloc
+OOLITE_GFOS_LAUNCH before-view-init
