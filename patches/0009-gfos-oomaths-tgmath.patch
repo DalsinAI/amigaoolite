@@ -1,0 +1,15 @@
+--- a/src/Core/OOMaths.h
++++ b/src/Core/OOMaths.h
+@@ -44,7 +44,12 @@
+ #include <stdbool.h>
+ #include <stdint.h>
+ #include <stdlib.h>
++#if OOLITE_GFOS
++/* Target GCC16 libm lacks the C99 complex long-double tgmath entry points. */
++#include <math.h>
++#else
+ #include <tgmath.h>
++#endif
+ 
+ typedef GLfloat OOScalar;
+ 
