@@ -1,0 +1,59 @@
+OOLITE_GAMEBOOT_HELP_CLONE_BEGIN
+OOLITE_GFOS_STARTUP main-entry
+OOLITE_GFOS_STARTUP after-gsinitialize
+OOLITE_GFOS_STARTUP after-nsdate
+OOLITE_GFOS_STARTUP after-pool
+OOLITE_GFOS_LOG enter
+OOLITE_GFOS_LOG after-pool
+OOLITE_GFOS_LOG after-lock-alloc
+OOLITE_GFOS_LOG after-lock-name
+OOLITE_GFOS_LOG after-filename-cache
+OOLITE_GFOS_LOG before-output-handler
+OOLITE_GFOS_LOG after-output-handler
+Oolite GFOS: native startup; detailed log header deferred
+OOLITE_GFOS_LOG after-print-header
+Oolite GFOS: early logging preferences deferred
+OOLITE_GFOS_LOG after-load-settings
+OOLITE_GFOS_LOG after-release
+OOLITE_GFOS_STARTUP after-log-init
+OOLITE_GFOS_CONTROLLER enter
+OOLITE_GFOS_CONTROLLER before-singleton
+OOLITE_GFOS_CONTROLLER before-super
+OOLITE_GFOS_CONTROLLER before-date-interval
+OOLITE_GFOS_CONTROLLER before-user-defaults
+OOLITE_GFOS_CONTROLLER before-seed
+OOLITE_GFOS_CONTROLLER before-splash-date
+OOLITE_GFOS_CONTROLLER before-return
+OOLITE_GFOS_STARTUP after-controller-init
+-help option detected, exiting after help page has been displayed.
+Usage: Oolite-gfos-gameboot-68040 [options]
+
+Options can be any of the following: 
+
+--compile-sysdesc			Compile system descriptions *
+--export-sysdesc			Export system descriptions *
+-load [filepath]			Load commander from [filepath]
+					("-load" is optional)
+-message [messageString]		Display [messageString] at startup
+-nodust    				Do not draw space dust
+-noshaders				Start up with shaders disabled
+-nosplash    				Force disable splash screen on startup
+-nosound    				Start up with sound disabled
+-novsync				Force disable V-Sync
+--openstep				When compiling or exporting
+					system descriptions, use openstep
+					format *
+-showversion				Display version at startup screen
+-splash					Force splash screen on startup
+-verify-oxp [filepath]    		Verify OXP at [filepath] *
+--xml					When compiling or exporting
+					system descriptions, use xml
+					format *
+
+Options marked with "*" are available only in Test Release configuration.
+Version 1.93.1-255
+Debug functionality enabled (Test Release): no
+Built with GCC version 16.2.0
+
+OOLITE_GAMEBOOT_HELP_CLONE_RC 0
+OOLITE_GAMEBOOT_HELP_CLONE_END
