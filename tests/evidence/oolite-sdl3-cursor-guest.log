@@ -1,0 +1,35 @@
+OOLITE_SDL3_CURSOR_BEGIN
+KEYCODES return=13 backspace=8 s=115
+ROUND 0 selecting older custom cursor
+ROUND 1 selecting older custom cursor
+ROUND 2 selecting older custom cursor
+ROUND 3 selecting older custom cursor
+ROUND 4 selecting older custom cursor
+ROUND 5 selecting older custom cursor
+ROUND 6 selecting older custom cursor
+ROUND 7 selecting older custom cursor
+ROUND 8 selecting older custom cursor
+ROUND 9 selecting older custom cursor
+ROUND 10 selecting older custom cursor
+ROUND 11 selecting older custom cursor
+ROUND 12 selecting older custom cursor
+ROUND 13 selecting older custom cursor
+ROUND 14 selecting older custom cursor
+ROUND 15 selecting older custom cursor
+ROUND 16 selecting older custom cursor
+ROUND 17 selecting older custom cursor
+ROUND 18 selecting older custom cursor
+ROUND 19 selecting older custom cursor
+ROUND 20 selecting older custom cursor
+ROUND 21 selecting older custom cursor
+ROUND 22 selecting older custom cursor
+ROUND 23 selecting older custom cursor
+ROUND 24 selecting older custom cursor
+ROUND 25 selecting older custom cursor
+ROUND 26 selecting older custom cursor
+ROUND 27 selecting older custom cursor
+ROUND 28 selecting older custom cursor
+ROUND 29 selecting older custom cursor
+PASS 30 system/custom cursor create/select/destroy cycles and SDL_Quit
+OOLITE_SDL3_CURSOR_RC 0
+OOLITE_SDL3_CURSOR_END
