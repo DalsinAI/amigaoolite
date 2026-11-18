@@ -7,6 +7,7 @@ struct OOGFOSGameMessage {
     ULONG magic;
     ULONG op;
     ULONG property;
+    ULONG token;
     LONG value;
     LONG status;
 };
@@ -32,7 +33,7 @@ static void finishTracked(struct OOGFOSGameDispatch *d)
     if (d->inFlight) d->inFlight--;
     Permit();
 }
-static int dispatchRPC(struct OOGFOSGameDispatch *d, ULONG op,
+static int dispatchRPC(struct OOGFOSGameDispatch *d, ULONG op, ULONG token,
                        unsigned property, LONG *value)
 {
     struct MsgPort *reply;
@@ -48,6 +49,7 @@ static int dispatchRPC(struct OOGFOSGameDispatch *d, ULONG op,
     m.magic = OOGFOS_RPC_MAGIC;
     m.op = op;
     m.property = property;
+    m.token = token;
     m.value = *value;
     if (!sendTracked(d, &m)) { DeleteMsgPort(reply); return 0; }
     WaitPort(reply);
@@ -67,6 +69,17 @@ int OOGFOSGameDispatchInit(struct OOGFOSGameDispatch *d, void *owner,
     d->gameTask = FindTask(NULL);
     d->owner = owner;
     d->ownerBackend = ownerBackend;
+    d->gamePort = CreateMsgPort();
+    return d->gamePort != NULL;
+}
+int OOGFOSGameDispatchInitRouted(struct OOGFOSGameDispatch *d, void *owner,
+                                const struct OOGFOSGameRouteBackend *backend)
+{
+    if (!d || !owner || !backend || !backend->getLong || !backend->setLong) return 0;
+    memset(d, 0, sizeof(*d));
+    d->gameTask = FindTask(NULL);
+    d->owner = owner;
+    d->routeBackend = backend;
     d->gamePort = CreateMsgPort();
     return d->gamePort != NULL;
 }
@@ -103,12 +116,29 @@ void OOGFOSGameDispatchClose(struct OOGFOSGameDispatch *d)
 int OOGFOSGameDispatchGet(void *state, unsigned property, LONG *value)
 {
     return dispatchRPC((struct OOGFOSGameDispatch *)state,
-                       OOGFOS_DISPATCH_GET, property, value);
+                       OOGFOS_DISPATCH_GET, 0, property, value);
 }
 int OOGFOSGameDispatchSet(void *state, unsigned property, LONG value)
 {
     return dispatchRPC((struct OOGFOSGameDispatch *)state,
-                       OOGFOS_DISPATCH_SET, property, &value);
+                       OOGFOS_DISPATCH_SET, 0, property, &value);
+}
+static int routedGet(void *context, unsigned property, LONG *value)
+{
+    struct OOGFOSGameShipProxy *p=(struct OOGFOSGameShipProxy *)context;
+    if (!p || !p->dispatch || !p->token) return 0;
+    return dispatchRPC(p->dispatch, OOGFOS_DISPATCH_GET, p->token, property, value);
+}
+static int routedSet(void *context, unsigned property, LONG value)
+{
+    struct OOGFOSGameShipProxy *p=(struct OOGFOSGameShipProxy *)context;
+    if (!p || !p->dispatch || !p->token) return 0;
+    return dispatchRPC(p->dispatch, OOGFOS_DISPATCH_SET, p->token, property, &value);
+}
+const struct OOGFOSShipBackend *OOGFOSGameShipProxyBackend(void)
+{
+    static const struct OOGFOSShipBackend backend={routedGet,routedSet};
+    return &backend;
 }
 const struct OOGFOSShipBackend *OOGFOSGameDispatchBackend(void)
 {
@@ -154,10 +184,14 @@ int OOGFOSGameDispatchServe(struct OOGFOSGameDispatch *d)
         return -1;
     }
     if (m->op == OOGFOS_DISPATCH_GET) {
-        m->status = d->ownerBackend->getLong(d->owner, m->property, &m->value);
+        m->status = d->routeBackend ?
+            (m->token ? d->routeBackend->getLong(d->owner, m->token, m->property, &m->value) : 0) :
+            d->ownerBackend->getLong(d->owner, m->property, &m->value);
         d->requests++;
     } else if (m->op == OOGFOS_DISPATCH_SET) {
-        m->status = d->ownerBackend->setLong(d->owner, m->property, m->value);
+        m->status = d->routeBackend ?
+            (m->token ? d->routeBackend->setLong(d->owner, m->token, m->property, m->value) : 0) :
+            d->ownerBackend->setLong(d->owner, m->property, m->value);
         d->requests++;
     } else if (m->op == OOGFOS_DISPATCH_DONE) {
         d->resultCode = m->status;
