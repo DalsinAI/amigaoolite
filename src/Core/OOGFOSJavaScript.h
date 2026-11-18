@@ -26,5 +26,8 @@ int OOGFOSJSExposeHostClass(struct OOGFOSJS *state,
 /* Expose a native callback on the JS global; callback runs on script task. */
 int OOGFOSJSSetGlobalFunction(struct OOGFOSJS *state,
                              CONST_STRPTR name, JSMethodFunc callback, APTR data);
+/* Evaluate a complete script for side effects, without coercing its result. */
+LONG OOGFOSJSEvaluateSource(struct OOGFOSJS *state,
+                            CONST_STRPTR source, CONST_STRPTR filename);
 void OOGFOSJSClose(struct OOGFOSJS *state);
 #endif
