@@ -242,3 +242,10 @@ $(OUT)/oolite-jslib-hostclass-68040: tests/oolite_jslib_hostclass_gate.c src/Cor
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_jslib_hostclass_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: jslib-hostclass
 jslib-hostclass: $(OUT)/oolite-jslib-hostclass-68040
+
+# Nonblocking on-guest installation check, before starting the heavy engine.
+$(OUT)/oolite-jslib-install-68040: tests/oolite_jslib_install_probe.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -std=gnu11 -O2 -m68040 -m68881 -noixemul -I $(GFOS_JS_NDK) $< -o $@
+.PHONY: jslib-install
+jslib-install: $(OUT)/oolite-jslib-install-68040
