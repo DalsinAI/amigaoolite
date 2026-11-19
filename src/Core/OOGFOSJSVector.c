@@ -171,17 +171,19 @@ static JSValue toArray(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
     Vec3 *v=(Vec3*)self;
     JSValue arr=NULL,coords[3]={NULL,NULL,NULL};
     unsigned i;
+    int ok=1;
     DOUBLE doubles[3]={v->x,v->y,v->z};
     (void)argc;(void)argv;(void)data;
     if(JS_Evaluate(task,(CONST_STRPTR)"[]",-1,(CONST_STRPTR)"oolite-vector-array.js",&arr)!=JSERR_OK)
         return NULL;
     for(i=0;i<3;i++){
         coords[i]=newNumber(task,doubles[i]);
-        if(!coords[i] || JS_SetIndex(task,arr,i,coords[i])!=JSERR_OK)
-            break;
+        if(!coords[i] || JS_SetIndex(task,arr,i,coords[i])!=JSERR_OK){
+            ok=0;break;
+        }
     }
     for(i=0;i<3;i++)if(coords[i])JS_Free(task,coords[i]);
-    if(i<3){JS_Free(task,arr);return NULL;}
+    if(!ok){JS_Free(task,arr);return NULL;}
     return arr;
 }
 static const struct JSHostSlot slots[]={
