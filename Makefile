@@ -972,3 +972,14 @@ $(OUT)/oolite-js-priorityai-68040: tests/oolite_js_original_priorityai_gate.c sr
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_original_priorityai_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-priorityai
 js-priorityai: $(OUT)/oolite-js-priorityai-68040
+
+# Full original UTF-16 default-ship JS + real worldScripts registry and
+# ObjC game-task callbacks across an aborted and committed engine reset.
+$(OUT)/oolite-js-worldscripts-reset-68040: tests/oolite_js_worldscripts_reset_gate.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSScriptEventInvoke.c src/Core/OOGFOSScriptReset.c $(OUT)/oolite-js-routed-reset-68040 $(OUT)/oolite-js-event-invoke-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_worldscripts_reset_gate.c -o $(OUT)/oolite-world-reset-gate.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSWorldScripts.c -o $(OUT)/oolite-world-reset-worldscripts.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-world-reset-gate.o $(OUT)/oolite-world-reset-worldscripts.o $(OUT)/oolite-original-utf16-script-objects.o $(OUT)/oolite-event-invoke.o $(OUT)/oolite-routed-reset.o $(OUT)/oolite-sync-invoke.o $(OUT)/oolite-ship-events.o $(OUT)/oolite-energy-properties.o $(OUT)/oolite-energy-game-backend.o $(OUT)/oolite-energy-backend-objc.o $(OUT)/oolite-energy-mock-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-worldscripts-reset
+js-worldscripts-reset: $(OUT)/oolite-js-worldscripts-reset-68040
