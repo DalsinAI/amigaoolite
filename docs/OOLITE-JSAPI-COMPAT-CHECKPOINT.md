@@ -110,6 +110,42 @@ Basic slot inheritance is proved; the full historical `JS_InitClass` contract,
 prototype construction, SpiderMonkey resolution hooks and Oolite OOJS object
 identity are **not** proved. These remain in the original 101-symbol gap.
 
+## Original Oolite engine-facing compatibility — 19 November (later)
+
+Progress is now on the **original object and script boundaries**, not merely
+generic JavaScript arithmetic:
+
+| Port boundary | Native AC090 outcome | Evidence |
+| --- | --- | --- |
+| OOJavaScriptEngine reset preparation, commit and rollback | PASS RC 0; failed setup retains old script state; notification and finalizer order checked | [prepared reset](../tests/evidence/oolite-js-prepared-reset-guest-20261119.log) |
+| OOJSScript original UTF-16 source to UTF-8 | PASS RC 0; BMP/supplementary Unicode and invalid surrogate cases tested | [UTF-16 source](../tests/evidence/oolite-jsapi-utf16-guest-20261119.log) |
+| Unmodified Oolite default ship JavaScript loaded from UTF-16 and dispatched to ObjC fixture | PASS RC 0 | [single original script](../tests/evidence/oolite-original-utf16-objc-guest-20261119.log) |
+| Two original default ship scripts with distinct ship identity on one JSTask | PASS RC 0, eight game-task RPCs | [two-script isolation](../tests/evidence/oolite-two-original-utf16-objc-guest-20261119.log) |
+| Original OOJSEntity energy and maxEnergy | PASS RC 0; IEEE754 float via Exec and original clamping/positive-max rules | [energy and type flags](../tests/evidence/oolite-entity-flags-energy-guest-20261119.log) |
+| Original OOJSEntity isValid/isShip/isStation/isPlayer/isDock/isInSpace | PASS RC 0; true JS Booleans and STATUS_DEAD transition | [energy and type flags](../tests/evidence/oolite-entity-flags-energy-guest-20261119.log) |
+| Original ship scripts relinked with expanded Entity property host class | PASS RC 0, both one- and two-ship tests | [regression](../tests/evidence/oolite-entity-flags-energy-guest-20261119.log) |
+| Synchronous game-task script invocation with Exec RPC pump | PASS RC 0; exception sends DONE and next script succeeds | [sync invocation](../tests/evidence/oolite-jsapi-sync-invoke-guest-20261119.log) |
+
+Reusable interfaces:
+`OOGFOSJSResetPrepared` (`OOJavaScriptEngine` reset),
+`OOGFOSScriptObjectLoadUTF16` (`OOJSScript` source ingestion),
+`OOGFOSScriptInvoke` (synchronous game-to-script task calls),
+`OOGFOSScriptInvokeEvent` (synchronous per-ship event routing),
+and expanded `OOGFOSShipClass` (native OOJSEntity scalar/type properties).
+
+**Pending qualification:** the full `OOGFOSScriptInvokeEvent` original-script
+test initially stalled. Its set-up and injection stages have been switched
+to the same game-task RPC pump to avoid a cross-task deadlock; the revised
+test has compiled, but guest execution is still pending. Do **not** classify
+this particular gate as passed until guest evidence is recorded.
+
+**Release limit:** the full original `OOJavaScriptEngine.m` and `OOJS*`
+graph still needs a source-port away from SpiderMonkey, and the original
+242-unit game has not passed a full GFOS-only link, startup, cockpit or
+flight qualification. These isolated native passes must not be described
+as playable Oolite.
+
+
 ## Semantic caveats and acceptance gates
 
 1. `JS_ToLong` is **not a proven substitute** for SpiderMonkey `JS_ValueToInt32` (`ToInt32` modulo semantics). The helper is named `OOGFOSJSValueToLong` until parity is established; do not alias it to the SpiderMonkey function.
