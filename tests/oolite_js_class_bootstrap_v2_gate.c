@@ -4,6 +4,7 @@
  */
 #include "OOGFOSJSClassBootstrap.h"
 #include <proto/javascript.h>
+#include <exec/libraries.h>
 #include <stdio.h>
 #include <stddef.h>
 struct TestShip {LONG energy;};
