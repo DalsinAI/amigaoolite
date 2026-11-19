@@ -68,6 +68,19 @@ The original `OOJavaScriptEngine.m` still owns a `JSRuntime`, `JSContext`,
 `JSObject` and SpiderMonkey-specific error/root management; all 101
 unresolved `JS_*` original link symbols remain a build gate.
 
+## Exception semantics — later 19 November
+
+`OOGFOSJSEvaluateChecked` now provides an error-message boundary over the
+canonical `JS_Evaluate`/`JS_ErrorText` calls. A native AmigaOS 68040 test
+threw a deliberate JavaScript Error and verified `JSERR_EXCEPTION` plus
+nonempty diagnostics, then successfully evaluated another script (`6*7=42`).
+**Guest PASS RC 0**. Evidence:
+[`tests/evidence/oolite-jsapi-errors-guest-20261119.log`](../tests/evidence/oolite-jsapi-errors-guest-20261119.log).
+
+This helper does **not** emulate the historical SpiderMonkey `JSErrorReport`
+layout, debugger callbacks or original error monitor. They remain explicit
+migration requirements alongside the 101 symbol inventory.
+
 ## Semantic caveats and acceptance gates
 
 1. `JS_ToLong` is **not a proven substitute** for SpiderMonkey `JS_ValueToInt32` (`ToInt32` modulo semantics). The helper is named `OOGFOSJSValueToLong` until parity is established; do not alias it to the SpiderMonkey function.
