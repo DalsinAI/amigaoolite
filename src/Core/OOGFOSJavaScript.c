@@ -68,20 +68,36 @@ LONG OOGFOSJSErrorText(struct OOGFOSJS *s, STRPTR buffer, LONG size)
     return JS_ErrorText(s->task, buffer, size);
 }
 
-int OOGFOSJSReset(struct OOGFOSJS *s)
+int OOGFOSJSResetPrepared(struct OOGFOSJS *s,
+                           OOGFOSJSPrepareTask prepare,
+                           OOGFOSJSResetNotice beforeCommit,
+                           OOGFOSJSResetNotice afterCommit,
+                           APTR userData)
 {
     JSTask replacement, previous;
     if (!s || !s->library || !s->task) return 0;
     JavaScriptBase = s->library;
-    /* If creation fails, all existing Oolite scripts remain live. */
+    /* Prepare a new script heap before altering the current Oolite state. */
     replacement = JS_NewTask(NULL);
     if (!replacement) return 0;
+    if (prepare && !prepare(replacement, userData)) {
+        /* Aborted reset: the old task and its ship/script state still work. */
+        JS_EndTask(replacement);
+        return 0;
+    }
     previous = s->task;
-    /* EndTask calls host-wrapper release callbacks on the old task.
-     * Do not pass old JSValues into the replacement task. */
+    if (beforeCommit) beforeCommit(userData);
+    /* Old wrappers receive their final release callbacks before the
+     * replacement becomes visible to Oolite's subsequent script calls. */
     JS_EndTask(previous);
     s->task = replacement;
+    if (afterCommit) afterCommit(userData);
     return 1;
+}
+
+int OOGFOSJSReset(struct OOGFOSJS *s)
+{
+    return OOGFOSJSResetPrepared(s, NULL, NULL, NULL, NULL);
 }
 
 void OOGFOSJSClose(struct OOGFOSJS *s)
