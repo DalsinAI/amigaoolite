@@ -1,0 +1,28 @@
+Oolite unmodified original global-prefix.js with real OOJSWorldScripts registry
+Date: 2026-11-19 06:13 UTC
+Dedicated lab: team1-oolite-jsapi-rc1-20261119
+Target: native AC090 68040 AmigaOS 3.2.3, canonical javascript.library v1
+GCC 16.2 native binary SHA256: 8734d5cf9f74e2d2ae1ff031aef8b026926927ff9b50a4961e8880d04a9d45f7
+Original source: OoliteProject/oolite@21978c37b2f11c8664adf3e2062efc1d0c875979,
+Resources/Scripts/oolite-global-prefix.js (unmodified)
+
+Actual guest ACAgent output:
+OOLITE_GLOBAL_PREFIX_WORLDSCRIPTS_BEGIN
+OOLITE_GLOBAL_PREFIX setup=0 load=0 verify=0 result=42 shipCalls=1,0 worldReady=1 exported=1 idempotent=1 rejected=1 status=PASS
+OOLITE_GLOBAL_PREFIX_WORLDSCRIPTS_RC 0
+OOLITE_GLOBAL_PREFIX_WORLDSCRIPTS_END
+
+Previous test only provided a synthetic worldScripts fixture. In THIS test,
+OOGFOSWorldScriptsInit created the real read-only enumerable registry,
+OOGFOSScriptObjectCreate created an original-style per-script object,
+OOGFOSWorldScriptsRegister exposed that same object as worldScripts.ooliteWorld.
+The full original upstream oolite-global-prefix.js then enumerated the real
+registry into worldScriptNames. The native regression checked that the
+enumerated name corresponded to the actual script object and that the script's
+real GFOS ship wrapper read bounty=10. Full original Ship.prototype.spawnOne
+continues to call native host method and returns 42.
+
+Limitations: Mission/System/Script/Vector3D etc. are STILL TEST FIXTURE
+constructors, NOT the full original OOJS* class ports. Ship is an actual GFOS
+host wrapper but only a controlled native fixture, not the complete Oolite
+Universe/ShipEntity. The original game remains unplayable at this gate.
