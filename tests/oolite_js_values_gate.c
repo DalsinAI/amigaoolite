@@ -47,7 +47,7 @@ int main(void)
     if (negative) JS_Free(js.task, negative); 
     if (zero) JS_Free(js.task, zero);
     OOGFOSJSClose(&js);
-    printf("OOLITE_JS_VALUES double=%d long=%ld true=%ld false=%ld status=%s\n",
+    printf("OOLITE_JS_VALUES double=%d long=%ld signed=%ld true=%ld false=%ld zero=%ld status=%s\n",
            converted == input, (long)intResult, (long)negativeResult, (long)yes, (long)no, (long)zeroResult,
            ok ? "PASS" : "FAIL");
     return ok ? 0 : 2;
