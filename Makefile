@@ -983,3 +983,11 @@ $(OUT)/oolite-js-worldscripts-reset-68040: tests/oolite_js_worldscripts_reset_ga
 	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-worldscripts-reset
 js-worldscripts-reset: $(OUT)/oolite-js-worldscripts-reset-68040
+
+# Original OOJSVector/Vector3D native value class (double coordinates,
+# valid new/instanceof constructor identity, methods, owned GC wrappers).
+$(OUT)/oolite-js-vector-68040: tests/oolite_js_vector_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSVector.h src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_vector_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJavaScript.c -lm -o $@
+.PHONY: js-vector
+js-vector: $(OUT)/oolite-js-vector-68040
