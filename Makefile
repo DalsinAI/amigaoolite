@@ -615,7 +615,7 @@ $(OO_GFOS_GLU_DIR)/src/Core/OOOpenGL.m: $(UPSTREAM)/src/Core/OOOpenGL.m $(OO_GFO
 	@cd $(OO_GFOS_GLU_DIR) && patch -s -p1 < $(abspath $(OO_GFOS_GLU_PATCH))
 $(OUT)/OOOpenGL-gfos-68040.o: $(OO_GFOS_GLU_DIR)/src/Core/OOOpenGL.m
 	@test -r $(GFOS_GLU_KIT)/include/GL/glu.h && test -r $(GFOS_GLU_KIT)/lib/libGLU.a || { echo 'Need genuine GFOpenGPU GLU kit' >&2; exit 1; }
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 $(OUT)/oolite-gfos-glu-68040: tests/oolite_glu_error_gate.c
 	@test -r $(GFOS_GLU_KIT)/lib/libGLU.a || { echo 'Missing GFOpenGPU GLU kit' >&2; exit 1; }
 	@mkdir -p $(OUT)
@@ -640,25 +640,25 @@ GFOS_VISUAL_SOURCES := ShipEntity PlayerEntity GuiDisplayGen OOOpenGLExtensionMa
 GFOS_VISUAL_OBJECTS := $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_SOURCES)))
 $(OUT)/ShipEntity-gfos-68040.o: $(UPSTREAM)/src/Core/Entities/ShipEntity.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 $(OUT)/PlayerEntity-gfos-68040.o: $(UPSTREAM)/src/Core/Entities/PlayerEntity.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 $(OUT)/GuiDisplayGen-gfos-68040.o: $(UPSTREAM)/src/Core/GuiDisplayGen.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 $(OUT)/OOOpenGLExtensionManager-gfos-68040.o: $(UPSTREAM)/src/Core/OOOpenGLExtensionManager.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 $(OUT)/OOOpenGLStateManager-gfos-68040.o: $(UPSTREAM)/src/Core/OOOpenGLStateManager.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 $(OUT)/MyOpenGLView+Input-gfos-68040.o: $(UPSTREAM)/src/SDL/MyOpenGLView+Input.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 $(OUT)/GameController+SDLFullScreen-gfos-68040.o: $(UPSTREAM)/src/SDL/GameController+SDLFullScreen.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 .PHONY: oolite-core-seventeen-objects
 oolite-core-seventeen-objects: oolite-core-ten-objects $(GFOS_VISUAL_OBJECTS)
 
@@ -670,16 +670,16 @@ GFOS_VISUAL_MORE_SDL := OOSDLJoystickManager
 GFOS_VISUAL_MORE_OBJECTS := $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_CORE) $(GFOS_VISUAL_MORE_ENTITIES) $(GFOS_VISUAL_MORE_MATERIALS) $(GFOS_VISUAL_MORE_SDL)))
 $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_CORE))): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/Core/%.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_ENTITIES))): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/Core/Entities/%.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_MATERIALS))): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/Core/Materials/%.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_VISUAL_MORE_SDL))): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/SDL/%.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 .PHONY: oolite-core-twentynine-objects
 oolite-core-twentynine-objects: oolite-core-seventeen-objects $(GFOS_VISUAL_MORE_OBJECTS)
 
@@ -689,7 +689,7 @@ GFOS_OOLITE_SCRIPT_SET := OOJSGlobal OOJSOolite OOJSShip OOJSPlayerShip OOJSPlay
 GFOS_OOLITE_SCRIPT_OBJECTS := $(addprefix $(OUT)/,$(addsuffix -gfos-68040.o,$(GFOS_OOLITE_SCRIPT_SET)))
 $(GFOS_OOLITE_SCRIPT_OBJECTS): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/Core/Scripting/%.m
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -c $< -o $@
 .PHONY: oolite-core-fortyone-objects
 oolite-core-fortyone-objects: oolite-core-twentynine-objects $(GFOS_OOLITE_SCRIPT_OBJECTS)
 
@@ -1111,7 +1111,8 @@ $(OUT)/Core_OOStringParsing_m.o: src/Core/original-replacements/OOStringParsing.
 	  test -r "$(GFOS_JS185_HEADERS)/jsapi.h" || \
 	  { echo "Cannot compile original OOStringParsing: real pinned Oolite SDL3/AL/JSAPI headers not mounted" >&2; exit 1; }
 	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) -I src/Core/original-replacements \
-	  $(GFOS_OOLITE_INCLUDES) -c $< -o $@
+	  -include src/Core/gfos-amiga-tgmath-compat.h \
+	  $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
 .PHONY: js-original-credits-object
 js-original-credits-object: $(OUT)/Core_OOStringParsing_m.o
 
@@ -1134,3 +1135,17 @@ $(OUT)/oolite-owned-oxp-tasks-68040: tests/oolite_js_task_ownership_gate.c src/C
 	$(CROSS_CC) $(GFOS_JS_FLAGS) $^ -o $@
 .PHONY: js-oxp-task-ownership
 js-oxp-task-ownership: $(OUT)/oolite-owned-oxp-tasks-68040
+
+# RC1 source migration gate: audit the ORIGINAL 242-object Oolite corpus with
+# exactly two original Objective-C units rebuilt using canonical GFOS JSC.
+# No excluded objects and no fabricated compatibility JSAPI symbols.
+.PHONY: jsapi-two-original-replacements-audit
+jsapi-two-original-replacements-audit: $(OUT)/Core_OOStringParsing_m.o $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/OOGFOSCredits.o $(OUT)/OOGFOSRegExp.o
+	@mkdir -p $(OUT)/jsapi-two-original-objects
+	cp -a $(JSAPI_ORIGINAL_OBJECTS)/. $(OUT)/jsapi-two-original-objects/
+	cp $(OUT)/Core_OOStringParsing_m.o $(OUT)/jsapi-two-original-objects/Core_OOStringParsing_m.o
+	cp $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/jsapi-two-original-objects/Core_OORegExpMatcher_m.o
+	python3 tools/jsapi_link_audit.py "$(OUT)/jsapi-two-original-objects" \
+	  --nm "$(CROSS_NM)" --max-unique 98 \
+	  --json-out "$(OUT)/jsapi-two-original-audit.json" \
+	  --markdown-out "$(OUT)/jsapi-two-original-audit.md"

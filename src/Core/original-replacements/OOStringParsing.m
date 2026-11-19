@@ -284,7 +284,7 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
     reentrancyLock = YES;
     rc = OOGFOSCreditsFormat((unsigned long long)tenthsOfCredits,
                             includeDecimal ? 1 : 0, includeSymbol ? 1 : 0,
-                            buffer, (LONG)sizeof buffer);
+                            buffer, (long)sizeof buffer);
     if (rc == 0 && buffer[0] != 0)
         result = [NSString stringWithUTF8String:buffer];
     if (result == nil)
