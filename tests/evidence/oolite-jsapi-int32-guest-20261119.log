@@ -1,0 +1,21 @@
+Oolite shared JavaScript conversion exact ToInt32 native qualification
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Friendly name: AmiCradle Team 1 - Oolite JSAPI RC1
+Runtime: AC090 A1200 68040 native AmigaOS
+Source: src/Core/OOGFOSJSValues.c + tests/oolite_js_int32_gate.c
+Toolchain: GCC 16.2.0-open3 -m68040 -m68881 -noixemul -lm
+Executable SHA256: 0f7a8f7706e0c22ec8f5efab006b1db7d4bc0c1979c09f7623a53077670c7103
+
+Native ACAgent output:
+OOLITE_JS_INT32_SUITE_BEGIN
+OOLITE_JS_INT32 checks=10 passed=10 failed=0 status=PASS
+OOLITE_JS_INT32_RC 0
+OOLITE_JS_INT32_SUITE_END
+
+Cases include positive/negative fractional truncation; zero and negative zero;
++/- (2^32+1), signed 32-bit boundary, and 2^32-1 and 2^32.
+This helper uses canonical JS_ToDouble plus ECMA-262 modulo 2^32 semantics;
+it does not fake a SpiderMonkey JSContext, JSValue binary layout or GC roots.
+This is a numeric compatibility gate only. Full OOJS engine conversion, 101
+historical JS_* unresolved symbols, complete link and playability are not done.
