@@ -5,6 +5,7 @@
 #include "OOGFOSJSClassBootstrap.h"
 #include <proto/javascript.h>
 #include <proto/exec.h>
+#include <exec/libraries.h>
 #include <string.h>
 static int validName(CONST_STRPTR value)
 {
