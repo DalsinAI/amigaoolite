@@ -31,4 +31,15 @@ LONG OOGFOSScriptObjectDrop(JSTask task, CONST_STRPTR scriptGlobal);
 LONG OOGFOSScriptObjectEvent(JSTask task, CONST_STRPTR scriptGlobal,
                             CONST_STRPTR eventName, LONG argc,
                             JSValue *argv, LONG *called);
+/* Original OOJSScript -callMethod:result: semantics: return arbitrary
+ * owned JSValue to the game caller rather than discarding it. Unlike the
+ * historical jsval word this is an opaque per-JSTask handle. Caller must
+ * JS_Free the returned value before reset, even when it is an object.
+ * A missing event is success with called=0 and *outResult=NULL.
+ * Execute on JSTask or through OOGFOSScriptInvokeEventValue. */
+LONG OOGFOSScriptObjectEventValue(JSTask task, CONST_STRPTR scriptGlobal,
+                                 CONST_STRPTR eventName, LONG argc,
+                                 JSValue *argv, JSValue *outResult,
+                                 LONG *called);
+
 #endif
