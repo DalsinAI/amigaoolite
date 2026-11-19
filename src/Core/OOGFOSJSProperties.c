@@ -30,3 +30,13 @@ LONG OOGFOSJSCallFunction(JSTask task, JSValue function, JSValue self, LONG argc
     if (result) *result = NULL;
     return JS_Call(task, function, self, argc, args, result);
 }
+
+JSValue OOGFOSJSRetainValue(JSTask task, JSValue value)
+{
+    if (!task || !value) return NULL;
+    return JS_Dup(task, value);
+}
+VOID OOGFOSJSReleaseValue(JSTask task, JSValue value)
+{
+    if (task && value) JS_Free(task, value);
+}
