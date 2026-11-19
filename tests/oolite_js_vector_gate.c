@@ -27,7 +27,9 @@ static LONG run(JSTask task,APTR user)
       " && eq(a.direction().magnitude(),1)"
       " && Array.isArray(a.toArray()) && a.toArray()[1]===4"
       " && Vector3D().magnitude()===0"
-      " && Vector3D(a).x===3) ? 42:0",
+      " && Vector3D(a).x===3 && a instanceof Vector3D"
+      " && Object.getPrototypeOf(a)===Vector3D.prototype"
+      " && Vector3D.prototype.constructor===Vector3D) ? 42:0",
       -1,"oolite-vector-arithmetic.js",&src);
     if(p->rc==JSERR_OK) p->rc=JS_ToLong(task,src,&p->valid);
     if(src)JS_Free(task,src);src=NULL;
