@@ -1,0 +1,8 @@
+OOLITE_VECTOR_QUATERNION_REGRESSION_BEGIN
+OOLITE_JS_VECTOR valid=42 converted=0 coords=125,250,375 exception=1 shortArray=1 objectLike=1 recovered=42 newCode=42 status=PASS
+OOLITE_QUAT_FULL_VECTOR_RC 0
+OOLITE_VECTOR_V2 v2=1 install=0 eval=0 answer=42 post=0 status=PASS
+OOLITE_QUAT_STRICT_V2_RC 0
+OOLITE_VECTOR_QUATERNION vector=0 quat=0 code=0 answer=42 read=0 invalid=1 recovered=42 status=PASS
+OOLITE_QUAT_ROTATION_RC 0
+OOLITE_VECTOR_QUATERNION_REGRESSION_END

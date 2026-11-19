@@ -109,3 +109,22 @@ DalsinAI/gfopenjavascript/scripts/build-javascript-engine-webcore-ninja.py.
 The 101 original SpiderMonkey references remain unmodified. A source port
 of the full original OOJavaScriptEngine and OOJS graph is still necessary
 to remove them, with its own original-object rebuild and whole-game link.
+
+## Further native v2 guest gates
+
+Eight additional Oolite scripting gates passed on the exact standalone
+v2 loader/engine pair: exception recovery, 13 signed Int32 boundary
+cases, property access, host class reset/finalization, script prototype,
+owned script result, full original Oolite global prefix and actual
+Oolite world scripts. All RC 0. Raw transcript:
+tests/evidence/oolite-gfopenjavascript-v2-extended-native-guest-20261119.log.
+
+The original Vector3D/Quaternion native bindings and persistent Oolite
+JavaScriptCore cache are separately qualified and documented in:
+docs/OOLITE-QUATERNION-VECTOR3D-GUEST-20261119.md and
+docs/OOLITE-JSC-SCRIPT-CACHE-GUEST-20261119.md.
+
+The original 101 SpiderMonkey references are still a source migration
+backlog. These new host bindings and native regressions establish
+functional pieces needed for that port but do not replace the entire
+original OOJS source graph.

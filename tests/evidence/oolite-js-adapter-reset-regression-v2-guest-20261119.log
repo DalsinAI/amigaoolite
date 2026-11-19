@@ -1,0 +1,10 @@
+OOLITE_JS_ADAPTER_REGRESSION_BEGIN
+OOLITE_JS_VALUES double=1 long=42 signed=-42 true=1 false=0 zero=0 status=PASS
+JS_ADAPTER_VALUES_RC 0
+OOLITE_JS_RESET before=41 reset=1 after=42 status=PASS
+JS_ADAPTER_RESET_RC 0
+OOLITE_JS_HOST_RESET before=42 reset=1 rebound=1 after=42 releases=2 status=PASS
+JS_ADAPTER_HOST_RESET_RC 0
+OOLITE_JS_PREPARED_RESET orig=42 abort=42 commit=42 prepares=3 will=1 did=1 releases=2 order=2 status=PASS
+JS_ADAPTER_PREPARED_RESET_RC 0
+OOLITE_JS_ADAPTER_REGRESSION_END

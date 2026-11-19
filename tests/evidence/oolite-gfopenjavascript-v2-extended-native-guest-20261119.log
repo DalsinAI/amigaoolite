@@ -1,0 +1,18 @@
+OOLITE_V2_NATIVE_EXTENDED_BEGIN
+OOLITE_JS_ERRORS threw=1 error_present=1 recovered=0 result=42 status=PASS
+V2_ERRORS_RC 0
+OOLITE_JS_INT32 checks=13 passed=13 failed=0 status=PASS
+V2_INT32_RC 0
+OOLITE_JS_PROPERTIES eval=0 result=26 failure=0 status=PASS
+V2_PROPERTIES_RC 0
+OOLITE_JS_HOST_RESET before=42 reset=1 rebound=1 after=42 releases=2 status=PASS
+V2_HOST_RESET_RC 0
+OOLITE_SCRIPT_PROTOTYPE early=0 class=0 late=0 check=0 result=42 status=PASS
+V2_SCRIPT_PROTO_RC 0
+OOLITE_SCRIPT_RETURN setup=0,0,0 events=0,0,1,0 called=1,0,0,1 sum=44,44 valid=1,1 rpc=4 done=7 closed=1 status=PASS
+V2_SCRIPT_RESULT_RC 0
+OOLITE_GLOBAL_PREFIX setup=0 load=0 verify=0 result=42 shipCalls=1,0 worldReady=1 exported=1 idempotent=1 rejected=1 status=PASS
+V2_GLOBAL_PREFIX_RC 0
+OOLITE_WORLD_SCRIPTS init=0 registered=0,0 duplicate=5 unsafe=4 check=0 result=42 status=PASS
+V2_ORIGINAL_WORLDSCRIPTS_RC 0
+OOLITE_V2_NATIVE_EXTENDED_END

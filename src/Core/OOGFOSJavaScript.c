@@ -31,21 +31,46 @@ static void ownerClosed(void)
     Permit();
 }
 
-int OOGFOSJSOpen(struct OOGFOSJS *s)
+/* Keep the task's source cache on the same AmigaDOS volume even after
+ * a prepared scripting reset. The JavaScriptCore provider owns the bytes.
+ * No SpiderMonkey XDR format is read or written here. */
+static JSTask createScriptTask(const struct OOGFOSJS *s)
 {
+    struct TagItem tags[2];
+    if(!s || !s->cacheDir[0])return JS_NewTask(NULL);
+    tags[0].ti_Tag=JSA_CacheDir;
+    tags[0].ti_Data=(ULONG)s->cacheDir;
+    tags[1].ti_Tag=TAG_DONE;
+    tags[1].ti_Data=0;
+    return JS_NewTask(tags);
+}
+
+int OOGFOSJSOpenCached(struct OOGFOSJS *s, CONST_STRPTR cacheDir)
+{
+    size_t n=0;
     if (!s) return 0;
-    memset(s, 0, sizeof(*s));
-    s->library = OpenLibrary((CONST_STRPTR)JAVASCRIPTNAME, JAVASCRIPTVERSION);
-    if (!s->library) return 0;
+    memset(s,0,sizeof(*s));
+    if(cacheDir && cacheDir[0]){
+        n=strlen((const char*)cacheDir);
+        if(n>=sizeof(s->cacheDir))return 0;
+        memcpy(s->cacheDir,cacheDir,n+1);
+    }
+    s->library=OpenLibrary((CONST_STRPTR)JAVASCRIPTNAME,JAVASCRIPTVERSION);
+    if(!s->library)return 0;
     ownerOpened(s->library);
-    s->task = JS_NewTask(NULL);
-    if (!s->task) {
+    s->task=createScriptTask(s);
+    if(!s->task){
         ownerClosed();
         CloseLibrary(s->library);
-        s->library = NULL;
+        s->library=NULL;
         return 0;
     }
     return 1;
+}
+
+int OOGFOSJSOpen(struct OOGFOSJS *s)
+{
+    return OOGFOSJSOpenCached(s,NULL);
 }
 
 LONG OOGFOSJSEvaluateLong(struct OOGFOSJS *s, CONST_STRPTR src,
@@ -79,7 +104,7 @@ int OOGFOSJSResetPrepared(struct OOGFOSJS *s,
     if (!s || !s->library || !s->task) return 0;
     JavaScriptBase = s->library;
     /* Prepare a new script heap before altering the current Oolite state. */
-    replacement = JS_NewTask(NULL);
+    replacement = createScriptTask(s);
     if (!replacement) return 0;
     if (prepare && !prepare(replacement, userData)) {
         /* Aborted reset: the old task and its ship/script state still work. */

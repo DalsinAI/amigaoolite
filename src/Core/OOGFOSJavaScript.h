@@ -10,10 +10,19 @@
 struct OOGFOSJS {
     APTR task;
     struct Library *library;
+    /* Optional owned persistent translation-cache directory, retained
+     * across a prepared task reset. Empty means caching disabled. */
+    char cacheDir[256];
 };
 
 /* 1 for available; 0 if LIBS:javascript.library or its engine is absent. */
 int OOGFOSJSOpen(struct OOGFOSJS *state);
+/* Enable the canonical JavaScriptCore bytecode-cache location for
+ * Oolite/OXP scripts. No SpiderMonkey XDR or duplicate compiler. The
+ * path is copied; it must be an AmigaDOS directory without trailing NUL
+ * overflow. Empty or NULL disables the cache.
+ * Return 0 if the path is too long or the engine is unavailable. */
+int OOGFOSJSOpenCached(struct OOGFOSJS *state, CONST_STRPTR cacheDir);
 /* Return JSERR_*; on success *value is the expression's integer result. */
 LONG OOGFOSJSEvaluateLong(struct OOGFOSJS *state, CONST_STRPTR source,
                          CONST_STRPTR filename, LONG *value);

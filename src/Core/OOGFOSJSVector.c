@@ -4,6 +4,7 @@
  * GPL-2.0-or-later.
  */
 #include "OOGFOSJSVector.h"
+#include "OOGFOSJSQuaternion.h"
 #include <proto/javascript.h>
 #include <proto/exec.h>
 #include <exec/memory.h>
@@ -301,6 +302,69 @@ static JSValue interpolate(JSTask task,APTR self,LONG argc,JSValue *argv,APTR da
                        a->z+(b->z-a->z)*t);
 }
 
+/* Original OOJSVector rotationTo/rotateBy, with true GFOS Quaternion
+ * values, not a SpiderMonkey JSClass or arbitrary unowned game pointer. */
+static JSValue rotateBy(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
+{
+    Vec3 *v=(Vec3*)self;
+    DOUBLE w,x,y,z,mag,tx,ty,tz,vx,vy,vz;
+    (void)data;
+    if(argc<1||!argv||
+       OOGFOSJSQuaternionRead(task,argv[0],&w,&x,&y,&z)!=JSERR_OK)
+        return JS_Throw(task,(CONST_STRPTR)"Vector3D.rotateBy requires Quaternion");
+    mag=hypot(hypot(w,x),hypot(y,z));
+    if(mag==0.0||!valid(mag))
+        return JS_Throw(task,(CONST_STRPTR)"Vector3D.rotateBy invalid quaternion");
+    w/=mag;x/=mag;y/=mag;z/=mag;
+    vx=v->x;vy=v->y;vz=v->z;
+    tx=2.0*(y*vz-z*vy);
+    ty=2.0*(z*vx-x*vz);
+    tz=2.0*(x*vy-y*vx);
+    return create(task,vx+w*tx+y*tz-z*ty,
+                       vy+w*ty+z*tx-x*tz,
+                       vz+w*tz+x*ty-y*tx);
+}
+static JSValue rotationTo(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
+{
+    Vec3 rhs,*a=(Vec3*)self,*b=other(task,argc,argv,&rhs);
+    DOUBLE ma,mb,ax,ay,az,bx,by,bz,dotv,cx,cy,cz,angle,limit;
+    DOUBLE qw,qx,qy,qz,m;
+    (void)data;
+    if(!b)return badArgs(task);
+    ma=hypot(hypot(a->x,a->y),a->z);
+    mb=hypot(hypot(b->x,b->y),b->z);
+    if(ma==0.0||mb==0.0)return OOGFOSJSQuaternionCreate(task,1,0,0,0);
+    ax=a->x/ma;ay=a->y/ma;az=a->z/ma;
+    bx=b->x/mb;by=b->y/mb;bz=b->z/mb;
+    dotv=ax*bx+ay*by+az*bz;
+    if(dotv>1.0)dotv=1.0;
+    if(dotv< -1.0)dotv=-1.0;
+    angle=acos(dotv);
+    if(argc>1&&argv&&argv[1]){
+        if(JS_ToDouble(task,argv[1],&limit)!=JSERR_OK||!valid(limit)||limit<0.0)
+            return JS_Throw(task,(CONST_STRPTR)"rotationTo limit must be finite and nonnegative");
+        if(angle>limit)angle=limit;
+    }
+    if(angle==0.0)return OOGFOSJSQuaternionCreate(task,1,0,0,0);
+    cx=ay*bz-az*by;
+    cy=az*bx-ax*bz;
+    cz=ax*by-ay*bx;
+    m=hypot(hypot(cx,cy),cz);
+    if(m<1e-12){
+        if(fabs(ax)<fabs(ay)){
+            cx=0;cy=-az;cz=ay;
+        }else{
+            cx=-az;cy=0;cz=ax;
+        }
+        m=hypot(hypot(cx,cy),cz);
+        if(m<1e-12){cx=0;cy=1;cz=0;m=1;}
+    }
+    qw=cos(angle*0.5);
+    qx=(cx/m)*sin(angle*0.5);
+    qy=(cy/m)*sin(angle*0.5);
+    qz=(cz/m)*sin(angle*0.5);
+    return OOGFOSJSQuaternionCreate(task,qw,qx,qy,qz);
+}
 static const struct JSHostSlot slots[]={
     {(CONST_STRPTR)"x",JSS_ACCESSOR,0,(APTR)get_x,(APTR)set_x,0,0},
     {(CONST_STRPTR)"y",JSS_ACCESSOR,0,(APTR)get_y,(APTR)set_y,0,0},
@@ -320,6 +384,8 @@ static const struct JSHostSlot slots[]={
     {(CONST_STRPTR)"squaredDistanceTo",JSS_METHOD,0,(APTR)squaredDistanceTo,NULL,0,1},
     {(CONST_STRPTR)"multiply",JSS_METHOD,0,(APTR)multiply,NULL,0,1},
     {(CONST_STRPTR)"toArray",JSS_METHOD,0,(APTR)toArray,NULL,0,0},
+    {(CONST_STRPTR)"rotateBy",JSS_METHOD,0,(APTR)rotateBy,NULL,0,1},
+    {(CONST_STRPTR)"rotationTo",JSS_METHOD,0,(APTR)rotationTo,NULL,0,1},
     {NULL,0,0,NULL,NULL,0,0}
 };
 static const struct JSHostClass vectorClass={

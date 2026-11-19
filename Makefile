@@ -986,9 +986,9 @@ js-worldscripts-reset: $(OUT)/oolite-js-worldscripts-reset-68040
 
 # Original OOJSVector/Vector3D native value class (double coordinates,
 # valid new/instanceof constructor identity, methods, owned GC wrappers).
-$(OUT)/oolite-js-vector-68040: tests/oolite_js_vector_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSVector.h src/Core/OOGFOSJavaScript.c
+$(OUT)/oolite-js-vector-68040: tests/oolite_js_vector_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSVector.h src/Core/OOGFOSJSQuaternion.c src/Core/OOGFOSJSQuaternion.h src/Core/OOGFOSJavaScript.c
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_vector_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJavaScript.c -lm -o $@
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_vector_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSQuaternion.c src/Core/OOGFOSJavaScript.c -lm -o $@
 .PHONY: js-vector
 js-vector: $(OUT)/oolite-js-vector-68040
 
@@ -1007,8 +1007,24 @@ jsapi-audit:
 
 # Strict Vector3D v2 engine integration gate: unlike js-vector this rejects
 # the v1 JavaScript-owned prototype fallback (skip RC 77 on old engine).
-$(OUT)/oolite-js-vector-v2-engine-68040: tests/oolite_js_vector_v2_engine_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJavaScript.c
+$(OUT)/oolite-js-vector-v2-engine-68040: tests/oolite_js_vector_v2_engine_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSQuaternion.c src/Core/OOGFOSJavaScript.c
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_vector_v2_engine_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJavaScript.c -lm -o $@
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_vector_v2_engine_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSQuaternion.c src/Core/OOGFOSJavaScript.c -lm -o $@
 .PHONY: js-vector-v2-engine
 js-vector-v2-engine: $(OUT)/oolite-js-vector-v2-engine-68040
+
+# Oolite-specific canonical bytecode cache, preserved across scripting reset.
+# Uses JSA_CacheDir; no SpiderMonkey XDR or parallel scripting engine.
+$(OUT)/oolite-js-cache-68040: tests/oolite_js_cache_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_cache_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-cache
+js-cache: $(OUT)/oolite-js-cache-68040
+
+# Original Oolite Vector3D.rotationTo/rotateBy + native Quaternion class
+# without SpiderMonkey; tested on the shared GFOpenJavaScript engine.
+$(OUT)/oolite-js-vector-quaternion-68040: tests/oolite_js_vector_quaternion_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSQuaternion.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_vector_quaternion_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSQuaternion.c src/Core/OOGFOSJavaScript.c -lm -o $@
+.PHONY: js-vector-quaternion
+js-vector-quaternion: $(OUT)/oolite-js-vector-quaternion-68040
