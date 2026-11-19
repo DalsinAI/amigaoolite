@@ -15,6 +15,13 @@ LONG OOGFOSScriptObjectCreate(JSTask task, CONST_STRPTR scriptGlobal,
 LONG OOGFOSScriptObjectLoad(JSTask task, CONST_STRPTR scriptGlobal,
                            CONST_STRPTR source, LONG length,
                            CONST_STRPTR filename);
+/* Original OOJSScript passes UTF-16 code units without a BOM from NSString.
+ * Decode to strict UTF-8 before calling the canonical JS_Evaluate API.
+ * unitCount is in native-endian 16-bit words, not bytes. Embedded NUL and
+ * malformed surrogate sequences are rejected rather than truncated. */
+LONG OOGFOSScriptObjectLoadUTF16(JSTask task, CONST_STRPTR scriptGlobal,
+                                CONST UWORD *source, LONG unitCount,
+                                CONST_STRPTR filename);
 /* Look up the event function as a member of the script object and call with
  * self=script. Missing handlers are not an error: called=0. Error returns
  * JSERR_* from GFOS javascript.library. */
