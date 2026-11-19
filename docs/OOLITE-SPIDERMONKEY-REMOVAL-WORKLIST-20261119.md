@@ -14,7 +14,7 @@ with exact module-by-module output in the companion JSON and report:
 
 - tests/evidence/jsapi-unresolved-by-object-20261119.json
 - docs/OOLITE-JSAPI-LINK-AUDIT-20261119.md
-- tools/jsapi_link_audit.py (rerunnable, rejects unclassified symbols or drift)
+- tools/jsapi_link_audit.py (rerunnable; accepts reductions, rejects new or unclassified API dependencies)
 
 These are original *unconverted* object files. The count is not lower merely
 because GFOS standalone test adapters have passed.

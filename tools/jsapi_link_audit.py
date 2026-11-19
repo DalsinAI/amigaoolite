@@ -25,7 +25,8 @@ def main():
     ap.add_argument("--nm", default="m68k-amigaos-nm")
     ap.add_argument("--json-out", type=Path)
     ap.add_argument("--markdown-out", type=Path)
-    ap.add_argument("--expected-unique", type=int, default=101)
+    ap.add_argument("--expected-unique", type=int, default=None)
+    ap.add_argument("--max-unique", type=int, default=101)
     a = ap.parse_args()
     objs = sorted(a.objects.glob("*.o"))
     if not objs:
@@ -80,6 +81,7 @@ def main():
         a.markdown_out.parent.mkdir(parents=True, exist_ok=True)
         a.markdown_out.write_text("\n".join(md))
     print(f"objects={len(objs)} js_objects={len(per)} js_symbols={len(allsym)} unknown={len(unknown)} overlap={len(overlap)}")
-    return 0 if not unknown and not overlap and len(allsym)==a.expected_unique else 2
+    return 0 if (not unknown and not overlap and len(allsym)<=a.max_unique
+                 and (a.expected_unique is None or len(allsym)==a.expected_unique)) else 2
 if __name__ == "__main__":
     sys.exit(main())

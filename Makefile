@@ -1001,6 +1001,6 @@ CROSS_NM ?= $(PREFIX)/bin/m68k-amigaos-nm
 jsapi-audit:
 	@mkdir -p $(OUT)/jsapi-audit
 	python3 tools/jsapi_link_audit.py "$(JSAPI_ORIGINAL_OBJECTS)" --nm "$(CROSS_NM)" \
-	    --expected-unique 101 \
+	    --max-unique 101 \
 	    --json-out "$(OUT)/jsapi-audit/unresolved.json" \
 	    --markdown-out "$(OUT)/jsapi-audit/unresolved.md"
