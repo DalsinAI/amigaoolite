@@ -692,3 +692,12 @@ $(GFOS_OOLITE_SCRIPT_OBJECTS): $(OUT)/%-gfos-68040.o: $(UPSTREAM)/src/Core/Scrip
 	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) $(GFOS_OOLITE_INCLUDES) -I $(GFOS_GLU_KIT)/include -c $< -o $@
 .PHONY: oolite-core-fortyone-objects
 oolite-core-fortyone-objects: oolite-core-twentynine-objects $(GFOS_OOLITE_SCRIPT_OBJECTS)
+
+# Regression: closing one Oolite script owner must not clear the shared
+# javascript.library base while another owner is still alive. Guest runtime
+# requires the canonical library and JavaScriptEngine to be installed.
+$(OUT)/oolite-jslib-two-owners-68040: tests/oolite_jslib_two_owners_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h $(GFOS_JS_INC)/libraries/javascript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_jslib_two_owners_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: jslib-two-owners
+jslib-two-owners: $(OUT)/oolite-jslib-two-owners-68040
