@@ -20,6 +20,8 @@
     OOShipGroup *_group;
     BOOL _testPlayer;
     float _energy, _maxEnergy;
+    int _testStatus;
+    BOOL _testStation, _testDock, _testInSpace;
     int32_t _legacyCalls;
     int32_t _legacyActions;
 }
@@ -31,6 +33,11 @@
 - (void)setMaxEscortCount:(uint8_t)newCount;
 - (OOShipGroup *)escortGroup;
 - (BOOL)isPlayer;
+- (BOOL)isShip;
+- (BOOL)isStation;
+- (BOOL)isDock;
+- (BOOL)isInSpace;
+- (int)status;
 - (float)energy;
 - (void)setEnergy:(float)value;
 - (float)maxEnergy;
@@ -41,7 +48,7 @@
 @end
 static unsigned long testShipDeallocations=0;
 @implementation ShipEntity
-- (id)init { self=[super init];if(self){_bounty=10;_home=7;_maxEscorts=2;_energy=64.0f;_maxEnergy=128.0f;_group=[[OOShipGroup alloc]init];}return self; }
+- (id)init { self=[super init];if(self){_bounty=10;_home=7;_maxEscorts=2;_energy=64.0f;_maxEnergy=128.0f;_testStatus=100;_testInSpace=YES;_group=[[OOShipGroup alloc]init];}return self; }
 - (void)dealloc {testShipDeallocations++;[_group release];[super dealloc];}
 - (OOCreditsQuantity)bounty{return _bounty;}
 - (void)setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason{_bounty=amount;_reason=reason;}
@@ -51,6 +58,11 @@ static unsigned long testShipDeallocations=0;
 - (void)setMaxEscortCount:(uint8_t)value{_maxEscorts=value;}
 - (OOShipGroup *)escortGroup{return _group;}
 - (BOOL)isPlayer{return _testPlayer;}
+- (BOOL)isShip{return YES;}
+- (BOOL)isStation{return _testStation;}
+- (BOOL)isDock{return _testDock;}
+- (BOOL)isInSpace{return _testInSpace;}
+- (int)status{return _testStatus;}
 - (float)energy{return _energy;}
 - (void)setEnergy:(float)value{_energy=value;}
 - (float)maxEnergy{return _maxEnergy;}
@@ -96,3 +108,12 @@ int OOGFOSTestObjCShipEnergy(void *raw,float *energy,float *maxEnergy)
     *energy=[ship energy];*maxEnergy=[ship maxEnergy];
     return 1;
 }
+
+void OOGFOSTestObjCShipSetStatus(void *raw,int status)
+{ if(raw) ((ShipEntity *)raw)->_testStatus=status; }
+void OOGFOSTestObjCShipSetStation(void *raw,int enabled)
+{ if(raw) ((ShipEntity *)raw)->_testStation=(enabled!=0); }
+void OOGFOSTestObjCShipSetDock(void *raw,int enabled)
+{ if(raw) ((ShipEntity *)raw)->_testDock=(enabled!=0); }
+void OOGFOSTestObjCShipSetInSpace(void *raw,int enabled)
+{ if(raw) ((ShipEntity *)raw)->_testInSpace=(enabled!=0); }
