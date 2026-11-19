@@ -963,3 +963,12 @@ $(OUT)/oolite-js-constrictor-mission-68040: tests/oolite_js_constrictor_mission_
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_constrictor_mission_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-constrictor-mission
 js-constrictor-mission: $(OUT)/oolite-js-constrictor-mission-68040
+
+# Full unchanged pinned Oolite PriorityAI world script (~178KB), real
+# startUp communications tables/fallback and witchspace message gating.
+# Guest: SYS:Oolite/Scripts/oolite-priorityai.js from upstream original.
+$(OUT)/oolite-js-priorityai-68040: tests/oolite_js_original_priorityai_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_original_priorityai_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-priorityai
+js-priorityai: $(OUT)/oolite-js-priorityai-68040
