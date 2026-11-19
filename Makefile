@@ -926,3 +926,11 @@ $(OUT)/oolite-js-entity-scalars-68040: tests/oolite_js_entity_scalars_gate.c $(O
 	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-entity-scalars
 js-entity-scalars: $(OUT)/oolite-js-entity-scalars-68040
+
+# Original OOJSWorldScripts: a read-only enumerable global registry of
+# per-script JS objects, including hyphenated/dotted world-script names.
+$(OUT)/oolite-js-worldscripts-68040: tests/oolite_js_worldscripts_gate.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSWorldScripts.h src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_worldscripts_gate.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-worldscripts
+js-worldscripts: $(OUT)/oolite-js-worldscripts-68040
