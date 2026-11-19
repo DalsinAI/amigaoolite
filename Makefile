@@ -866,3 +866,14 @@ $(OUT)/oolite-js-global-prefix-68040: tests/oolite_js_global_prefix_gate.c src/C
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_global_prefix_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-global-prefix
 js-global-prefix: $(OUT)/oolite-js-global-prefix-68040
+
+# Optional GFOS JS ABI v2 feature test: the real registered host-class
+# prototype MUST be available before a game-owned ShipEntity exists.
+# Use GFOS_JS_V2_INC=path/to/version-2/Include (e.g. the gfopensdk v2 branch).
+# A v2 library paired with old v1 engine prints REQUIRES_V2_ENGINE, exit 77.
+GFOS_JS_V2_INC ?= $(GFOS_JS_INC)
+$(OUT)/oolite-js-class-bootstrap-v2-68040: tests/oolite_js_class_bootstrap_v2_gate.c src/Core/OOGFOSJSClassBootstrap.c src/Core/OOGFOSJSClassBootstrap.h src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -I $(GFOS_JS_V2_INC) tests/oolite_js_class_bootstrap_v2_gate.c src/Core/OOGFOSJSClassBootstrap.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-class-bootstrap-v2
+js-class-bootstrap-v2: $(OUT)/oolite-js-class-bootstrap-v2-68040
