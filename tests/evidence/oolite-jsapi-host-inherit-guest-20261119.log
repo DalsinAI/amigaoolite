@@ -1,0 +1,20 @@
+Oolite GFOS JSHostClass inheritance native qualification
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Target: AC090 68040 AmigaOS
+Binary SHA256: 804676a3375dd7f108104a11b3b8177bb2247cf5b1147990e1ccff768e57b155
+Fixture: OoliteEntityProbe JSHostClass with energy=32 field;
+         OoliteShipProbe JSHostClass with jc_Parent=&entityClass and cargo=10 field.
+
+Guest ACAgent output:
+OOLITE_JS_INHERIT_SUITE_BEGIN
+OOLITE_JS_INHERIT wrapped=1 rc=0 value=42 status=PASS
+OOLITE_JS_INHERIT_RC 0
+OOLITE_JS_INHERIT_SUITE_END
+
+Canonical JS_RegisterClass/JS_Wrap inherited a field from parent JSHostClass
+and exposed a child field on the same wrapper. Both resolved correctly.
+This tests one basic inheritance semantics for Oolite's class hierarchy.
+It does not prove JS_InitClass's special prototype, constructor, property
+stub, resolve or finalizer conventions; original 101-symbol conversion
+is still required.
