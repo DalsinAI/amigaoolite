@@ -11,6 +11,8 @@
  * separately from the converted result. Never confuse false with an error. */
 LONG OOGFOSJSValueToNumber(JSTask task, JSValue value, DOUBLE *out);
 LONG OOGFOSJSValueToLong(JSTask task, JSValue value, LONG *out);
+/* ECMAScript ToInt32: truncate toward zero, modulo 2^32, signed range. */
+LONG OOGFOSJSValueToInt32(JSTask task, JSValue value, LONG *out);
 LONG OOGFOSJSValueToBool(JSTask task, JSValue value, LONG *out);
 LONG OOGFOSJSNumberValue(JSTask task, CONST DOUBLE *number, JSValue *out);
 LONG OOGFOSJSIntValue(JSTask task, LONG number, JSValue *out);
