@@ -3,6 +3,8 @@
  * the complete original OOJS class graph is ported. GPL-2.0-or-later.
  */
 #include "OOGFOSJavaScript.h"
+#include "OOGFOSScriptObjects.h"
+#include "OOGFOSWorldScripts.h"
 #include <proto/javascript.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,11 +61,15 @@ int main(void)
     char *source=readSource("SYS:Oolite/Scripts/oolite-global-prefix.js");
     LONG setup=JSERR_BADARGS,load=JSERR_BADARGS,verify=JSERR_BADARGS,
          result=-1;
-    int boundA=0,boundB=0,exported=0,again=0,rejected=0,ok=0;
+    int boundA=0,boundB=0,worldReady=0,exported=0,again=0,rejected=0,ok=0;
     if(!source){puts("OOLITE_GLOBAL_PREFIX asset=UNAVAILABLE");return 77;}
     if(!OOGFOSJSOpen(&js)){free(source);return 77;}
     boundA=OOGFOSJSExposeHostClass(&js,&shipClass,&shipA,"shipA");
     boundB=OOGFOSJSExposeHostClass(&js,&shipClass,&shipB,"shipB");
+    if(boundA && boundB)
+        worldReady=OOGFOSWorldScriptsInit(js.task)==JSERR_OK &&
+            OOGFOSScriptObjectCreate(js.task,"ooliteWorldScript","shipA")==JSERR_OK &&
+            OOGFOSWorldScriptsRegister(js.task,"ooliteWorldScript","ooliteWorld")==JSERR_OK;
     if(boundA && boundB)
         exported=OOGFOSJSExposeHostConstructor(&js,"Ship","shipA");
     if(exported){
@@ -76,7 +82,6 @@ int main(void)
     if(exported && again && rejected)
         setup=OOGFOSJSEvaluateSource(&js,
             "this.global=this;"
-            "this.worldScripts={ooliteWorld:{}};"
             "this.special={jsWarning:function(){}};"
             "this.Mission=function Mission(){};"
             "this.SystemInfo=function SystemInfo(){};"
@@ -99,6 +104,8 @@ int main(void)
             "shipA.spawnOne('trader')===42 && "
             "worldScriptNames.length===1 && "
             "worldScriptNames[0]==='ooliteWorld' && "
+            "worldScripts.ooliteWorld===ooliteWorldScript && "
+            "worldScripts.ooliteWorld.ship.bounty===10 && "
             "typeof Script.prototype.coordinatesForEscortPosition==='function' && "
             "typeof System.prototype.scrambledPseudoRandomNumber==='function' && "
             "typeof Mission.prototype.addMessageTextKey==='function' && "
@@ -106,13 +113,13 @@ int main(void)
             "(function(){try{new Ship();return false;}catch(e){return e instanceof TypeError;}})()"
             " ? 42 : 0",
             "oolite-prefix-verify.js",&result);
-    ok=boundA&&boundB&&exported&&again&&rejected &&
+    ok=boundA&&boundB&&worldReady&&exported&&again&&rejected &&
        setup==JSERR_OK&&load==JSERR_OK&&verify==JSERR_OK&&
        result==42&&shipA.spawnCalls==1&&shipB.spawnCalls==0;
     OOGFOSJSClose(&js);
-    printf("OOLITE_GLOBAL_PREFIX setup=%ld load=%ld verify=%ld result=%ld shipCalls=%ld,%ld exported=%d idempotent=%d rejected=%d status=%s\n",
+    printf("OOLITE_GLOBAL_PREFIX setup=%ld load=%ld verify=%ld result=%ld shipCalls=%ld,%ld worldReady=%d exported=%d idempotent=%d rejected=%d status=%s\n",
            (long)setup,(long)load,(long)verify,(long)result,
-           (long)shipA.spawnCalls,(long)shipB.spawnCalls,exported,again,rejected,
+           (long)shipA.spawnCalls,(long)shipB.spawnCalls,worldReady,exported,again,rejected,
            ok?"PASS":"FAIL");
     if(load!=JSERR_OK && error[0])printf("OOLITE_GLOBAL_PREFIX_ERROR %s\n",error);
     free(source);
