@@ -915,3 +915,14 @@ $(OUT)/oolite-js-script-drop-68040: tests/oolite_js_script_drop_gate.c src/Core/
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_script_drop_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-script-drop
 js-script-drop: $(OUT)/oolite-js-script-drop-68040
+
+# Four pinned original OOJSEntity GLfloat getters on the real game task:
+# collisionRadius, distanceTravelled, mass, spawnTime. Strictly reject
+# writes to read-only JSHostClass fields.
+$(OUT)/oolite-js-entity-scalars-68040: tests/oolite_js_entity_scalars_gate.c $(OUT)/oolite-js-entity-energy-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_entity_scalars_gate.c -o $(OUT)/oolite-entity-scalars-gate.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-entity-scalars-gate.o $(OUT)/oolite-energy-properties.o $(OUT)/oolite-energy-game-backend.o $(OUT)/oolite-energy-backend-objc.o $(OUT)/oolite-energy-mock-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-entity-scalars
+js-entity-scalars: $(OUT)/oolite-js-entity-scalars-68040
