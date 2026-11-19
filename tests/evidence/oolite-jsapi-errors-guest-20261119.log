@@ -1,0 +1,19 @@
+Oolite shared JavaScript exception reporting / post-error recovery
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Friendly name: AmiCradle Team 1 - Oolite JSAPI RC1
+Target: AC090 68040 native AmigaOS guest
+Binary SHA256: 90af788e2bfe5bf6bee29dae9520dc3196b88f806b98067fc688556b9844ee02
+Source: OOGFOSJSEvaluateChecked + OOGFOSJSErrorText
+
+Verbatim native ACAgent transcript:
+OOLITE_JS_ERRORS_SUITE_BEGIN
+OOLITE_JS_ERRORS threw=1 error_present=1 recovered=0 result=42 status=PASS
+OOLITE_JS_ERRORS_RC 0
+OOLITE_JS_ERRORS_SUITE_END
+
+Test threw a deliberate JavaScript Error; canonical JS_Evaluate returned
+JSERR_EXCEPTION (1), and JS_ErrorText supplied nonempty diagnostics. A later
+independent script evaluated 6*7 with RC JSERR_OK (0) and value 42.
+This does not implement SpiderMonkey's JSErrorReport structure or original
+OOJavaScriptEngine error monitor, which remain integration tasks.
