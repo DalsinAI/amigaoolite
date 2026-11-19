@@ -133,11 +133,37 @@ Reusable interfaces:
 `OOGFOSScriptInvokeEvent` (synchronous per-ship event routing),
 and expanded `OOGFOSShipClass` (native OOJSEntity scalar/type properties).
 
-**Pending qualification:** the full `OOGFOSScriptInvokeEvent` original-script
-test initially stalled. Its set-up and injection stages have been switched
-to the same game-task RPC pump to avoid a cross-task deadlock; the revised
-test has compiled, but guest execution is still pending. Do **not** classify
-this particular gate as passed until guest evidence is recorded.
+**Resolved deadlock:** the original `OOGFOSScriptInvokeEvent`
+qualification initially hung because script initialization invoked game
+callbacks while the game task was waiting on an unpumped `JS_Post`.
+Initialization and event injection now use `OOGFOSScriptInvoke`; original
+script events, one-shot deletion, exception recovery, all eight completion
+messages and four real game-task actions **passed natively RC 0**.
+See [original event guest evidence](../tests/evidence/oolite-jsapi-event-invoke-guest-20261119.log).
+
+Additional source-level original Oolite passes (all actual AC090
+guest runs, not host-only probes):
+
+| Boundary | Result | Evidence |
+| --- | --- | --- |
+| `OOJavaScriptEngine -callJSFunction:`: arbitrary returned object, receiver/args, exception and next-call recovery | PASS RC 0 | [function calls](../tests/evidence/oolite-jsapi-call-function-guest-20261119.log) |
+| Full *unmodified* `oolite-global-prefix.js` extending actual native `Ship.prototype.spawnOne` | PASS RC 0; other classes are explicit fixtures | [global prefix](../tests/evidence/oolite-original-global-prefix-guest-20261119.log) |
+| OOJSScript `Script.prototype` inheritance, actual global lookup deletion, externally retained old script identity | PASS RC 0 | [script lifecycle](../tests/evidence/oolite-js-script-lifecycle-result-guest-20261119.log) |
+| OOJSScript arbitrary owned result from `-callMethod:result:`, missing method, exception recovery across game-task pump | PASS RC 0, seven DONE | [script results](../tests/evidence/oolite-js-script-lifecycle-result-guest-20261119.log) |
+| Original OOJSEntity read-only GLfloat collisionRadius/distanceTravelled/mass/spawnTime | PASS RC 0, strict write rejection | [read-only scalars](../tests/evidence/oolite-js-entity-readonly-scalars-guest-20261119.log) |
+
+The production startup ordering issue found in the full global prefix
+qualification is being addressed with an **append-only,
+version-gated** `JS_ClassPrototype` vector in
+[GFOpenBrowser PR #230](https://github.com/DalsinAI/gfopenbrowser/pull/230)
+and [GFOpenSDK PR #73](https://github.com/DalsinAI/gfopensdk/pull/73).
+`OOGFOSJSClassBootstrap` will use that to register `Ship` before any
+ShipEntity exists. The patched `javascript.library` v2 cross-builds,
+but the *existing v1 JavaScriptEngine* returned
+`REQUIRES_V2_ENGINE` (expected native skip 77); see the
+[v2 fallback evidence](../tests/evidence/oolite-javascript-library-v2-old-engine-guest-20261119.log).
+The matching v2 JavaScriptEngine and full native class-boot test remain
+unqualified. Do not merge the runtime ABI or advertise this as done.
 
 **Release limit:** the full original `OOJavaScriptEngine.m` and `OOJS*`
 graph still needs a source-port away from SpiderMonkey, and the original
@@ -148,10 +174,10 @@ as playable Oolite.
 
 ## Semantic caveats and acceptance gates
 
-1. `JS_ToLong` is **not a proven substitute** for SpiderMonkey `JS_ValueToInt32` (`ToInt32` modulo semantics). The helper is named `OOGFOSJSValueToLong` until parity is established; do not alias it to the SpiderMonkey function.
+1. `JS_ToLong` is **not** a substitute for SpiderMonkey `JS_ValueToInt32`. The separate `OOGFOSJSValueToInt32` helper now has 13 native conversion cases, including NaN and infinities. Do not alias `JS_ToLong` to `JS_ValueToInt32`.
 2. `JS_ToBool` has a Boolean result, not a `JSERR_*` failure code. The adapter returns success separately and exposes the converted Boolean through an out-parameter.
 3. A JSValue is scoped to its owning JSTask; callback-provided borrowed values must not be `JS_Free`d. Do not expose game-owned pointers to the script task.
-4. Next: property/prototype/array and GC-root adapter design; Oolite `OOJavaScriptEngine` lifecycle conversion; original OOJS host-class conversion; original 242-unit GFOS-only link **without** `libjs_static.a`; full title/gameplay tests.
+4. Next: complete original `OOJavaScriptEngine.m` and every `OOJS*` host-class source port (not merely adapters), bootstrap native classes without dummy instances using paired v2 JavaScriptEngine, link all 242 original translation units **without** `libjs_static.a`, then qualify title and gameplay.
 5. Any future compatibility facade must define explicitly which SpiderMonkey API functions are exact, adapted or unsupported. Class hooks, pending exceptions, GC roots and synchronous callbacks need independent parity tests before the original game relies on them.
 
 No game, original upstream code or third-party assets are copied into this record.
