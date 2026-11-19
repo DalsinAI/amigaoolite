@@ -100,7 +100,7 @@ int main(void)
        throwRC==JSERR_EXCEPTION&&recoverRC==JSERR_OK&&
        firstCalled==1&&missingCalled==0&&throwCalled==0&&recoverCalled==1&&
        sum==44&&valid==1&&sumAfter==44&&validAfter==1&&
-       dispatch.requests==4&&dispatch.completions==6;
+       dispatch.requests==4&&dispatch.completions==7;
     OOGFOSShipInvalidate(&handle);OOGFOSJSClose(&js);
     OOGFOSShipEntityUnregister(&registry,token);
     closed=OOGFOSGameDispatchTryClose(&dispatch);
