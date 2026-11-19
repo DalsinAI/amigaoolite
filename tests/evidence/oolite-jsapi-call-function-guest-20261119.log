@@ -1,0 +1,25 @@
+Original OOJavaScriptEngine -callJSFunction: source-level GFOS adapter
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Target: native AC090 68040 AmigaOS, canonical javascript.library
+Toolchain: GCC 16.2.0-open3
+Passed binary SHA256: 3970f40a624c089a1668cb74ecbb7fb35ac6212cfdab02af9f94e560ed6038c1
+Source: OOGFOSScriptInvokeFunction, native test gate.
+
+Verbatim ACAgent output:
+OOLITE_CALL_FUNCTION_BEGIN
+OOLITE_JS_CALL_FUNCTION setup=0 codes=0,1,0 sum=15 recovered=20 rpc=2 done=3 closed=1 status=PASS
+OOLITE_CALL_FUNCTION_RC 0
+OOLITE_CALL_FUNCTION_END
+
+The C source-level adapter accepts an opaque borrowed JS function, receiver,
+arguments and returns an owned JSValue (not a SpiderMonkey jsval word). JS_Call
+ran on the script task while the original game-task Exec port pumped ship
+property requests. Function returned {sum: 2+3+ship.bounty,tag:'cobra'} and
+the caller decoded sum=15 after JS_Post completion. A deliberate exception
+returned JSERR_EXCEPTION=1 without a returned value, and an independent
+script afterwards returned ship.bounty*2=20. Two game task RPCs, three DONE
+messages, clean shutdown.
+
+This does not implement original OOJavaScriptEngine.m or its full class and
+GC-root management. It qualifies the replacement invocation contract.
