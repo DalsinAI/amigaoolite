@@ -831,3 +831,16 @@ $(OUT)/oolite-js-sync-call-68040: tests/oolite_js_sync_call_gate.c src/Core/OOGF
 	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-sync-call
 js-sync-call: $(OUT)/oolite-js-sync-call-68040
+
+# Original Oolite default ship script: per-ship UTF-16 event invocations with
+# synchronous game-task Exec pump and guaranteed completion on errors.
+$(OUT)/oolite-js-event-invoke-68040: tests/oolite_js_event_invoke_gate.c src/Core/OOGFOSScriptEventInvoke.c src/Core/OOGFOSScriptInvoke.c src/Core/OOGFOSScriptObjects.c $(OUT)/oolite-js-sync-call-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_event_invoke_gate.c -o $(OUT)/oolite-event-invoke-gate.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptEventInvoke.c -o $(OUT)/oolite-event-invoke.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptInvoke.c -o $(OUT)/oolite-sync-invoke.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptObjects.c -o $(OUT)/oolite-original-utf16-script-objects.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-event-invoke-gate.o $(OUT)/oolite-event-invoke.o $(OUT)/oolite-sync-invoke.o $(OUT)/oolite-original-utf16-script-objects.o $(OUT)/oolite-ship-events.o $(OUT)/oolite-energy-properties.o $(OUT)/oolite-energy-game-backend.o $(OUT)/oolite-energy-backend-objc.o $(OUT)/oolite-energy-mock-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-event-invoke
+js-event-invoke: $(OUT)/oolite-js-event-invoke-68040
