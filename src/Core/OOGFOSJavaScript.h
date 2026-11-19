@@ -40,5 +40,21 @@ LONG OOGFOSJSEvaluateChecked(struct OOGFOSJS *state, CONST_STRPTR source,
  * Return 1 on success; 0 leaves the old task unchanged.
  */
 int OOGFOSJSReset(struct OOGFOSJS *state);
+/* Oolite engine reset transaction: prepare all script classes and global
+ * objects on the replacement task before retiring the old one. Prepare must
+ * only register resources owned by the replacement task; on failure that
+ * task is disposed and the original task and its state remain live.
+ * beforeCommit and afterCommit run on the caller's (game) task.
+ * The caller owns time-limiter/frame-callback cancellation and notifications.
+ * Do not hold live JSValue handles from an earlier task across a commit.
+ */
+typedef int (*OOGFOSJSPrepareTask)(JSTask candidate, APTR userData);
+typedef void (*OOGFOSJSResetNotice)(APTR userData);
+int OOGFOSJSResetPrepared(struct OOGFOSJS *state,
+                           OOGFOSJSPrepareTask prepare,
+                           OOGFOSJSResetNotice beforeCommit,
+                           OOGFOSJSResetNotice afterCommit,
+                           APTR userData);
+
 void OOGFOSJSClose(struct OOGFOSJS *state);
 #endif
