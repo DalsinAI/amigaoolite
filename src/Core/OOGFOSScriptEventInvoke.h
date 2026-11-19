@@ -13,4 +13,16 @@ LONG OOGFOSScriptInvokeEvent(struct OOGFOSJS *js,
                             struct OOGFOSGameDispatch *dispatch,
                             CONST_STRPTR scriptName, CONST_STRPTR eventName,
                             LONG argc, JSValue *argv, LONG *called);
+
+/* Complete OOJSScript -callMethod:result: replacement: arbitrary return
+ * values (including objects) are owned handles belonging to js->task.
+ * The game owner pumps all ship RPCs and receives DONE even on failure.
+ * Missing event returns JSERR_OK, called=0, result=NULL.
+ * Explicitly JS_Free the result before OOGFOSJSReset / close. */
+LONG OOGFOSScriptInvokeEventValue(struct OOGFOSJS *js,
+                                 struct OOGFOSGameDispatch *dispatch,
+                                 CONST_STRPTR scriptName,
+                                 CONST_STRPTR eventName,
+                                 LONG argc, JSValue *argv,
+                                 JSValue *result, LONG *called);
 #endif
