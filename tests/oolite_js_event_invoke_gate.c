@@ -14,8 +14,9 @@ extern void OOGFOSTestObjCShipFree(void *ship);
 extern int OOGFOSTestObjCRecordLegacy(void *ship,int count);
 extern int OOGFOSTestObjCGetLegacyCounts(void *ship,long *calls,long *actions);
 struct Setup {const UWORD *source;LONG units;LONG rc;};
-static LONG setupOnJS(JSTask task,APTR data)
+static LONG setupOnJS(JSTask task,APTR data,LONG *result)
 {
+    if(result) *result=0;
     struct Setup *s=(struct Setup *)data;
     s->rc=OOGFOSScriptObjectCreate(task,"script","ship");
     if(s->rc==JSERR_OK)s->rc=JS_Evaluate(task,
@@ -26,15 +27,17 @@ static LONG setupOnJS(JSTask task,APTR data)
             s->source,s->units,"oolite-default-ship-script.js");
     return s->rc;
 }
-static LONG injectThrow(JSTask task,APTR data)
+static LONG injectThrow(JSTask task,APTR data,LONG *result)
 {
+    if(result) *result=0;
     (void)data;
     return JS_Evaluate(task,
       "script.shipDied=function(){throw new Error('expected');};",
       -1,"oolite-test-throw.js",NULL);
 }
-static LONG injectRecovery(JSTask task,APTR data)
+static LONG injectRecovery(JSTask task,APTR data,LONG *result)
 {
+    if(result) *result=0;
     (void)data;
     return JS_Evaluate(task,
       "script.shipDied=function(){this.ship.__runLegacyScriptActions(this.ship,['recover']);};",
@@ -77,6 +80,7 @@ int main(void)
     LONG units=0,calledA=0,calledB=0,calledMissing=-1,calledThrow=-1,calledRecover=-1;
     LONG a=-1,b=-1,c=-1,d=-1,e=-1,setupPost=-1,thrownPost=-1,recoverPost=-1;
     long calls=-1,actions=-1;
+    LONG ignored=0;
     int bound=0,closed=0,ok=0;
     setvbuf(stdout,NULL,_IONBF,0);
     puts("OOLITE_EVENT_STAGE source");
@@ -94,28 +98,28 @@ int main(void)
     handle.ship=&proxy;handle.backend=OOGFOSGameShipProxyBackend();handle.valid=1;
     bound=OOGFOSJSExposeHostClass(&js,OOGFOSShipClassWithEvents(),&handle,"ship");
     setup=(struct Setup){source,units,-1};
-    if(bound)setupPost=JS_Post(js.task,setupOnJS,&setup,1);
-    printf("OOLITE_EVENT_STAGE setup post=%ld rc=%ld\\n",(long)setupPost,(long)setup.rc);
+    if(bound)setupPost=OOGFOSScriptInvoke(&js,&dispatcher,setupOnJS,&setup,&ignored);
+    printf("OOLITE_EVENT_STAGE setup post=%ld rc=%ld\n",(long)setupPost,(long)setup.rc);
     if(setupPost==JSERR_OK && setup.rc==JSERR_OK){
-        printf("OOLITE_EVENT_STAGE spawn_begin\\n");
+        printf("OOLITE_EVENT_STAGE spawn_begin\n");
         a=OOGFOSScriptInvokeEvent(&js,&dispatcher,"script","shipSpawned",0,NULL,&calledA);
-        printf("OOLITE_EVENT_STAGE spawn_end code=%ld\\n",(long)a);
-        printf("OOLITE_EVENT_STAGE death_begin\\n");
+        printf("OOLITE_EVENT_STAGE spawn_end code=%ld\n",(long)a);
+        printf("OOLITE_EVENT_STAGE death_begin\n");
         b=OOGFOSScriptInvokeEvent(&js,&dispatcher,"script","shipDied",0,NULL,&calledB);
-        printf("OOLITE_EVENT_STAGE death_end code=%ld\\n",(long)b);
-        printf("OOLITE_EVENT_STAGE missing_begin\\n");
+        printf("OOLITE_EVENT_STAGE death_end code=%ld\n",(long)b);
+        printf("OOLITE_EVENT_STAGE missing_begin\n");
         c=OOGFOSScriptInvokeEvent(&js,&dispatcher,"script","shipSpawned",0,NULL,&calledMissing);
-        printf("OOLITE_EVENT_STAGE missing_end code=%ld\\n",(long)c);
-        thrownPost=JS_Post(js.task,injectThrow,NULL,1);
+        printf("OOLITE_EVENT_STAGE missing_end code=%ld\n",(long)c);
+        thrownPost=OOGFOSScriptInvoke(&js,&dispatcher,injectThrow,NULL,&ignored);
         if(thrownPost==JSERR_OK)
-            printf("OOLITE_EVENT_STAGE exception_begin\\n");
+            printf("OOLITE_EVENT_STAGE exception_begin\n");
         d=OOGFOSScriptInvokeEvent(&js,&dispatcher,"script","shipDied",0,NULL,&calledThrow);
-        printf("OOLITE_EVENT_STAGE exception_end code=%ld\\n",(long)d);
-        recoverPost=JS_Post(js.task,injectRecovery,NULL,1);
+        printf("OOLITE_EVENT_STAGE exception_end code=%ld\n",(long)d);
+        recoverPost=OOGFOSScriptInvoke(&js,&dispatcher,injectRecovery,NULL,&ignored);
         if(recoverPost==JSERR_OK)
-            printf("OOLITE_EVENT_STAGE recovery_begin\\n");
+            printf("OOLITE_EVENT_STAGE recovery_begin\n");
         e=OOGFOSScriptInvokeEvent(&js,&dispatcher,"script","shipDied",0,NULL,&calledRecover);
-        printf("OOLITE_EVENT_STAGE recovery_end code=%ld\\n",(long)e);
+        printf("OOLITE_EVENT_STAGE recovery_end code=%ld\n",(long)e);
     }
     OOGFOSTestObjCGetLegacyCounts(ship,&calls,&actions);
     ok=bound && setupPost==JSERR_OK && setup.rc==JSERR_OK &&
@@ -125,7 +129,7 @@ int main(void)
        calledThrow==0 && calledRecover==1 &&
        thrownPost==JSERR_OK && recoverPost==JSERR_OK &&
        calls==4 && actions==5 &&
-       dispatcher.requests==5 && dispatcher.completions==5;
+       dispatcher.requests==5 && dispatcher.completions==8;
     OOGFOSShipInvalidate(&handle);
     OOGFOSJSClose(&js);
     OOGFOSShipEntityUnregister(&registry,token);
