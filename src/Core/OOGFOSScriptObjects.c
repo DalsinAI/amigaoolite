@@ -26,8 +26,22 @@ LONG OOGFOSScriptObjectCreate(JSTask task, CONST_STRPTR scriptGlobal,
     if (!global) goto cleanup;
     ship=JS_GetProp(task,global,shipGlobal);
     if (!ship || JS_TypeOf(task,ship)!=JST_OBJECT) goto cleanup;
-    object=JS_NewObject(task);
-    if (!object) {rc=JSERR_NOMEMORY;goto cleanup;}
+    /* Original OOJSScript constructs its object with sScriptPrototype
+     * from JS_InitClass. Script.prototype methods installed by the
+     * unmodified oolite-global-prefix.js MUST be inherited by each script.
+     * During early tests/startup, where Script is not registered yet, use
+     * a normal object as before. All objects remain on the same JSTask.
+     * No SpiderMonkey-private object layouts are involved. */
+    rc=JS_Evaluate(task,
+       (CONST_STRPTR)
+       "typeof Script==='function' && Script.prototype !== null && "
+       "typeof Script.prototype==='object' "
+       "? Object.create(Script.prototype) : ({})",
+       -1,(CONST_STRPTR)"oolite-script-instance.js",&object);
+    if(rc!=JSERR_OK)goto cleanup;
+    if(!object || JS_TypeOf(task,object)!=JST_OBJECT) {
+        rc=JSERR_TYPE;goto cleanup;
+    }
     rc=JS_SetProp(task,object,(CONST_STRPTR)"ship",ship);
     if (rc!=JSERR_OK) goto cleanup;
     rc=JS_SetProp(task,global,scriptGlobal,object);
