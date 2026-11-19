@@ -1088,3 +1088,41 @@ $(OUT)/oolite-native-oxp-boundary-68040: tests/oolite_js_native_game_boundary_ga
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_native_game_boundary_gate.c 	  src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSQuaternion.c 	  src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c 	  src/Core/OOGFOSJavaScript.c -lm -o $@
 .PHONY: js-native-oxp-boundary
 js-native-oxp-boundary: $(OUT)/oolite-native-oxp-boundary-68040
+
+# Port a native game-text formatting call away from JS_GetPendingException /
+# JS_SetPendingException; Javascript only formats if an OXP defines a callback.
+$(OUT)/OOGFOSCredits.o: src/Core/OOGFOSCredits.c src/Core/OOGFOSCredits.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c $< -o $@
+$(OUT)/oolite-native-credits-68040: tests/oolite_js_native_credits_gate.c src/Core/OOGFOSCredits.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) $^ -o $@
+.PHONY: js-native-credits
+js-native-credits: $(OUT)/OOGFOSCredits.o $(OUT)/oolite-native-credits-68040
+
+# Genuine original OOStringParsing translation unit, retained in full except
+# for source-level migration of optional formatCredits callback to JSC.
+# Needs the pinned original Oolite build's **real** SDL3/GFOpenGPU, OpenAL,
+# GLU and other target SDK headers. No synthetic SDL/OpenGL/jsapi shims.
+$(OUT)/Core_OOStringParsing_m.o: src/Core/original-replacements/OOStringParsing.m src/Core/OOGFOSCreditsNative.h
+	@mkdir -p $(OUT)
+	@test -r "$(GFOS_SDL3_HEADERS)/SDL3/SDL_opengl.h" && \
+	  test -r "$(GFOS_OPENAL_HEADERS)/AL/al.h" && \
+	  test -r "$(GFOS_JS185_HEADERS)/jsapi.h" || \
+	  { echo "Cannot compile original OOStringParsing: real pinned Oolite SDL3/AL/JSAPI headers not mounted" >&2; exit 1; }
+	$(CROSS_CC) $(GFOS_OOLITE_OBJFLAGS) -I src/Core/original-replacements \
+	  $(GFOS_OOLITE_INCLUDES) -c $< -o $@
+.PHONY: js-original-credits-object
+js-original-credits-object: $(OUT)/Core_OOStringParsing_m.o
+
+# Once a real original source replacement builds, measure the decrement,
+# never claim a symbol eliminated because a standalone bridge exists.
+.PHONY: jsapi-credits-rebuilt-audit
+jsapi-credits-rebuilt-audit: $(OUT)/Core_OOStringParsing_m.o $(OUT)/OOGFOSCredits.o
+	@mkdir -p $(OUT)/jsapi-credits-original-objects
+	cp -a $(JSAPI_ORIGINAL_OBJECTS)/. $(OUT)/jsapi-credits-original-objects/
+	cp $(OUT)/Core_OOStringParsing_m.o $(OUT)/jsapi-credits-original-objects/Core_OOStringParsing_m.o
+	python3 tools/jsapi_link_audit.py "$(OUT)/jsapi-credits-original-objects" \
+	  --nm "$(CROSS_NM)" --max-unique 99 \
+	  --json-out "$(OUT)/jsapi-credits-original-audit.json" \
+	  --markdown-out "$(OUT)/jsapi-credits-original-audit.md"
