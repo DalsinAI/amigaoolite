@@ -20,6 +20,7 @@
     OOShipGroup *_group;
     BOOL _testPlayer;
     float _energy, _maxEnergy;
+    float _collisionRadius, _distanceTravelled, _mass, _spawnTime;
     int _testStatus;
     BOOL _testStation, _testDock, _testInSpace;
     int32_t _legacyCalls;
@@ -41,6 +42,10 @@
 - (float)energy;
 - (void)setEnergy:(float)value;
 - (float)maxEnergy;
+- (float)collisionRadius;
+- (float)distanceTravelled;
+- (float)mass;
+- (float)spawnTime;
 - (void)setMaxEnergy:(float)value;
 - (void)testRecordLegacyCount:(int)count;
 - (int32_t)testLegacyCalls;
@@ -48,7 +53,9 @@
 @end
 static unsigned long testShipDeallocations=0;
 @implementation ShipEntity
-- (id)init { self=[super init];if(self){_bounty=10;_home=7;_maxEscorts=2;_energy=64.0f;_maxEnergy=128.0f;_testStatus=100;_testInSpace=YES;_group=[[OOShipGroup alloc]init];}return self; }
+- (id)init { self=[super init];if(self){_bounty=10;_home=7;_maxEscorts=2;_energy=64.0f;_maxEnergy=128.0f;
+    _collisionRadius=28.25f;_distanceTravelled=1234.5f;
+    _mass=90.5f;_spawnTime=3.75f;_testStatus=100;_testInSpace=YES;_group=[[OOShipGroup alloc]init];}return self; }
 - (void)dealloc {testShipDeallocations++;[_group release];[super dealloc];}
 - (OOCreditsQuantity)bounty{return _bounty;}
 - (void)setBounty:(OOCreditsQuantity)amount withReason:(OOLegalStatusReason)reason{_bounty=amount;_reason=reason;}
@@ -66,6 +73,10 @@ static unsigned long testShipDeallocations=0;
 - (float)energy{return _energy;}
 - (void)setEnergy:(float)value{_energy=value;}
 - (float)maxEnergy{return _maxEnergy;}
+- (float)collisionRadius{return _collisionRadius;}
+- (float)distanceTravelled{return _distanceTravelled;}
+- (float)mass{return _mass;}
+- (float)spawnTime{return _spawnTime;}
 - (void)setMaxEnergy:(float)value{_maxEnergy=value;}
 - (void)testRecordLegacyCount:(int)count {_legacyCalls++;_legacyActions+=count;}
 - (int32_t)testLegacyCalls{return _legacyCalls;}
