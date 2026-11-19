@@ -1,0 +1,58 @@
+gfosjsapi gate, lab t5-oolite-20261119 (AC090, 68040), javascript.library 2.0, 19 Nov 2026 22:28
+Built with the stove GCC 16 prefix: tests/gfosjsapi_gate_main.c + tests/gfosjsapi_gate.c + gfosjsapi.o + oojsl.o.
+Run: DH0:OoliteT5/gfosjsapi-gate (stack 1 MB), 6.2 s.
+
+PASS JS_NewRuntime
+PASS JS_NewContext
+PASS global object
+PASS JS_InitStandardClasses
+PASS script sees int, double, UTF-8 string
+PASS int comes back as int
+PASS double comes back as double
+PASS bool, null, undefined
+PASS string chars are UTF-16
+PASS interned ids are equal
+PASS JS_StringEqualsAscii
+PASS native called from script
+PASS native's length is nargs
+PASS native error caught by script
+PASS ... with the native's message
+PASS function found on the global
+PASS JS_CallFunctionValue
+PASS uncaught throw fails the script
+PASS exception pending
+PASS reporter got the message
+INFO reporter: "Error: boom" line 3 (want 3)
+PASS no exception pending after report
+PASS JS_InitClass
+PASS new Vec, tinyid getters
+PASS method on the prototype
+PASS setter through the class
+PASS instanceof
+PASS calling without new throws
+PASS method on a non-Vec throws
+PASS private from C
+PASS C-made object has the class prototype
+PASS JS_Enumerate
+PASS ids back to strings
+PASS rooted object usable after the request ends
+PASS script with this = object
+PASS ... property landed on the object
+INFO top-level var in a this-script reaches the global: no (SpiderMonkey: yes)
+INFO same object, same handle: yes
+PASS exception state restored
+INFO JS -> C empty native through gfosjsapi: 80 us per call
+INFO JS -> C property getter: 80 us per get
+INFO C -> JS call through gfosjsapi: 100 us per call
+INFO finalizers run so far: 0
+PASS gfosjsapi gate: 0 failure(s)
+
+First run (22:26) failed 20 checks, all from one cause: scripts were wrapped as
+(function(){...}) and so had no completion value and made top-level
+declarations local. Fixed by evaluating global scripts as they are and running
+object scripts through a direct eval called with this = obj.
+
+Raw library figures for comparison (PR #4): JS -> C empty native 51 us,
+C -> JS on the script task 63 us. The header adds about 30-40 us per crossing
+(glue wrapper, argument spread, arena). JS_Now ticks are coarse; treat these
+as +/- 20 us.

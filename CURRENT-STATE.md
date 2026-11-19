@@ -10,6 +10,7 @@ in the SAME GitHub change that advances a release milestone.
 
 - Branch `team5/gfos-runtime-foundation-20261119`: the game on javascript.library's script task (direct JS calls; gate PASS on AC090), and eight GFOS toolchain/Foundation faults fixed (exceptions need `-fexceptions` at compile **and link**; Foundation rebuilt for 68040+FPU with native exceptions; user/group/uid shim; Amiga path roots; absolute argv[0]). NSUserDefaults, NSLog and time zones now work. See `docs/GFOS-RUNTIME-FOUNDATION-20261119.md`.
 - Dale's route, 19 Nov: SpiderMonkey's code and libraries go completely; its API *names* may stay, through a header implemented on javascript.library. Team 5 owns `OOJavaScriptEngine.m` and that header; please don't start on either without a word in `teams/team5/`.
+- Branch `team5/gfosjsapi-header-20261119`: that header, `src/Core/gfosjsapi/` (jsapi.h, jsdbgapi.h, jsxdrapi.h; gfosjsapi.c over oojsl.c, the only file that sees `proto/javascript.h`). All 53 upstream JSAPI sources compile against it (`tools/gfosjsapi-compile-check.sh`); all 108 `JS_*` symbols they need are defined; unit gate 0 failures on AC090 (`tools/build-gfosjsapi-gate.sh`, `tests/evidence/gfosjsapi-gate-20261119-2228.log`). About 80 µs per JS→C crossing, 100 µs per C→JS call. Not yet linked into Oolite. Known gap: top-level `var`/`function` in a script run against an object stay local (SpiderMonkey puts them on the object).
 
 ## Goal and acceptance contract
 
