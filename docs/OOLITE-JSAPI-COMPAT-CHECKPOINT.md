@@ -97,6 +97,19 @@ SpiderMonkey's address-rooting ABI. Original Oolite callers must be adapted
 to explicit retain/release and discard old values on reset. The 242-unit
 original-engine link remains the next major gate.
 
+## Host class hierarchy qualification — 19 November
+
+The canonical `JSHostClass` parent-child model has now passed a native
+Oolite-style inheritance gate. `OoliteEntityProbe` supplies `energy=32`;
+`OoliteShipProbe` derives from it and supplies `cargo=10`. The child
+wrapper exposes both fields and evaluates to 42. **AC090 guest PASS RC 0.**
+Evidence:
+[`tests/evidence/oolite-jsapi-host-inherit-guest-20261119.log`](../tests/evidence/oolite-jsapi-host-inherit-guest-20261119.log).
+
+Basic slot inheritance is proved; the full historical `JS_InitClass` contract,
+prototype construction, SpiderMonkey resolution hooks and Oolite OOJS object
+identity are **not** proved. These remain in the original 101-symbol gap.
+
 ## Semantic caveats and acceptance gates
 
 1. `JS_ToLong` is **not a proven substitute** for SpiderMonkey `JS_ValueToInt32` (`ToInt32` modulo semantics). The helper is named `OOGFOSJSValueToLong` until parity is established; do not alias it to the SpiderMonkey function.
