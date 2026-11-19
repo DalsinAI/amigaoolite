@@ -21,12 +21,19 @@ LONG OOGFOSScriptObjectCreate(JSTask task, CONST_STRPTR scriptGlobal,
 {
     JSValue global=NULL,ship=NULL,object=NULL;
     LONG rc=JSERR_BADARGS;
-    if (!task || !validName(scriptGlobal) || !validName(shipGlobal))
+    /* Oolite's OOJSScript creates BOTH world/global scripts without
+     * an attached ShipEntity and ship-backed entity scripts. Require
+     * an actual wrapper only when the caller explicitly requests one.
+     * Never fabricate a game ShipEntity for global/world scripts. */
+    if (!task || !validName(scriptGlobal) ||
+        (shipGlobal && !validName(shipGlobal)))
         return JSERR_BADARGS;
     global=JS_Global(task);
     if (!global) goto cleanup;
-    ship=JS_GetProp(task,global,shipGlobal);
-    if (!ship || JS_TypeOf(task,ship)!=JST_OBJECT) goto cleanup;
+    if (shipGlobal) {
+        ship=JS_GetProp(task,global,shipGlobal);
+        if (!ship || JS_TypeOf(task,ship)!=JST_OBJECT) goto cleanup;
+    }
     /* Original OOJSScript constructs its object with sScriptPrototype
      * from JS_InitClass. Script.prototype methods installed by the
      * unmodified oolite-global-prefix.js MUST be inherited by each script.
@@ -43,13 +50,90 @@ LONG OOGFOSScriptObjectCreate(JSTask task, CONST_STRPTR scriptGlobal,
     if(!object || JS_TypeOf(task,object)!=JST_OBJECT) {
         rc=JSERR_TYPE;goto cleanup;
     }
-    rc=JS_SetProp(task,object,(CONST_STRPTR)"ship",ship);
-    if (rc!=JSERR_OK) goto cleanup;
+    if (ship) {
+        rc=JS_SetProp(task,object,(CONST_STRPTR)"ship",ship);
+        if (rc!=JSERR_OK) goto cleanup;
+    }
     rc=JS_SetProp(task,global,scriptGlobal,object);
 cleanup:
     if (object) JS_Free(task,object);
     if (ship) JS_Free(task,ship);
     if (global) JS_Free(task,global);
+    return rc;
+}
+LONG OOGFOSScriptObjectGetProperty(JSTask task, CONST_STRPTR scriptGlobal,
+                                   CONST_STRPTR propertyName, JSValue *outValue)
+{
+    JSValue global=NULL,script=NULL;
+    LONG rc=JSERR_BADARGS;
+    if(outValue)*outValue=NULL;
+    if(!outValue || !task || !validName(scriptGlobal) ||
+       !propertyName || !propertyName[0])return rc;
+    global=JS_Global(task);
+    if(!global)return rc;
+    script=JS_GetProp(task,global,scriptGlobal);
+    if(!script || JS_TypeOf(task,script)!=JST_OBJECT)goto cleanup;
+    *outValue=JS_GetProp(task,script,propertyName);
+    rc=*outValue?JSERR_OK:JSERR_TYPE;
+cleanup:
+    if(script)JS_Free(task,script);
+    JS_Free(task,global);
+    return rc;
+}
+LONG OOGFOSScriptObjectSetProperty(JSTask task, CONST_STRPTR scriptGlobal,
+                                   CONST_STRPTR propertyName, JSValue value,
+                                   LONG readonly)
+{
+    JSValue global=NULL,script=NULL,objectCtor=NULL,define=NULL;
+    JSValue descriptor=NULL,unused=NULL,flagWritable=NULL;
+    JSValue flagEnumerable=NULL,flagConfigurable=NULL;
+    JSValue name=NULL,argv[3];
+    LONG rc=JSERR_BADARGS;
+    if(!task || !validName(scriptGlobal) || !propertyName ||
+       !propertyName[0] || !value)return rc;
+    global=JS_Global(task);
+    if(!global)return rc;
+    script=JS_GetProp(task,global,scriptGlobal);
+    if(!script || JS_TypeOf(task,script)!=JST_OBJECT)goto cleanup;
+    if(!readonly){
+        rc=JS_SetProp(task,script,propertyName,value);
+        goto cleanup;
+    }
+    objectCtor=JS_GetProp(task,global,(CONST_STRPTR)"Object");
+    if(!objectCtor)goto cleanup;
+    define=JS_GetProp(task,objectCtor,(CONST_STRPTR)"defineProperty");
+    if(!define || JS_TypeOf(task,define)!=JST_FUNCTION)goto cleanup;
+    rc=JS_Evaluate(task,(CONST_STRPTR)"({})",-1,
+                   (CONST_STRPTR)"oolite-readonly-descriptor.js",&descriptor);
+    if(rc!=JSERR_OK || !descriptor)goto cleanup;
+    flagWritable=JS_NewBool(task,0);
+    flagEnumerable=JS_NewBool(task,1);
+    flagConfigurable=JS_NewBool(task,0);
+    name=JS_NewString(task,propertyName,-1);
+    if(!flagWritable || !flagEnumerable || !flagConfigurable || !name){
+        rc=JSERR_NOMEMORY;goto cleanup;
+    }
+    rc=JS_SetProp(task,descriptor,(CONST_STRPTR)"value",value);
+    if(rc!=JSERR_OK)goto cleanup;
+    rc=JS_SetProp(task,descriptor,(CONST_STRPTR)"writable",flagWritable);
+    if(rc!=JSERR_OK)goto cleanup;
+    rc=JS_SetProp(task,descriptor,(CONST_STRPTR)"enumerable",flagEnumerable);
+    if(rc!=JSERR_OK)goto cleanup;
+    rc=JS_SetProp(task,descriptor,(CONST_STRPTR)"configurable",flagConfigurable);
+    if(rc!=JSERR_OK)goto cleanup;
+    argv[0]=script;argv[1]=name;argv[2]=descriptor;
+    rc=JS_Call(task,define,objectCtor,3,argv,&unused);
+cleanup:
+    if(unused)JS_Free(task,unused);
+    if(name)JS_Free(task,name);
+    if(flagConfigurable)JS_Free(task,flagConfigurable);
+    if(flagEnumerable)JS_Free(task,flagEnumerable);
+    if(flagWritable)JS_Free(task,flagWritable);
+    if(descriptor)JS_Free(task,descriptor);
+    if(define)JS_Free(task,define);
+    if(objectCtor)JS_Free(task,objectCtor);
+    if(script)JS_Free(task,script);
+    if(global)JS_Free(task,global);
     return rc;
 }
 LONG OOGFOSScriptObjectLoad(JSTask task, CONST_STRPTR scriptGlobal,

@@ -8,8 +8,10 @@
  * before loading. This wraps original JS in a function called with the
  * script object as this, instead of executing it in the global scope. */
 /* Construct a per-ship JS object and attach the already-registered host
- * ship object by name. Both names are validated JS identifiers. Must run
- * on JSTask; scripts share one engine task but have distinct this objects. */
+ * ship object by name when a ship is provided. shipGlobal=NULL is the
+ * ORIGINAL Oolite world/global script case (no fake ShipEntity wrapper).
+ * Script names are validated JS identifiers. Must run on the shared JSTask,
+ * with distinct per-script this objects and Script.prototype inheritance. */
 LONG OOGFOSScriptObjectCreate(JSTask task, CONST_STRPTR scriptGlobal,
                              CONST_STRPTR shipGlobal);
 LONG OOGFOSScriptObjectLoad(JSTask task, CONST_STRPTR scriptGlobal,
@@ -22,6 +24,21 @@ LONG OOGFOSScriptObjectLoad(JSTask task, CONST_STRPTR scriptGlobal,
 LONG OOGFOSScriptObjectLoadUTF16(JSTask task, CONST_STRPTR scriptGlobal,
                                 CONST UWORD *source, LONG unitCount,
                                 CONST_STRPTR filename);
+/* OOJSScript -defineProperty:withID: and -setProperty:withID:
+ * Called on the same shared JSTask, before/after OXP source load.
+ * Readonly uses the real Object.defineProperty built-in, with an owned
+ * descriptor and the BORROWED input value, not interpolated JS source.
+ * The property name may contain any JavaScript property name; only the
+ * script lookup key is constrained to a safe identifier.
+ */
+LONG OOGFOSScriptObjectSetProperty(JSTask task, CONST_STRPTR scriptGlobal,
+                                   CONST_STRPTR propertyName, JSValue value,
+                                   LONG readonly);
+/* OOJSScript -propertyWithID: returns an owned canonical JSValue handle.
+ * Caller must JS_Free before closing/replacing the JSTask. */
+LONG OOGFOSScriptObjectGetProperty(JSTask task, CONST_STRPTR scriptGlobal,
+                                   CONST_STRPTR propertyName, JSValue *outValue);
+
 /* Look up the event function as a member of the script object and call with
  * self=script. Missing handlers are not an error: called=0. Error returns
  * JSERR_* from GFOS javascript.library. */

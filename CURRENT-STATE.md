@@ -19,7 +19,7 @@ Do not publish an RC tag until game runtime acceptance is actually proved.
 
 ## Pinned sources and current verified GitHub heads
 
-- DalsinAI/amigaoolite **944b1030cda3cfaa8dd48e44b29192cdb66ff6fe** (main; baseline before this update)
+- DalsinAI/amigaoolite **29149c4aec7ea2884729a6de4fd9534c93ae0fbc** (main; baseline before this update)
 - DalsinAI/gfopenjavascript **45f9bda6d39ed8ac55a49e4b7a9f13ef5dca57bc** (stable v2 main)
 - OoliteProject/oolite **21978c37b2f11c8664adf3e2062efc1d0c875979** (upstream original)
 - Existing historical release v1.93.1-gfos-rc0-checkpoint-20261119
@@ -65,6 +65,13 @@ See tests/evidence/oolite-original-font-native-guest-20261119.log and
 tests/evidence/oolite-font-dispatch-five-native-regressions-20261119.log.
 This font replacement has NOT yet been wired into the original global
 setup in OOJavaScriptEngine.m; no full-game link is claimed.
+Original world/global OOJSScript semantics now have a second native
+integration pass: shared JSTask script objects accept NO ship wrapper
+for global scripts, and metadata properties support real read-only
+descriptors, ordinary mutable values and owned property retrieval.
+AC090 native proof in
+tests/evidence/oolite-worldscript-metadata-original-semantics-native-20261119.log.
+Original OOJSScript.m has NOT yet been replaced by this C adapter.
 Run make jsapi-three-original-replacements-audit with the pinned
 headers and the entire **242-object** baseline. Last verified result:
 **242 objects / 50 still using JS_* / 98 unique historical JS_* externs**
