@@ -856,3 +856,13 @@ $(OUT)/oolite-js-call-function-68040: tests/oolite_js_call_function_gate.c src/C
 	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-call-function
 js-call-function: $(OUT)/oolite-js-call-function-68040
+
+# Unmodified upstream oolite-global-prefix.js: canonical JSHostClass Ship
+# prototype exposed as an unconstructable named JS constructor, so the
+# original script installs Ship.spawnOne() without a SpiderMonkey ABI.
+# Guest needs SYS:Oolite/Scripts/oolite-global-prefix.js (pinned upstream).
+$(OUT)/oolite-js-global-prefix-68040: tests/oolite_js_global_prefix_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_global_prefix_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-global-prefix
+js-global-prefix: $(OUT)/oolite-js-global-prefix-68040
