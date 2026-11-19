@@ -89,3 +89,44 @@ not a promise that ten files eliminate all 101 external names.
 Do not archive or delete the old experimental SpiderMonkey gate until its
 comparative evidence has been retained. It must never become a production
 link dependency.
+
+
+## Actual source migration checkpoint: 101 -> 100 (19 November)
+
+One *original* Oolite translation unit has now been rebuilt without
+SpiderMonkey: **Core_OORegExpMatcher_m.o**. The class's public Objective-C
+selectors, original ivar layout, the NSString category and the legacy
+0x01/0x04 regexp flag values are retained. Its RegExp implementation calls
+the canonical JS library/JSC engine through a dedicated C bridge, not a
+fake JSAPI symbol stub. The Objective-C source replacement and preserved
+header are in src/Core/original-replacements; the portable bridge lives
+in src/Core/OOGFOSRegExp.c.
+
+The 68040 GCC16.2 cross-build produced an actual replacement Objective-C
+object with **zero** unresolved SpiderMonkey JS_* symbols. Replaced only
+that unit in a copied 242-object original corpus and reran the same
+cross-nm inventory:
+
+- **Before:** 242 original objects; 53 JSAPI-dependent; 101 unique JS_*
+- **After:** 242 original positions, one real source-rebuilt; 52
+  JSAPI-dependent; **100 unique JS_***.
+- Removed genuine historical symbol: JS_NewUCRegExpObjectNoStatics.
+- The GFOS OOGFOSRegExp.o companion uses canonical javascript.library
+  vectors; it is not a binary SpiderMonkey ABI compatibility shim.
+
+Repeat with make jsapi-regex-rebuilt-audit and the pinned original object
+corpus; audit files are recorded at:
+tests/evidence/oolite-rebuilt-original-object-jsapi-100-20261119.json
+docs/OOLITE-JSAPI-LINK-AUDIT-100-20261119.md.
+
+Native AC090 AmigaOS 3.2.3 runtime test of the *same C regex bridge*
+passed all 10 cases: exact/case-fold/multiline matches, escaping, UTF-8,
+invalid syntax/error recovery and unsupported flag rejection; guest RC 0.
+Transcript:
+tests/evidence/oolite-original-regex-gfos-guest-20261119.log.
+
+**Scope warning:** the original Objective-C matcher object is compile
+qualified; its selectors have not yet been invoked by a running Oolite
+game. There is no complete game relink or evidence that the other 100
+legacy symbols are gone. This is the first measured decrement, not a
+claim of a playable Oolite build.

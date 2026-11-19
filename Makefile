@@ -1028,3 +1028,34 @@ $(OUT)/oolite-js-vector-quaternion-68040: tests/oolite_js_vector_quaternion_gate
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_vector_quaternion_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSQuaternion.c src/Core/OOGFOSJavaScript.c -lm -o $@
 .PHONY: js-vector-quaternion
 js-vector-quaternion: $(OUT)/oolite-js-vector-quaternion-68040
+
+# The original Oolite OORegExpMatcher translation unit is rebuilt under GFOS
+# from its preserved Objective-C interface, with JSC regexp work in a narrow
+# C bridge (no jsapi.h, JSContext or binary SpiderMonkey shim).
+$(OUT)/Core_OORegExpMatcher_m.o: src/Core/original-replacements/OORegExpMatcher.m src/Core/original-replacements/OORegExpMatcher.h src/Core/OOGFOSRegExp.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul \
+	  -DGNUSTEP_BASE_LIBRARY=1 -I src/Core/original-replacements -I src/Core \
+	  -I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(UPSTREAM)/src/SDL \
+	  -I $(PREFIX)/m68k-amigaos/ndk-include.vendor -c $< -o $@
+$(OUT)/OOGFOSRegExp.o: src/Core/OOGFOSRegExp.c src/Core/OOGFOSRegExp.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c $< -o $@
+$(OUT)/oolite-original-regex-68040: tests/oolite_original_regex_gfos_gate.c src/Core/OOGFOSRegExp.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) $^ -o $@
+.PHONY: original-regex
+original-regex: $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/OOGFOSRegExp.o $(OUT)/oolite-original-regex-68040
+
+# Actual original-object progress measurement. Keep the 241 unmodified
+# Oolite translation units and replace exactly OORegExpMatcher with the
+# source-rebuilt GFOS object. This is NOT a full-game link.
+.PHONY: jsapi-regex-rebuilt-audit
+jsapi-regex-rebuilt-audit: $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/OOGFOSRegExp.o
+	@mkdir -p $(OUT)/jsapi-regex-original-objects
+	cp -a $(JSAPI_ORIGINAL_OBJECTS)/. $(OUT)/jsapi-regex-original-objects/
+	cp $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/jsapi-regex-original-objects/Core_OORegExpMatcher_m.o
+	python3 tools/jsapi_link_audit.py "$(OUT)/jsapi-regex-original-objects" \
+	    --nm "$(CROSS_NM)" --max-unique 100 \
+	    --json-out "$(OUT)/jsapi-regex-original-audit.json" \
+	    --markdown-out "$(OUT)/jsapi-regex-original-audit.md"
