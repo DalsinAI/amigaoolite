@@ -74,7 +74,9 @@ for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-g
   (cd "$PS" && patch -s -N -p1 < "$HERE/patches/oolite/$p.patch") || { say "PATCH FAILED $p"; exit 1; }
 done
 
-DEFS="-DOOLITE_GFOS=1 -DOOLITE_BIG_ENDIAN=1 -DGL_GLEXT_PROTOTYPES=1 -DGNUSTEP_BASE_LIBRARY=1 -DNDEBUG -DOOLITE_GFOS_STARTUP_TRACE=1"
+# (single-quoted inside: DEFS is written into cc1.sh as text)
+DEFS="-DOOLITE_GFOS=1 -DOOLITE_BIG_ENDIAN=1 -DGL_GLEXT_PROTOTYPES=1 -DGNUSTEP_BASE_LIBRARY=1 -DNDEBUG -DOOLITE_GFOS_STARTUP_TRACE=1 \
+ -DUSE_FILE32API=1 -DOO_VERSION_FULL='\"1.93.1-255\"' -DOO_BUILDER='\"AmiCradle Team\"' -DOO_BUILD_DATE='\"2026-11-19\"'"
 INCS="-I $HERE/src/Core/gfosjsapi -I $PS/src/Core -I $HERE/src/Core -I $FD/Headers \
  -I $U/src/Core -I $U/src/Core/Tables -I $U/src/Core/Entities -I $U/src/Core/Materials -I $U/src/Core/Scripting \
  -I $U/src/Core/Debug -I $U/src/Core/OXPVerifier -I $U/src/Core/MiniZip -I $U/src/SDL -I $U/src/SDL/EXRSnapshotSupport \
@@ -137,7 +139,7 @@ rm -f "$EXE"
   -lobjc "$FFI" "$PD/libz.a" "$PTH" -lsocket -lm -Wl,--end-group -o "$EXE" > "$OUT/link.log" 2>&1
 lrc=$?
 grep -o "undefined reference to \`[^']*'" "$OUT/link.log" | sed "s/undefined reference to \`//;s/'$//" | sort | uniq -c | sort -rn > "$OUT/undefined.txt"
-grep -c "multiple definition" "$OUT/link.log" > /dev/null && grep -o "multiple definition of \`[^']*'" "$OUT/link.log" | sort -u > "$OUT/multiple.txt"
+grep -o "multiple definition of \`[^']*'" "$OUT/link.log" | sort -u > "$OUT/multiple.txt"
 if [ $lrc -eq 0 ] && [ -s "$EXE" ]; then
   say "LINKED $EXE ($(stat -c %s "$EXE") bytes)"
   "$P/bin/m68k-amigaos-nm" "$EXE" 2>/dev/null | grep -ci ' js_\|mozjs\|spidermonkey' | sed 's/^/spidermonkey-ish symbols (gfosjsapi JS_ names expected): /' | tee -a "$SUM"
