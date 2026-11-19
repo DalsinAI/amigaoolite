@@ -89,7 +89,7 @@ int main(void)
        rc2==JSERR_TYPE && rc3==JSERR_OK && abort==19 &&
        rc4==JSERR_OK && rc5==JSERR_OK && after==19 &&
        data.prepares==2 && data.wills==1 && data.dids==1 &&
-       dispatch.requests==5 && dispatch.completions==5;
+       dispatch.requests==15 && dispatch.completions==5;
     OOGFOSShipInvalidate(&handle);
     OOGFOSJSClose(&js);
     OOGFOSShipEntityUnregister(&registry,token);
