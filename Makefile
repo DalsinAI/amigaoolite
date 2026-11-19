@@ -737,3 +737,9 @@ $(OUT)/oolite-js-int32-68040: tests/oolite_js_int32_gate.c src/Core/OOGFOSJSValu
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_int32_gate.c src/Core/OOGFOSJSValues.c src/Core/OOGFOSJavaScript.c -lm -o $@
 .PHONY: js-int32
 js-int32: $(OUT)/oolite-js-int32-68040
+
+$(OUT)/oolite-js-errors-68040: tests/oolite_js_errors_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_errors_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-errors
+js-errors: $(OUT)/oolite-js-errors-68040
