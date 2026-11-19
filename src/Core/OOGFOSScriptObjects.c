@@ -76,36 +76,53 @@ LONG OOGFOSScriptObjectDrop(JSTask task, CONST_STRPTR scriptGlobal)
     JS_Free(task,global);
     return rc;
 }
+LONG OOGFOSScriptObjectEventValue(JSTask task, CONST_STRPTR scriptGlobal,
+                                 CONST_STRPTR eventName, LONG argc,
+                                 JSValue *argv, JSValue *outResult,
+                                 LONG *called)
+{
+    JSValue global=NULL,script=NULL,func=NULL,returned=NULL;
+    LONG rc=JSERR_BADARGS;
+    if(called) *called=0;
+    if(outResult) *outResult=NULL;
+    if(!outResult || !task || !validName(scriptGlobal) ||
+       !eventName || !eventName[0] || argc<0 ||
+       (argc>0 && !argv))return JSERR_BADARGS;
+    global=JS_Global(task);
+    if(!global)goto cleanup;
+    script=JS_GetProp(task,global,scriptGlobal);
+    if(!script || JS_TypeOf(task,script)==JST_UNDEFINED) {
+        rc=JSERR_OK;goto cleanup;
+    }
+    if(JS_TypeOf(task,script)!=JST_OBJECT)goto cleanup;
+    func=JS_GetProp(task,script,eventName);
+    if(!func || JS_TypeOf(task,func)==JST_UNDEFINED) {
+        rc=JSERR_OK;goto cleanup;
+    }
+    if(JS_TypeOf(task,func)!=JST_FUNCTION) {
+        rc=JSERR_TYPE;goto cleanup;
+    }
+    rc=JS_Call(task,func,script,argc,argv,&returned);
+    if(rc==JSERR_OK) {
+        *outResult=returned;
+        returned=NULL; /* caller owns the returned handle */
+        if(called)*called=1;
+    }
+cleanup:
+    if(returned)JS_Free(task,returned); /* exception result must not escape */
+    if(func)JS_Free(task,func);
+    if(script)JS_Free(task,script);
+    if(global)JS_Free(task,global);
+    return rc;
+}
 LONG OOGFOSScriptObjectEvent(JSTask task, CONST_STRPTR scriptGlobal,
                             CONST_STRPTR eventName, LONG argc,
                             JSValue *argv, LONG *called)
 {
-    JSValue global=NULL,script=NULL,func=NULL,result=NULL;
-    LONG rc=JSERR_BADARGS;
-    if (called) *called=0;
-    if (!task || !validName(scriptGlobal) || !eventName || !eventName[0] ||
-        argc<0 || (argc>0 && !argv)) return JSERR_BADARGS;
-    global=JS_Global(task);
-    if (!global) goto cleanup;
-    script=JS_GetProp(task,global,scriptGlobal);
-    if (!script || JS_TypeOf(task,script)==JST_UNDEFINED) {
-        rc=JSERR_OK;goto cleanup;
-    }
-    if (JS_TypeOf(task,script)!=JST_OBJECT) goto cleanup;
-    func=JS_GetProp(task,script,eventName);
-    if (!func || JS_TypeOf(task,func)==JST_UNDEFINED) {
-        rc=JSERR_OK;goto cleanup;
-    }
-    if (JS_TypeOf(task,func)!=JST_FUNCTION) {
-        rc=JSERR_TYPE;goto cleanup;
-    }
-    rc=JS_Call(task,func,script,argc,argv,&result);
-    if (rc==JSERR_OK && called) *called=1;
-cleanup:
-    if(result)JS_Free(task,result);
-    if(func)JS_Free(task,func);
-    if(script)JS_Free(task,script);
-    if(global)JS_Free(task,global);
+    JSValue ignored=NULL;
+    LONG rc=OOGFOSScriptObjectEventValue(task,scriptGlobal,eventName,
+                                        argc,argv,&ignored,called);
+    if(ignored)JS_Free(task,ignored);
     return rc;
 }
 
