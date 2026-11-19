@@ -79,3 +79,33 @@ Raw logs:
   distinct JS_* APIs. This work establishes the new engine and adapter
   features; it does NOT claim the original full game link is clean or
   playable.
+
+## Full standalone GFOpenJavaScript release-pair test (19 November)
+
+The standalone CI javascript.library loader 3,696 bytes, SHA-256
+d8920e912507b5b8e25a30e6b04599362fc915273fccb371915304d13e0e4d80,
+was deployed to the same isolated AC090 lab with the new 37,918,816-byte
+JavaScriptEngine SHA-256 d35f5a3846786549dc8b8a453eb813f71bd7bf32bf5564d89cfd3b4dcc69c923.
+
+**ALL native tests PASS, RC 0:**
+- strict Vector3D native prototype and constructor
+- full Vector3D arithmetic, arrays and constructor regression
+- corrected Oolite native Ship class bootstrap and instanceof identity
+- native class field, identity, wrapping and task isolation
+- standalone JS shell CLI itself
+
+Verbatim guest log:
+tests/evidence/oolite-gfopenjavascript-standalone-v2-pair-guest-20261119.log.
+The first CLI EVAL invocation printed 67 rather than intended 42 due to
+quoting; it nevertheless exited RC 0. A separate exact JS shell FILE
+test printed 42 from print(6 * 7) with guest RC 0. Log:
+tests/evidence/oolite-gfopenjavascript-standalone-v2-cli-42-guest-20261119.log.
+
+Independent repeat cross-build from identical pinned JSC archive and canonical
+GFOpenJavaScript source produced a byte-identical stripped JavaScriptEngine.
+Reproducible build entry point:
+DalsinAI/gfopenjavascript/scripts/build-javascript-engine-webcore-ninja.py.
+
+The 101 original SpiderMonkey references remain unmodified. A source port
+of the full original OOJavaScriptEngine and OOJS graph is still necessary
+to remove them, with its own original-object rebuild and whole-game link.

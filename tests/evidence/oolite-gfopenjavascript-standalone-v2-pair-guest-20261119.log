@@ -1,0 +1,13 @@
+GFJS_STANDALONE_V2_PAIR_BEGIN
+OOLITE_VECTOR_V2 v2=1 install=0 eval=0 answer=42 post=0 status=PASS
+GFJS_PAIR_VECTOR_V2_RC 0
+OOLITE_JS_VECTOR valid=42 converted=0 coords=125,250,375 exception=1 shortArray=1 objectLike=1 recovered=42 newCode=42 status=PASS
+GFJS_PAIR_VECTOR_FULL_RC 0
+OOLITE_CLASS_BOOTSTRAP library_version=2
+OOLITE_CLASS_BOOTSTRAP class=1 wrapper=1 rc=0 answer=42 status=PASS
+GFJS_PAIR_CLASS_BOOTSTRAP_RC 0
+PASS: v2 prototype, native fields, wrapping and task isolation
+GFJS_PAIR_NATIVE_PROBE_RC 0
+67
+GFJS_PAIR_CLI_RC 0
+GFJS_STANDALONE_V2_PAIR_END
