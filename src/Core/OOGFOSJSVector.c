@@ -73,22 +73,74 @@ LONG OOGFOSJSVectorRead(JSTask task,JSValue value,DOUBLE *x,DOUBLE *y,DOUBLE *z)
     *x=v->x;*y=v->y;*z=v->z;
     return JSERR_OK;
 }
-static Vec3 *other(JSTask task,LONG argc,JSValue *argv)
+/* Original OOJSVector also accepts a real three-element JS Array.
+ * Do not accidentally accept arbitrary objects with a 'length' property,
+ * and do not use the scripting thread to dereference a game-owned Entity. */
+static int isArray(JSTask task,JSValue value)
+{
+    JSValue global=NULL,array=NULL,fn=NULL,r=NULL;
+    int answer=0;
+    if(!value)return 0;
+    global=JS_Global(task);
+    if(global)array=JS_GetProp(task,global,(CONST_STRPTR)"Array");
+    if(array)fn=JS_GetProp(task,array,(CONST_STRPTR)"isArray");
+    if(fn && JS_Call(task,fn,array,1,&value,&r)==JSERR_OK && r)
+        answer=JS_ToBool(task,r)!=0;
+    if(r)JS_Free(task,r);
+    if(fn)JS_Free(task,fn);
+    if(array)JS_Free(task,array);
+    if(global)JS_Free(task,global);
+    return answer;
+}
+static int readArray(JSTask task,JSValue value,Vec3 *out)
+{
+    JSValue length=NULL,element=NULL;
+    DOUBLE x[3];
+    LONG n=0,rc;
+    unsigned i;
+    if(!isArray(task,value))return 0;
+    length=JS_GetProp(task,value,(CONST_STRPTR)"length");
+    rc=length?JS_ToLong(task,length,&n):JSERR_BADARGS;
+    if(length)JS_Free(task,length);
+    if(rc!=JSERR_OK || n!=3)return 0;
+    for(i=0;i<3;i++){
+        element=JS_GetIndex(task,value,i);
+        rc=element?JS_ToDouble(task,element,&x[i]):JSERR_BADARGS;
+        if(element)JS_Free(task,element);
+        if(rc!=JSERR_OK || !valid(x[i]))return 0;
+    }
+    out->x=x[0];out->y=x[1];out->z=x[2];
+    return 1;
+}
+static Vec3 *other(JSTask task,LONG argc,JSValue *argv,Vec3 *snapshot)
 {
     JSClass cls;
-    if(argc<1 || !argv || !argv[0])return NULL;
+    Vec3 *v;
+    if(argc<1 || !argv || !argv[0] || !snapshot)return NULL;
     cls=JS_RegisterClass(task,&vectorClass);
-    return cls ? (Vec3*)JS_Unwrap(task,argv[0],cls):NULL;
+    v=cls?(Vec3*)JS_Unwrap(task,argv[0],cls):NULL;
+    if(v)return v;
+    return readArray(task,argv[0],snapshot)?snapshot:NULL;
+}
+LONG OOGFOSJSVectorReadValue(JSTask task,JSValue value,
+                             DOUBLE *x,DOUBLE *y,DOUBLE *z)
+{
+    Vec3 snapshot,*v;
+    if(!task || !value || !x || !y || !z)return JSERR_BADARGS;
+    v=other(task,1,&value,&snapshot);
+    if(!v)return JSERR_TYPE;
+    *x=v->x;*y=v->y;*z=v->z;
+    return JSERR_OK;
 }
 static JSValue badArgs(JSTask task)
 {return JS_Throw(task,(CONST_STRPTR)"Vector3D: expected a Vector3D argument");}
 static JSValue construct(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
     DOUBLE v[3]={0.0,0.0,0.0};
-    Vec3 *from;
+    Vec3 copy,*from;
     unsigned i;
     (void)self;(void)data;
-    if(argc==1 && (from=other(task,argc,argv))!=NULL)
+    if(argc==1 && (from=other(task,argc,argv,&copy))!=NULL)
         return create(task,from->x,from->y,from->z);
     if(argc!=0 && argc!=3)return badArgs(task);
     for(i=0;i<(unsigned)argc;i++)
@@ -118,25 +170,25 @@ static JSValue direction(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data
 }
 static JSValue add(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
-    Vec3 *a=(Vec3*)self,*b=other(task,argc,argv);
+    Vec3 copy,*a=(Vec3*)self,*b=other(task,argc,argv,&copy);
     (void)data;
     return b ? create(task,a->x+b->x,a->y+b->y,a->z+b->z):badArgs(task);
 }
 static JSValue subtract(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
-    Vec3 *a=(Vec3*)self,*b=other(task,argc,argv);
+    Vec3 copy,*a=(Vec3*)self,*b=other(task,argc,argv,&copy);
     (void)data;
     return b ? create(task,a->x-b->x,a->y-b->y,a->z-b->z):badArgs(task);
 }
 static JSValue dot(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
-    Vec3 *a=(Vec3*)self,*b=other(task,argc,argv);
+    Vec3 copy,*a=(Vec3*)self,*b=other(task,argc,argv,&copy);
     (void)data;
     return b ? newNumber(task,a->x*b->x+a->y*b->y+a->z*b->z):badArgs(task);
 }
 static JSValue cross(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
-    Vec3 *a=(Vec3*)self,*b=other(task,argc,argv);
+    Vec3 copy,*a=(Vec3*)self,*b=other(task,argc,argv,&copy);
     (void)data;
     return b ? create(task,a->y*b->z-a->z*b->y,
                            a->z*b->x-a->x*b->z,
@@ -144,7 +196,7 @@ static JSValue cross(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 }
 static JSValue distanceTo(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
-    Vec3 *a=(Vec3*)self,*b=other(task,argc,argv);
+    Vec3 copy,*a=(Vec3*)self,*b=other(task,argc,argv,&copy);
     DOUBLE x,y,z;
     (void)data;
     if(!b)return badArgs(task);
@@ -153,7 +205,7 @@ static JSValue distanceTo(JSTask task,APTR self,LONG argc,JSValue *argv,APTR dat
 }
 static JSValue squaredDistanceTo(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
-    Vec3 *a=(Vec3*)self,*b=other(task,argc,argv);
+    Vec3 copy,*a=(Vec3*)self,*b=other(task,argc,argv,&copy);
     DOUBLE x,y,z;
     (void)data;
     if(!b)return badArgs(task);
@@ -193,7 +245,7 @@ static JSValue toArray(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
  * migration and are deliberately not represented by placeholders. */
 static JSValue angleTo(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
-    Vec3 *a=(Vec3*)self,*b=other(task,argc,argv);
+    Vec3 copy,*a=(Vec3*)self,*b=other(task,argc,argv,&copy);
     DOUBLE da,db,ratio;
     (void)data;
     if(!b)return badArgs(task);
@@ -207,11 +259,11 @@ static JSValue angleTo(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 }
 static JSValue tripleProduct(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
-    Vec3 *a=(Vec3*)self,*b,*c;
+    Vec3 bcopy,ccopy,*a=(Vec3*)self,*b,*c;
     DOUBLE triple;
     (void)data;
     if(argc<2 || !argv)return badArgs(task);
-    b=other(task,1,argv);c=other(task,1,argv+1);
+    b=other(task,1,argv,&bcopy);c=other(task,1,argv+1,&ccopy);
     if(!b || !c)return badArgs(task);
     triple=a->x*(b->y*c->z-b->z*c->y)
           +a->y*(b->z*c->x-b->x*c->z)
@@ -237,11 +289,11 @@ static JSValue toSource(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 }
 static JSValue interpolate(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
-    Vec3 *a,*b;DOUBLE t;
+    Vec3 acopy,bcopy,*a,*b;DOUBLE t;
     (void)self;(void)data;
     if(argc<3 || !argv)return badArgs(task);
-    a=other(task,1,argv);
-    b=other(task,1,argv+1);
+    a=other(task,1,argv,&acopy);
+    b=other(task,1,argv+1,&bcopy);
     if(!a || !b || JS_ToDouble(task,argv[2],&t)!=JSERR_OK || !valid(t))
         return JS_Throw(task,(CONST_STRPTR)"Vector3D.interpolate expects two vectors and a number");
     return create(task,a->x+(b->x-a->x)*t,

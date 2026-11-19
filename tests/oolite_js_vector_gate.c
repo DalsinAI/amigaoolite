@@ -6,7 +6,7 @@
 #include "OOGFOSJSVector.h"
 #include <proto/javascript.h>
 #include <stdio.h>
-struct Probe {LONG rc,valid,convert,invalid,recovered,withNew;DOUBLE x,y,z;};
+struct Probe {LONG rc,valid,convert,invalid,arrayInvalid,objectInvalid,recovered,withNew;DOUBLE x,y,z;};
 static LONG run(JSTask task,APTR user)
 {
     struct Probe *p=(struct Probe *)user;
@@ -21,7 +21,7 @@ static LONG run(JSTask task,APTR user)
       " && a.magnitude()===5 && a.squaredMagnitude()===25"
       " && a.dot(b)===11 && a.cross(b).x===12"
       " && a.cross(b).y===-9 && a.cross(b).z===2"
-      " && a.add(b).y===6 && a.subtract(b).z===-3"
+      " && a.add(b).y===6 && a.subtract(b).z===-3"      " && a.add([1,2,3]).y===6 && a.dot([1,2,3])===11"      " && Vector3D([3,4,0]).magnitude()===5"
       " && a.multiply(2).x===6 && eq(a.distanceTo(b),Math.sqrt(17))"
       " && a.squaredDistanceTo(b)===17"
       " && eq(a.direction().magnitude(),1)"
@@ -44,6 +44,12 @@ static LONG run(JSTask task,APTR user)
     if(!a){p->rc=JSERR_NOMEMORY;goto cleanup;}
     p->convert=OOGFOSJSVectorRead(task,a,&p->x,&p->y,&p->z);
     if(global)JS_SetProp(task,global,"externalVector",a);
+    p->arrayInvalid=JS_Evaluate(task,
+        "a.add([1,2]);",
+        -1,"oolite-vector-short-array.js",NULL);
+    p->objectInvalid=JS_Evaluate(task,
+        "a.add({0:1,1:2,2:3,length:3});",
+        -1,"oolite-vector-not-array.js",NULL);
     p->invalid=JS_Evaluate(task,
         "Vector3D(1,2,Infinity);",
         -1,"oolite-vector-invalid.js",NULL);
@@ -70,18 +76,20 @@ cleanup:
 int main(void)
 {
     struct OOGFOSJS js={0};
-    struct Probe p={JSERR_BADARGS,0,JSERR_BADARGS,JSERR_BADARGS,0,-1,0,0,0};
+    struct Probe p={JSERR_BADARGS,0,JSERR_BADARGS,JSERR_BADARGS,JSERR_BADARGS,JSERR_BADARGS,0,-1,0,0,0};
     LONG post;
     int ok;
     if(!OOGFOSJSOpen(&js)){puts("OOLITE_JS_VECTOR status=UNAVAILABLE");return 77;}
     post=JS_Post(js.task,run,&p,1);
     ok=post==JSERR_OK && p.rc==JSERR_OK && p.valid==42 &&
        p.convert==JSERR_OK && p.x==1.25 && p.y==2.5 && p.z==3.75 &&
-       p.invalid==JSERR_EXCEPTION && p.recovered==42 && p.withNew==42;
+       p.invalid==JSERR_EXCEPTION && p.arrayInvalid==JSERR_EXCEPTION &&
+       p.objectInvalid==JSERR_EXCEPTION && p.recovered==42 && p.withNew==42;
     OOGFOSJSClose(&js);
-    printf("OOLITE_JS_VECTOR valid=%ld converted=%ld coords=%ld,%ld,%ld exception=%ld recovered=%ld newCode=%ld status=%s\n",
+    printf("OOLITE_JS_VECTOR valid=%ld converted=%ld coords=%ld,%ld,%ld exception=%ld shortArray=%ld objectLike=%ld recovered=%ld newCode=%ld status=%s\n",
        (long)p.valid,(long)p.convert,(long)(p.x*100),(long)(p.y*100),
-       (long)(p.z*100),(long)p.invalid,(long)p.recovered,
+       (long)(p.z*100),(long)p.invalid,(long)p.arrayInvalid,
+       (long)p.objectInvalid,(long)p.recovered,
        (long)p.withNew,ok?"PASS":"FAIL");
     return ok?0:2;
 }

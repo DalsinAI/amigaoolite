@@ -14,4 +14,9 @@ LONG OOGFOSJSVectorInstall(JSTask task);
 JSValue OOGFOSJSVectorCreate(JSTask task, DOUBLE x, DOUBLE y, DOUBLE z);
 /* Convert exact GFOS Vector3D wrapper to native coordinates. */
 LONG OOGFOSJSVectorRead(JSTask task,JSValue value,DOUBLE *x,DOUBLE *y,DOUBLE *z);
+/* Original OOJSVector conversion accepts native Vector3D values and
+ * genuine three-element JS Arrays. Unsupported Entity -> position conversion
+ * must be routed via the game-task bridge, not dereferenced here. */
+LONG OOGFOSJSVectorReadValue(JSTask task,JSValue value,
+                             DOUBLE *x,DOUBLE *y,DOUBLE *z);
 #endif

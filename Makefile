@@ -991,3 +991,16 @@ $(OUT)/oolite-js-vector-68040: tests/oolite_js_vector_gate.c src/Core/OOGFOSJSVe
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_vector_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJavaScript.c -lm -o $@
 .PHONY: js-vector
 js-vector: $(OUT)/oolite-js-vector-68040
+
+# Source-level removal gate for the original SpiderMonkey-facing Oolite
+# 68040 object corpus. This target audits references only; it does not
+# pretend to provide or link a SpiderMonkey-compatible GFOS binary ABI.
+JSAPI_ORIGINAL_OBJECTS ?= ../oolite-rc1/evidence/rc1-title-20261119/build/oolite-complete-objects
+CROSS_NM ?= $(PREFIX)/bin/m68k-amigaos-nm
+.PHONY: jsapi-audit
+jsapi-audit:
+	@mkdir -p $(OUT)/jsapi-audit
+	python3 tools/jsapi_link_audit.py "$(JSAPI_ORIGINAL_OBJECTS)" --nm "$(CROSS_NM)" \
+	    --expected-unique 101 \
+	    --json-out "$(OUT)/jsapi-audit/unresolved.json" \
+	    --markdown-out "$(OUT)/jsapi-audit/unresolved.md"
