@@ -1,0 +1,32 @@
+Original OOJSWorldScripts registry native qualification
+Date: 2026-11-19 after 06:00 UTC
+Lab: team1-oolite-jsapi-rc1-20261119, native AC090 68040 AmigaOS
+Toolchain: OpenAmigaGCC 16.2.0-open3
+Binary SHA256: 764e127683bc5d3b0f6a109aab3e47489c7466bb3d6301a94b167188b1135307
+Source: src/Core/OOGFOSWorldScripts.{h,c}
+Original reference: OoliteProject/oolite pinned
+src/Core/Scripting/OOJSWorldScripts.m:
+  JS_DefineObject global read-only worldScripts
+  enumerated named world scripts, lazy getter to original OOJSScript
+  world scripts cannot be deleted
+
+Native ACAgent output:
+OOLITE_WORLD_SCRIPTS_BEGIN
+OOLITE_WORLD_SCRIPTS init=0 registered=0,0 duplicate=5 unsafe=4 check=0 result=42 status=PASS
+OOLITE_WORLD_SCRIPTS_RC 0
+OOLITE_WORLD_SCRIPTS_END
+
+OOGFOSWorldScriptsInit creates a read-only nonconfigurable global
+worldScripts; OOGFOSWorldScriptsRegister binds real per-script JS objects
+under original world-script names. It supports hyphens and dots in names,
+rejects illegal/injection-like syntax and refuses duplicate names rather
+than silently replacing read-only entries. Entries are enumerable,
+read-only and nonconfigurable. Native guest verified two independent
+scripts, property descriptors, host ship bounty=42 and names:
+'oolite-world-a', 'oolite.oxp-b'. Duplicate returned JSERR_TYPE=5;
+unsafe name returned JSERR_BADARGS=4. Script and global object lifetimes
+are owned by the single canonical JSTask.
+
+This is the explicit C source-level GFOS equivalent of the original
+OOJSWorldScripts registry. The full original PlayerEntity/Universe scripts
+are not yet ported or runnable.
