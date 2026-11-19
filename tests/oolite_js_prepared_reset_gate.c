@@ -60,11 +60,11 @@ int main(void)
     struct Probe p={30,12,0,0,0,0,0,0};
     LONG original=-1, afterFailed=-1, afterSuccess=-1,rc1,rc2,rc3;
     int resetFailed,resetPassed,ok=0;
-    cls.js_Name=(CONST_STRPTR)"OoliteResetShip";
-    cls.js_Parent=NULL;
-    cls.js_Slots=slots;
-    cls.js_Release=onRelease;
-    cls.js_Data=&p;
+    cls.jc_Name=(CONST_STRPTR)"OoliteResetShip";
+    cls.jc_Parent=NULL;
+    cls.jc_Slots=slots;
+    cls.jc_Release=onRelease;
+    cls.jc_Data=&p;
     if(!OOGFOSJSOpen(&js)){
         puts("OOLITE_JS_PREPARED_RESET status=UNAVAILABLE");return 77;
     }
