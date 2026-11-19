@@ -1126,3 +1126,11 @@ jsapi-credits-rebuilt-audit: $(OUT)/Core_OOStringParsing_m.o $(OUT)/OOGFOSCredit
 	  --nm "$(CROSS_NM)" --max-unique 99 \
 	  --json-out "$(OUT)/jsapi-credits-original-audit.json" \
 	  --markdown-out "$(OUT)/jsapi-credits-original-audit.md"
+
+# Original Oolite owns many independently created/cleaned JSTasks; this
+# works on javascript.library v2 without relying on failed v3 stop vectors.
+$(OUT)/oolite-owned-oxp-tasks-68040: tests/oolite_js_task_ownership_gate.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) $^ -o $@
+.PHONY: js-oxp-task-ownership
+js-oxp-task-ownership: $(OUT)/oolite-owned-oxp-tasks-68040
