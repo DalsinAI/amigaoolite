@@ -1,0 +1,30 @@
+Oolite original OOJSEntity energy and maxEnergy floating-point properties
+Date: 2026-11-19
+Dedicated lab: team1-oolite-jsapi-rc1-20261119
+Runtime: native AC090 68040 AmigaOS
+Toolchain: GCC 16.2.0-open3
+Executable SHA256: e1796602f3244a4df6de179674c945312b78fcdaaecb72d2af06c72cc6e1181c
+
+Changes under test:
+- Exact GNU Objective-C Entity energy/maxEnergy getter/setter selectors
+- No Objective-C calls from the JavaScriptEngine task
+- 32-bit float data transported as LONG bit patterns over the existing
+  routed Exec IPC, avoiding truncation through integer conversion
+- Original OOJSEntity energy setter semantics: clamp to [0,maxEnergy]
+- Original OOJSEntity maxEnergy setter: require >0
+- Reject non-finite or out-of-range input in script task before dispatch
+- Controlled native Objective-C fixture now exposes energy/maxEnergy
+
+Verbatim native ACAgent output:
+OOLITE_ENTITY_ENERGY_BEGIN
+OOLITE_JS_ENTITY_ENERGY fraction=7725 final=200 rejected=1 energy=100 maximum=100 rpc=7 closed=1 status=PASS
+OOLITE_ENTITY_ENERGY_RC 0
+OOLITE_ENTITY_ENERGY_END
+
+The fraction=7725 diagnostic records energy * 100 (77.25).
+A script set energy to 77.25, reduced maxEnergy to 100, then attempted
+energy=150.5 and observed energy clamped to 100. The invalid maxEnergy=0
+produced JSERR_EXCEPTION=1. Seven script-to-game-task property calls were
+serviced; the Oolite fixture ended at energy=100/maxEnergy=100, with
+game-owner clean shutdown. This is a selector-compatible ObjC ShipEntity
+fixture and not yet the full original ShipEntity/Universe.
