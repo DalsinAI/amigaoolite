@@ -1,0 +1,27 @@
+Oolite transactional shared JavaScript engine reset WITH game-task RPC servicing
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Target: native AC090 68040 AmigaOS; canonical javascript.library
+Code: src/Core/OOGFOSScriptReset.{h,c}, tests/oolite_js_routed_reset_gate.c
+Binary SHA256: 764bb695003c9ed5ea80a88e1de76c585c960001c168b8ef4d4446028a01af78
+
+Native ACAgent guest transcript:
+OOLITE_ROUTED_RESET_BEGIN
+OOLITE_JS_ROUTED_RESET values=19,19,19 codes=0,5,0,0,0 prepares=2 notices=1,1 rpc=15 done=5 closed=1 status=PASS
+OOLITE_ROUTED_RESET_RC 0
+OOLITE_ROUTED_RESET_END
+
+An original Oolite-style ship wrapper was registered through the game-owner
+Exec token router and backed by selector-compatible native Objective-C methods.
+Script with persistent variable=23 and ship bounty/homeSystem/maxEscorts returned 19.
+First candidate was fully initialized with native reads, then deliberately rejected
+(JSERR_TYPE 5); after abort, old persistent and ship wrappers still returned 19.
+Second candidate initialized successfully and was committed; the old persistent
+variable was absent and re-bound ship properties returned 19. Two candidate
+preparations, one will/did notification pair; 15 routed original ship property
+operations and five guaranteed DONE completions; clean release.
+This specifically qualifies initialization requiring game-task RPC while
+OOGFOSScriptInvoke pumps the owner, not simply a no-op class prepare.
+
+The original 242-unit Oolite game is NOT thereby ported or playable. The main
+OOJavaScriptEngine.m and JSAPI-dependent OOJS* graph still require source porting.
