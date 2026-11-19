@@ -17,4 +17,16 @@ LONG OOGFOSScriptInvoke(struct OOGFOSJS *js,
                        struct OOGFOSGameDispatch *dispatch,
                        OOGFOSScriptInvokeFunc callback,
                        APTR user, LONG *result);
+/* Source-level replacement for OOJavaScriptEngine -callJSFunction:.
+ * function, self and argv are borrowed JSValue handles from js->task.
+ * On success, *result is an OWNED JSValue and caller must JS_Free it before
+ * resetting/ending the task; NULL represents JavaScript undefined.
+ * On JSERR_* failure *result remains NULL. This is NOT a jsval binary ABI.
+ * Script may synchronously invoke game-thread ShipEntity selectors.
+ */
+LONG OOGFOSScriptInvokeFunction(struct OOGFOSJS *js,
+                               struct OOGFOSGameDispatch *dispatch,
+                               JSValue function, JSValue self,
+                               LONG argc, JSValue *argv, JSValue *result);
+
 #endif
