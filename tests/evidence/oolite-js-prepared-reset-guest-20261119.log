@@ -1,0 +1,19 @@
+Oolite shared JavaScript transactional context reset; native AC090 68040
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Code: OOGFOSJSResetPrepared, src/Core/OOGFOSJavaScript.{c,h}
+Binary SHA256: 7914dc73d1e6fbd27c8072c498e89626d50522e5891dc7c58702ff37cdc865b7
+
+Verbatim guest output:
+OOLITE_JS_PREPARED_RESET_SUITE_BEGIN
+OOLITE_JS_PREPARED_RESET orig=42 abort=42 commit=42 prepares=3 will=1 did=1 releases=2 order=2 status=PASS
+OOLITE_JS_PREPARED_RESET_RC 0
+OOLITE_JS_PREPARED_RESET_SUITE_END
+
+Original JS task had persistent=77 and a native ship class energy/fuel 30/12.
+A simulated candidate-setup failure left old task, script state and host
+objects unchanged. A successful candidate setup registered a new host class
+before commit; willReset and didReset notices happened once, around old task
+teardown, with finalizer releases ordered correctly. Second host wrapper was
+released on shutdown. This is a native regression for the Oolite reset
+primitive, not replacement of original OOJavaScriptEngine.m yet.
