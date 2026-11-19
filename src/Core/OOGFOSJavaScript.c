@@ -8,6 +8,7 @@
 #include <proto/javascript.h>
 #include <libraries/javascript.h>
 #include <string.h>
+#include <stdio.h>
 
 /* Canonical proto/javascript.h declares this library base. */
 struct Library *JavaScriptBase = NULL;
@@ -131,6 +132,106 @@ int OOGFOSJSExposeHostClass(struct OOGFOSJS *s,
     if (global) JS_Free(s->task, global);
     JS_Free(s->task, wrapper);
     return code == JSERR_OK;
+}
+
+/* Original JS_InitClass installs a constructor with a .prototype object
+ * which scripts such as oolite-global-prefix.js extend. The canonical
+ * JSHostClass implementation keeps a real, protected prototype internally;
+ * obtain it from a registered wrapper rather than inventing a second one. */
+static int validConstructorIdentifier(CONST_STRPTR value)
+{
+    size_t i;
+    if(!value || !value[0])return 0;
+    for(i=0;value[i];i++){
+        unsigned char c=(unsigned char)value[i];
+        if(i>=63 || !((c>='a'&&c<='z') || (c>='A'&&c<='Z') ||
+           c=='_' || c=='
+                             CONST_STRPTR name, JSMethodFunc callback, APTR data)
+{
+    JSValue global = NULL, func = NULL;
+    LONG code = JSERR_BADARGS;
+    if (!s || !s->task || !name || !callback) return 0;
+    JavaScriptBase = s->library;
+    func = JS_NewFunction(s->task, name, callback, data);
+    if (!func) return 0;
+    global = JS_Global(s->task);
+    if (global) code = JS_SetProp(s->task, global, name, func);
+    if (global) JS_Free(s->task, global);
+    JS_Free(s->task, func);
+    return code == JSERR_OK;
+}
+
+LONG OOGFOSJSEvaluateSource(struct OOGFOSJS *s,
+                            CONST_STRPTR src, CONST_STRPTR filename)
+{
+    if (!s || !s->task || !src) return JSERR_BADARGS;
+    JavaScriptBase = s->library;
+    return JS_Evaluate(s->task, src, -1,
+                       filename ? filename : (CONST_STRPTR)"oolite.js", NULL);
+}
+
+LONG OOGFOSJSEvaluateChecked(struct OOGFOSJS *s, CONST_STRPTR src,
+                             CONST_STRPTR filename, STRPTR errorBuffer,
+                             LONG errorBufferSize)
+{
+    LONG rc;
+    if (!errorBuffer || errorBufferSize < 1) return JSERR_BADARGS;
+    errorBuffer[0] = 0;
+    if (!s || !s->task || !src) return JSERR_BADARGS;
+    rc = OOGFOSJSEvaluateSource(s, src, filename);
+    if (rc != JSERR_OK)
+        OOGFOSJSErrorText(s, errorBuffer, errorBufferSize);
+    return rc;
+}
+
+ || (i>0 && c>='0'&&c<='9')))return 0;
+    }
+    return 1;
+}
+int OOGFOSJSExposeHostConstructor(struct OOGFOSJS *s,
+                                 CONST_STRPTR constructorName,
+                                 CONST_STRPTR wrapperGlobal)
+{
+    char script[1000];
+    int bytes;
+    JSValue global=NULL,instance=NULL;
+    if(!s || !s->library || !s->task ||
+       !validConstructorIdentifier(constructorName) ||
+       !validConstructorIdentifier(wrapperGlobal))return 0;
+    JavaScriptBase=s->library;
+    global=JS_Global(s->task);
+    if(!global)return 0;
+    instance=JS_GetProp(s->task,global,wrapperGlobal);
+    if(!instance || JS_TypeOf(s->task,instance)!=JST_OBJECT) {
+        if(instance)JS_Free(s->task,instance);
+        JS_Free(s->task,global);
+        return 0;
+    }
+    JS_Free(s->task,instance);
+    JS_Free(s->task,global);
+    /* All substituted tokens passed strict JS identifier validation.
+     * Keep a non-configurable global to match Oolite native classes.
+     * The constructor is explicitly unconstructable (OOJSUnconstructable).
+     * Repeated registration is idempotent for the same host prototype. */
+    bytes=snprintf(script,sizeof(script),
+      "(function(g){"
+      "var p=Object.getPrototypeOf(g.%s);"
+      "if(typeof g.%s==='function'){"
+      "if(g.%s.prototype!==p)throw new TypeError('Oolite class conflict');"
+      "return;}"
+      "var C=function %s(){throw new TypeError('Oolite native class');};"
+      "C.prototype=p;"
+      "Object.defineProperty(p,'constructor',"
+      "{value:C,writable:true,enumerable:false,configurable:true});"
+      "Object.defineProperty(g,'%s',"
+      "{value:C,writable:false,enumerable:false,configurable:false});"
+      "})(this);",
+      wrapperGlobal,constructorName,constructorName,constructorName,
+      constructorName);
+    if(bytes<0 || (size_t)bytes>=sizeof(script))return 0;
+    return OOGFOSJSEvaluateSource(s,(CONST_STRPTR)script,
+                                  (CONST_STRPTR)"oolite-host-prototype.js")
+           ==JSERR_OK;
 }
 
 int OOGFOSJSSetGlobalFunction(struct OOGFOSJS *s,
