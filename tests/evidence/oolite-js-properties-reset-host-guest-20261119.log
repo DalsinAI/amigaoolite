@@ -1,0 +1,36 @@
+Oolite JavaScript shared-library host-object lifetime and reset
+Date: 2026-11-19
+Dedicated lab: team1-oolite-jsapi-rc1-20261119
+Target: AC090 68040 AmigaOS, GCC 16.2.0-open3
+Library: installed canonical GFOpenSDK javascript.library / GFOpenBrowser JavaScriptEngine
+Source integration: OOGFOSJSReset, OOGFOSJSProperties, OOGFOSJSValue adapters
+
+Native executable SHA256:
+oolite-js-properties-68040 1066bdaf3f69491458099ad253110c949dad86e5acbd9b910cd4510791664687
+oolite-js-reset-68040 84da5943902115d48c1a4e3b898e3dbe92fc7150566cd1e191f3d3ae49a1c9e7
+oolite-js-host-reset-68040 1b1d319aa2fd61f26559b69e6b6c7b02c48dff3bcba98b6914158256b28d65d4
+
+Guest output:
+OOLITE_JS_PROPERTIES_SUITE_BEGIN
+OOLITE_JS_PROPERTIES eval=0 result=26 failure=0 status=PASS
+OOLITE_JS_PROPERTIES_RC 0
+OOLITE_JS_PROPERTIES_SUITE_END
+
+OOLITE_JS_RESET_SUITE_BEGIN
+OOLITE_JS_RESET before=41 reset=1 after=42 status=PASS
+OOLITE_JS_RESET_RC 0
+OOLITE_JS_RESET_SUITE_END
+
+OOLITE_JS_HOST_RESET_SUITE_BEGIN
+OOLITE_JS_HOST_RESET before=42 reset=1 rebound=1 after=42 releases=2 status=PASS
+OOLITE_JS_HOST_RESET_RC 0
+OOLITE_JS_HOST_RESET_SUITE_END
+
+Notes: A host class' first wrapper was freed by the old JS task's teardown.
+After a successful transactional reset, the class/wrapper was re-registered
+and evaluated with the same game-owned C ship fixture. The final JS task
+shutdown caused the second release callback. Old JSValue handles are invalid
+after task reset and must not be reused by original OOJavaScriptEngine callers.
+All three tests executed on the native AC090 guest with RC 0. These gates
+do NOT prove that the original complete OOJS class graph links against
+javascript.library or that Oolite is playable.
