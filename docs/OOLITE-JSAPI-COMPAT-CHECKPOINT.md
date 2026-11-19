@@ -28,6 +28,17 @@ The isolated GCC 16.2.0-open3 cross-compiler on daletop produced:
 
 **Both gates have now passed in the isolated named AC090 68040 AmigaOS guest with RC 0.** The two-owner gate returned 42 then 56 after first-owner double close and cleared the base after final shutdown. The values gate checked 42.5, signed -42, true, undefined false and zero falsiness. Exact output: [`tests/evidence/oolite-jsapi-twoowners-values-guest-20261119.log`](../tests/evidence/oolite-jsapi-twoowners-values-guest-20261119.log). The dedicated lab is `team1-oolite-jsapi-rc1-20261119` (friendly name `AmiCradle Team 1 - Oolite JSAPI RC1`). This evidence concerns standalone adapter gates, not original Oolite full-engine execution. Prior guest tests for ship host objects remain in `docs/OOLITE-JSLIB-GUEST-PASS.md`.
 
+## Further native integration passes — 19 November
+
+The isolated Oolite lab also ran the original upstream `oolite-default-ship-script.js` through the existing shared JavaScript task and game-task dispatch bridges:
+
+- `oolite-script-objects-68040`: two independent script objects, four dispatched callbacks, legacy ship actions, clean close — **guest PASS, RC 0**.
+- `oolite-original-objc-event-68040`: original upstream ship script through selector-compatible Objective-C test backend, legacy method actions, clean close — **guest PASS, RC 0**.
+
+Verbatim output and hashes: [`tests/evidence/oolite-original-script-objc-guest-20261119.log`](../tests/evidence/oolite-original-script-objc-guest-20261119.log). The Objective-C fixture is **not** a verified original full `ShipEntity` / `Universe` integration.
+
+A direct `m68k-amigaos-nm -u` audit of all **242 original compiled translation units** found **101 unique unresolved SpiderMonkey `JS_*` symbols**, listed in [`docs/OOLITE-JSAPI-UNDEFINED-SYMBOLS-20261119.md`](OOLITE-JSAPI-UNDEFINED-SYMBOLS-20261119.md). They include the runtime/context, GC root, host class, exception and regexp-object surfaces. This is the actual conversion/link gap; isolated adapter tests do not remove it.
+
 ## Semantic caveats and acceptance gates
 
 1. `JS_ToLong` is **not a proven substitute** for SpiderMonkey `JS_ValueToInt32` (`ToInt32` modulo semantics). The helper is named `OOGFOSJSValueToLong` until parity is established; do not alias it to the SpiderMonkey function.
