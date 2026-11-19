@@ -70,7 +70,7 @@ LONG OOGFOSJSErrorText(struct OOGFOSJS *s, STRPTR buffer, LONG size)
 
 void OOGFOSJSClose(struct OOGFOSJS *s)
 {
-    if (!s) return;
+    if (!s || !s->library) return; /* Repeated close must not clear another owner's base. */
     JavaScriptBase = s->library;
     if (s->task) JS_EndTask(s->task);
     if (s->library) {
