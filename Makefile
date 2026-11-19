@@ -1004,3 +1004,11 @@ jsapi-audit:
 	    --max-unique 101 \
 	    --json-out "$(OUT)/jsapi-audit/unresolved.json" \
 	    --markdown-out "$(OUT)/jsapi-audit/unresolved.md"
+
+# Strict Vector3D v2 engine integration gate: unlike js-vector this rejects
+# the v1 JavaScript-owned prototype fallback (skip RC 77 on old engine).
+$(OUT)/oolite-js-vector-v2-engine-68040: tests/oolite_js_vector_v2_engine_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_vector_v2_engine_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJavaScript.c -lm -o $@
+.PHONY: js-vector-v2-engine
+js-vector-v2-engine: $(OUT)/oolite-js-vector-v2-engine-68040

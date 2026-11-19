@@ -9,6 +9,9 @@
 /* Install a JavaScript-callable Vector3D constructor. Does not require
  * initial ShipEntity or other world object; call on the owning JSTask. */
 LONG OOGFOSJSVectorInstall(JSTask task);
+/* Strict v2 feature availability; 0 means old library/engine or failure.
+ * This does not accept the v1 JavaScript-owned prototype fallback. */
+LONG OOGFOSJSVectorNativePrototypeAvailable(JSTask task);
 /* New owned vector wrapper; caller must JS_Free after publishing it.
  * Returns NULL for allocation failure; no cross-task JSValue use. */
 JSValue OOGFOSJSVectorCreate(JSTask task, DOUBLE x, DOUBLE y, DOUBLE z);

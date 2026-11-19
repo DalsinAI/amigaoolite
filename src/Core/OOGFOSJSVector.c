@@ -325,6 +325,27 @@ static const struct JSHostSlot slots[]={
 static const struct JSHostClass vectorClass={
     (CONST_STRPTR)"OoliteVector3D",NULL,slots,releaseVector,NULL
 };
+/* Strict RC1 qualification: unlike OOGFOSJSVectorInstall this must not
+ * silently use the v1 JS-owned snapshot-prototype fallback. */
+LONG OOGFOSJSVectorNativePrototypeAvailable(JSTask task)
+{
+#if defined(JAVASCRIPT_CLASS_PROTOTYPE_VERSION) && JAVASCRIPT_CLASS_PROTOTYPE_VERSION >= 2
+    JSClass cls;
+    JSValue prototype;
+    if(!task || !JavaScriptBase ||
+       JavaScriptBase->lib_Version<JAVASCRIPT_CLASS_PROTOTYPE_VERSION)
+        return 0;
+    cls=JS_RegisterClass(task,&vectorClass);
+    if(!cls)return 0;
+    prototype=JS_ClassPrototype(task,cls);
+    if(!prototype)return 0;
+    JS_Free(task,prototype);
+    return 1;
+#else
+    (void)task;
+    return 0;
+#endif
+}
 LONG OOGFOSJSVectorInstall(JSTask task)
 {
     JSValue global=NULL,native=NULL,probe=NULL,existing=NULL,prototype=NULL;
