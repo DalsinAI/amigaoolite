@@ -796,3 +796,18 @@ $(OUT)/oolite-two-original-utf16-objc-68040: tests/oolite_js_two_original_utf16_
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-two-original-utf16-objc
 js-two-original-utf16-objc: $(OUT)/oolite-two-original-utf16-objc-68040
+
+# Pinned original OOJSEntity float energy/maxEnergy selectors through Exec,
+# carried as IEEE-754 binary32 bits inside the 32-bit routed scalar message.
+$(OUT)/oolite-js-entity-energy-68040: tests/oolite_js_entity_energy_gate.c src/Core/OOGFOSShipProperties.c src/Core/OOGFOSShipEntityBackend.c src/Core/OOGFOSShipEntityBackend.m tests/oolite_objc_ship_mock.m $(OUT)/oolite-js-objc-bridge-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_entity_energy_gate.c -o $(OUT)/oolite-energy-gate.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSShipProperties.c -o $(OUT)/oolite-energy-properties.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSShipEntityBackend.c -o $(OUT)/oolite-energy-game-backend.o
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -DGNUSTEP_BASE_LIBRARY=1 -I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(UPSTREAM)/src/Core/Tables -I $(UPSTREAM)/src/SDL -I src/Core -c src/Core/OOGFOSShipEntityBackend.m -o $(OUT)/oolite-energy-backend-objc.o
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -DGNUSTEP_BASE_LIBRARY=1 -I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(UPSTREAM)/src/Core/Tables -I $(UPSTREAM)/src/SDL -I src/Core -c tests/oolite_objc_ship_mock.m -o $(OUT)/oolite-energy-mock-objc.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-energy-gate.o $(OUT)/oolite-energy-properties.o $(OUT)/oolite-energy-game-backend.o $(OUT)/oolite-energy-backend-objc.o $(OUT)/oolite-energy-mock-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a \
+	-lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-entity-energy
+js-entity-energy: $(OUT)/oolite-js-entity-energy-68040
