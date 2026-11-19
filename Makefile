@@ -844,3 +844,15 @@ $(OUT)/oolite-js-event-invoke-68040: tests/oolite_js_event_invoke_gate.c src/Cor
 	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-event-invoke
 js-event-invoke: $(OUT)/oolite-js-event-invoke-68040
+
+# Source-level replacement for original OOJavaScriptEngine callJSFunction:
+# Oolite game task calls JS function with real receiver/argv and retains the
+# arbitrarily typed result as an owned JSTask-scoped JSValue.
+$(OUT)/oolite-js-call-function-68040: tests/oolite_js_call_function_gate.c src/Core/OOGFOSScriptInvoke.c src/Core/OOGFOSScriptInvoke.h $(OUT)/oolite-js-sync-call-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_call_function_gate.c -o $(OUT)/oolite-call-function-gate.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptInvoke.c -o $(OUT)/oolite-sync-invoke.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-call-function-gate.o $(OUT)/oolite-sync-invoke.o $(OUT)/oolite-energy-properties.o $(OUT)/oolite-energy-game-backend.o $(OUT)/oolite-energy-backend-objc.o $(OUT)/oolite-energy-mock-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-call-function
+js-call-function: $(OUT)/oolite-js-call-function-68040
