@@ -1,0 +1,24 @@
+Oolite synchronous game-task JavaScript invocation native qualification
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Target: AC090 68040 AmigaOS, canonical javascript.library
+Executable SHA256: ea7318878bff49308dec2961b2970f32d4ab8dc31191c012252d39bfe78d7669
+Source: src/Core/OOGFOSScriptInvoke.{h,c} and tests/oolite_js_sync_call_gate.c
+
+Guest ACAgent transcript:
+OOLITE_SYNC_BEGIN
+OOLITE_JS_SYNC_CALL values=19,25,0,50 codes=0,0,1,0 rpc=6 done=4 closed=1 status=PASS
+OOLITE_SYNC_RC 0
+OOLITE_SYNC_END
+
+Synchronous game task -> JS_Post(worker) -> JS task -> Exec routed
+ShipEntity selector callbacks -> game-task message pump -> DONE -> JS queue join.
+Calls in one JSTask:
+  ship.bounty+ship.homeSystem+ship.maxEscorts = 19
+  ship.bounty=25 = 25
+  throw new Error = JSERR_EXCEPTION 1, but worker sent DONE and owner resumed
+  ship.bounty*2 = 50 with JSERR_OK 0 after the thrown exception.
+All four requests returned; 6 routed game task messages; 4 DONE completions.
+Controlled selector-compatible ObjC fixture, not entire original OOJS engine.
+This is an invocation primitive to be wired into original OOJavaScriptEngine
+callJSFunction rather than a fake binary-compatible SpiderMonkey symbol.
