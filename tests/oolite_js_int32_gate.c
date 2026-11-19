@@ -5,6 +5,7 @@
 #include "OOGFOSJSValues.h"
 #include <proto/javascript.h>
 #include <stdio.h>
+#include <math.h>
 struct Case { DOUBLE value; LONG expected; };
 static const struct Case tests[] = {
     {42.9,42}, {-42.9,-42}, {0.0,0}, {-0.0,0},
@@ -12,13 +13,13 @@ static const struct Case tests[] = {
     {2147483648.0,(-2147483647L-1L)},
     {-2147483649.0,2147483647L},
     {4294967295.0,-1}, {4294967296.0,0},
-    {1.0e30,0} /* Not asserted: huge modulo is float-dependent */
+    {NAN,0}, {INFINITY,0}, {-INFINITY,0}
 };
 int main(void)
 {
     struct OOGFOSJS js={0};
     LONG result=0, rc, bad=0, passed=0;
-    unsigned i, n=(sizeof(tests)/sizeof(tests[0]))-1;
+    unsigned i, n=(sizeof(tests)/sizeof(tests[0]));
     JSValue val=NULL;
     if(!OOGFOSJSOpen(&js)) { puts("OOLITE_JS_INT32 status=UNAVAILABLE"); return 77; }
     for(i=0;i<n;i++) {
