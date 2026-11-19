@@ -172,6 +172,37 @@ flight qualification. These isolated native passes must not be described
 as playable Oolite.
 
 
+## Canonical JS_ClassPrototype v2 integration — 19 November
+
+GFOpenBrowser `javascript.library` 2.0 exposes the genuine registered
+`JSHostClass` prototype through the **append-only** `JS_ClassPrototype`
+vector (LVO -210). No SpiderMonkey ABI or duplicate engine is involved.
+The v1 30-vector table is unchanged, and the v2 library returns NULL when
+paired with an older `JavaScriptEngine` without the extended table callback.
+
+Oolite now uses the native class prototype in
+`OOGFOSJSVectorInstall` whenever both library and engine provide it. An
+older SDK builds cleanly, and a v2 library with an old engine falls back to
+a *JavaScript-owned Vector3D value snapshot* (never a fake game-owned
+`ShipEntity`). The original `JS_InitClass` bootstrap support already lives
+in `OOGFOSJSClassBootstrap` and returns an explicit unsupported result
+when the engine lacks the new callback.
+
+**Build evidence:** GFOpenBrowser v2 `javascript.library` built with GCC
+16.2.0 as a 3,672-byte AmigaOS loadseg binary, with 31 vectors ending
+at -210; SHA-256
+`488c01fdb95facfd44af009ba85ae890e65bc9ffb2a9049a5dd0e2bcb2b1c7ee`.
+Oolite's `oolite_js_class_bootstrap_v2_gate` builds with the v2 SDK;
+SHA-256
+`b1153ff89fc08d28ab3f38fbe04e009ef1fe01d7a0ce2139abeb33d11ed50725`.
+The updated `OOGFOSJSVector.c` compiles against both v1 and v2 SDKs.
+
+**Not yet native-qualified:** actual `JS_ClassPrototype` execution
+requires a newly built and installed v2 `JavaScriptEngine`, not just
+the v2 loader library. The isolated named Oolite lab's startup encountered
+DevDrive I/O blocking during this deployment attempt. Do not treat a
+cross-build or ABI guard as a successful v2 guest run.
+
 ## Semantic caveats and acceptance gates
 
 1. `JS_ToLong` is **not** a substitute for SpiderMonkey `JS_ValueToInt32`. The separate `OOGFOSJSValueToInt32` helper now has 13 native conversion cases, including NaN and infinities. Do not alias `JS_ToLong` to `JS_ValueToInt32`.
