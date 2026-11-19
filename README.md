@@ -1,5 +1,7 @@
 # AmigaOolite — GFOS / OpenUp native AmigaOS port
 
+**CURRENT ENGINEERING STATE (read first): [CURRENT-STATE.md](CURRENT-STATE.md).** Historical checkpoints below are superseded for current status and next actions.
+
 **Status (18 November 2026): real pinned Oolite algorithms, Foundation resource parsing, Team 4 multicore board jobs and native OXZ archive extraction have passed in an AmigaChrome AC090 68040 guest. The original complete OOOXZManager and full Oolite engine are NOT linked or playable. No RC.**
 
 ## Official source and pinned baseline
