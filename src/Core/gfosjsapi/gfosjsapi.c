@@ -305,8 +305,22 @@ static int ensureReady(void)
 
 /* ==== exceptions =============================================================== */
 
+/* SetEnv GFOSJSAPI_TRACE 1: every exception made pending is printed. */
+static int traceOn(void)
+{
+    static int on = -1;
+    if (on < 0) { const char *e = getenv("GFOSJSAPI_TRACE"); on = e && *e && *e != '0'; }
+    return on;
+}
+
 static void setPendingOwned(ooLValue v)       /* takes ownership of v */
 {
+    if (traceOn()) {
+        char text[300] = "";
+        ooL_ToString(v, text, sizeof text);
+        fprintf(stderr, "gfosjsapi: pending exception: %s\n", text);
+        fflush(stderr);
+    }
     if (CX->pendingPin) ooL_Free(CX->pendingPin);
     CX->pendingPin = v;
     CX->hasPending = 1;
