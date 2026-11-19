@@ -1,0 +1,42 @@
+Original Oolite per-ship JavaScript event invocation — native qualification
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Friendly name: AmiCradle Team 1 - Oolite JSAPI RC1
+Target: AC090 68040 AmigaOS, canonical javascript.library
+Toolchain: GCC 16.2.0-open3
+Source: src/Core/OOGFOSScriptEventInvoke.{h,c},
+        src/Core/OOGFOSScriptInvoke.{h,c}
+Native executable SHA256: d59f1156fc5b45f2ad4a2b587742f6c2f99413c82477efdda4cd588b17345622
+Original unmodified ship script: OoliteProject/oolite@21978c37b2f11c8664adf3e2062efc1d0c875979
+Guest script asset: SYS:Oolite/Scripts/oolite-default-ship-script.utf16be
+
+Verbatim native ACAgent output:
+OOLITE_EVENT_INVOKE_QUALIFIED_BEGIN
+OOLITE_EVENT_STAGE source
+OOLITE_EVENT_STAGE setup post=0 rc=0
+OOLITE_EVENT_STAGE spawn_begin
+OOLITE_EVENT_STAGE spawn_end code=0
+OOLITE_EVENT_STAGE death_begin
+OOLITE_EVENT_STAGE death_end code=0
+OOLITE_EVENT_STAGE missing_begin
+OOLITE_EVENT_STAGE missing_end code=0
+OOLITE_EVENT_STAGE exception_begin
+OOLITE_EVENT_STAGE exception_end code=1
+OOLITE_EVENT_STAGE recovery_begin
+OOLITE_EVENT_STAGE recovery_end code=0
+OOLITE_JS_EVENT_INVOKE units=3753 actions=5 calls=4 called=1,1,0,0,1 codes=0,0,0,1,0 rpc=4 done=8 closed=1 status=PASS
+OOLITE_EVENT_INVOKE_QUALIFIED_RC 0
+OOLITE_EVENT_INVOKE_QUALIFIED_END
+
+The first implementation used JS_Post(...,wait=1) for original script
+initialization. The original default ship script dispatches game actions
+during initialization; blocking the game owner from pumping its Exec port
+caused an actual deadlock. Fixed by using OOGFOSScriptInvoke for
+initialization and all test-injection stages, which pumps game messages
+while waiting, and always sends one DONE even on exceptions.
+The initial test expectation counted five game RPCs but the actual original
+script produced four; expected result corrected after verifying exact
+native selectors and actions. 8 worker DONE signals, 4 routed game
+actions, 4 ObjC fixture calls, 5 actions. The wrapper and transport
+close cleanly. Uses original JavaScript and selector-compatible ObjC
+fixture, NOT the full original Universe/ShipEntity code.
