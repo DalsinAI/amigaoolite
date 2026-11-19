@@ -42,3 +42,29 @@ non-cooperative script until that interrupt mechanism passes.
 
 Original source symbol audit remains 100 unique JS_* over 52 objects, and
 original Oolite not linked or playable.
+
+## Restored-v2 safety regression after unsuccessful v3 experiment
+
+After the experimental v3 JSC termination traps failed to interrupt a
+tight loop, Team 1 killed only its own isolated AC090 bridge process
+and restored the byte-verified known-good v2 pair on its DH0 disk.
+
+Restored exact expected SHA-256:
+javascript.library d8920e912507b5b8e25a30e6b04599362fc915273fccb371915304d13e0e4d80
+JavaScriptEngine  d35f5a3846786549dc8b8a453eb813f71bd7bf32bf5564d89cfd3b4dcc69c923
+
+New clean bridge boot, four native tests in sequence, exact RC0 each:
+1. Original OORegExpMatcher Objective-C class: 7 checks PASS.
+2. Native Quaternion and Vector3D rotation: PASS with recovery=42.
+3. Native credits -> optional JavaScript formatting: PASS including exception.
+4. 12 Oolite-owned JSTasks: create, use, re-create and clean all 12, PASS.
+
+The independent guest agent transcript with every result is
+tests/evidence/oolite-v2-restored-four-native-regressions-20261119.log.
+
+An exact cross-nm audit of the 242-slot original-object corpus with the
+real regex module substituted still reads 52 dependent objects, 100 distinct
+unresolved SpiderMonkey JS_* functions (unknown=0, overlap=0). The additional
+credit source port has NOT been counted because a genuine original
+OOStringParsing.m recompile is blocked by absent authentic SDL3 / JSAPI build
+headers. The Makefile explicitly refuses to claim a completed rebuild.
