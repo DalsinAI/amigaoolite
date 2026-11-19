@@ -1,0 +1,33 @@
+Oolite original UTF-16 script / GFOS JavaScript / ObjC ship event integration
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Friendly name: AmiCradle Team 1 - Oolite JSAPI RC1
+Target: AC090 68040 AmigaOS 3.2.3, canonical javascript.library + JavaScriptEngine
+Toolchain: GCC 16.2.0-open3
+Native binary SHA256: 06fc532e1a05f029977305146bceaeddbc3af97c1d5db920be5c8130d41537fe
+Original file: OoliteProject/oolite@21978c37b2f11c8664adf3e2062efc1d0c875979
+  Resources/Scripts/oolite-default-ship-script.js
+Guest source: SYS:Oolite/Scripts/oolite-default-ship-script.utf16be
+Encoded source SHA256: 5492a18b4768ac3588879851703fe3ae144d8d32cc51355df002e6f9c578d61a
+UTF-8 source was converted to UTF-16BE without BOM using iconv; Amiga 68k is big-endian.
+Length: 7506 bytes, 3753 16-bit code units. Includes copyright sign and curly apostrophe.
+
+Guest ACAgent transcript:
+OOLITE_ORIGINAL_UTF16_OBJC_BEGIN
+OOLITE_ORIGINAL_UTF16_OBJC_EVENT bytes=7506 bound=1 methods=3 actions=4 rpc=4 completed=1 result=1 closed=1 status=PASS
+OOLITE_ORIGINAL_UTF16_OBJC_RC 0
+OOLITE_ORIGINAL_UTF16_OBJC_END
+
+Execution:
+- Registered a real JSHostClass wrapper for a controlled Objective-C ShipEntity
+  method-compatible fixture via the existing game-task dispatcher
+- Created a per-ship OOGFOSScriptObject with script.ship pointing to wrapper
+- Set legacy launch/death arrays, loaded original UTF-16 script with
+  OOGFOSScriptObjectLoadUTF16 so 'this' referred to the script instance
+- Triggered shipSpawned/shipDied, verified one-shot shipSpawned deletion,
+  original selector-compatible game method counts and action outcomes
+- Freed JS task, invalidated ship handle and closed dispatcher cleanly
+
+Limitations: Test ShipEntity is the selector-compatible native fixture, not the
+complete original game ShipEntity/Universe; this is not Oolite startup, rendering,
+flight or a SpiderMonkey-free original executable.
