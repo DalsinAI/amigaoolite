@@ -5,7 +5,7 @@
 #include <stdint.h>
 /* These numeric codes must match OOGFOS_SHIP_* in OOGFOSShipProperties.h. */
 enum { OOGFOS_OOJS_BOUNTY=1, OOGFOS_OOJS_HOME_SYSTEM=2,
-       OOGFOS_OOJS_MAX_ESCORTS=3 };
+       OOGFOS_OOJS_MAX_ESCORTS=3, OOGFOS_OOJS_ENERGY=4,\n       OOGFOS_OOJS_MAX_ENERGY=5 };
 /* Game-owner-only ObjC ownership bridge, no ObjC runtime types in C. */
 void *OOGFOSShipObjCRetain(void *ship);
 void OOGFOSShipObjCRelease(void *ship);
