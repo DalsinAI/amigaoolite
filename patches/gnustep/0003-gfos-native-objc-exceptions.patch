@@ -1,0 +1,11 @@
+--- a/Headers/GNUstepBase/GSConfig.h	2026-11-19 21:26:07.083344292 +0000
++++ b/Headers/GNUstepBase/GSConfig.h	2026-11-19 21:26:07.087508261 +0000
+@@ -262,7 +262,7 @@
+ } gs_mutex_public_t	__attribute__((aligned (2)));
+ 
+ #define	OBJC2RUNTIME 1
+-#define BASE_NATIVE_OBJC_EXCEPTIONS     0
++#define BASE_NATIVE_OBJC_EXCEPTIONS     1
+ #define GS_NONFRAGILE     0
+ #define GS_USE_LIBXML 0
+ #define GS_USE_GNUTLS 0

@@ -1,0 +1,30 @@
+oolite_js_game_on_script_task_gate
+STEP main Foundation: 1, main thread 1, process GameOnScriptTask
+PASS JS_NewTask with a 1 MB stack
+PASS C -> JS calls from the launching task
+TIMING C -> JS call from the launching task (5 handovers each): 1000 calls, 210848 us total, 210.85 us per call
+TIMING one handover: empty JS_Post, wait: 1000 calls, 12006 us total, 12.01 us per call
+PASS game job runs on a different task from the launcher
+PASS script task is a DOS process
+INFO script task "pthread thread #1              ", stack 1048576 bytes
+PASS malloc/free
+PASS snprintf with float
+PASS fopen PROGDIR: for writing
+PASS fopen PROGDIR: for reading
+PASS pthread_create/join
+PASS script task adopted as the main pthread
+PASS NSThread currentThread is the main thread
+PASS NSString stringWithFormat
+PASS NSDictionary/NSArray
+PASS @throw/@catch on the script task
+PASS NSFileManager PROGDIR:
+PASS property list parse
+PASS JS_Evaluate on the script task
+PASS C -> JS calls on the script task give right answers
+TIMING C -> JS call on the script task (JS_NewLong + JS_Call + JS_ToLong + 2 JS_Free): 10000 calls, 629976 us total, 63.00 us per call
+PASS JS -> C empty native 10000 times
+TIMING JS -> C call, empty native (includes the JS loop): 10000 calls, 514450 us total, 51.44 us per call
+PASS JS -> Objective-C native 10000 times
+TIMING JS -> C call doing NSString work: 10000 calls, 750736 us total, 75.07 us per call
+INFO game job returned 0
+PASS oolite_js_game_on_script_task_gate (0 failures)
