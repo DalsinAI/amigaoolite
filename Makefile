@@ -706,7 +706,7 @@ jslib-two-owners: $(OUT)/oolite-jslib-two-owners-68040
 # rather than pretending SpiderMonkey jsval has the same ABI.
 $(OUT)/oolite-js-values-68040: tests/oolite_js_values_gate.c src/Core/OOGFOSJSValues.c src/Core/OOGFOSJSValues.h src/Core/OOGFOSJavaScript.c $(GFOS_JS_INC)/libraries/javascript.h
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_values_gate.c src/Core/OOGFOSJSValues.c src/Core/OOGFOSJavaScript.c -o $@
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_values_gate.c src/Core/OOGFOSJSValues.c src/Core/OOGFOSJavaScript.c -lm -o $@
 .PHONY: js-values
 js-values: $(OUT)/oolite-js-values-68040
 
