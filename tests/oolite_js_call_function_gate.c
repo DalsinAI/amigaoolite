@@ -22,6 +22,8 @@ int main(void)
     LONG setup=JSERR_BADARGS,a=JSERR_BADARGS,b=JSERR_BADARGS,c=JSERR_BADARGS,
          got=-1,recovered=-1;
     int registered=0,ok=0,closed=0,exceptionNull=0;
+    setvbuf(stdout,NULL,_IONBF,0);
+    puts("OOLITE_CALL_STAGE create_registry");
     OOGFOSShipEntityRegistryInit(&registry);
     ship=OOGFOSTestObjCShipNew();
     if(!ship)return 75;
@@ -29,6 +31,7 @@ int main(void)
     if(!token || !OOGFOSGameDispatchInitRouted(&dispatch,&registry,
              OOGFOSShipEntityGameBackend()))return 75;
     if(!OOGFOSJSOpen(&js))return 77;
+    puts("OOLITE_CALL_STAGE js_opened");
     proxy.dispatch=&dispatch;proxy.token=token;
     handle.ship=&proxy;handle.backend=OOGFOSGameShipProxyBackend();handle.valid=1;
     registered=OOGFOSJSExposeHostClass(&js,OOGFOSShipClass(),&handle,"ship");
@@ -37,28 +40,35 @@ int main(void)
        "this.ooliteThrow=function(){throw new Error('expected');};"
        "this.ooliteRecovery=function(){return ship.bounty*2;};",
        "oolite-function-bindings.js");
+    printf("OOLITE_CALL_STAGE bound=%d setup=%ld\n",registered,(long)setup);
     if(setup!=JSERR_OK)goto cleanup;
     global=JS_Global(js.task);
     fn=JS_GetProp(js.task,global,"ooliteCall");
     throwFn=JS_GetProp(js.task,global,"ooliteThrow");
     args[0]=JS_NewLong(js.task,2);
     args[1]=JS_NewLong(js.task,3);
+    puts("OOLITE_CALL_STAGE invoke_object_begin");
     if(fn && args[0] && args[1])
         a=OOGFOSScriptInvokeFunction(&js,&dispatch,fn,global,2,args,&returned);
+    printf("OOLITE_CALL_STAGE invoke_object_end=%ld\n",(long)a);
     if(a==JSERR_OK && returned && JS_TypeOf(js.task,returned)==JST_OBJECT) {
         sum=JS_GetProp(js.task,returned,"sum");
         if(sum)JS_ToLong(js.task,sum,&got);
     }
     if(sum){JS_Free(js.task,sum);sum=NULL;}
     if(returned){JS_Free(js.task,returned);returned=NULL;}
+    puts("OOLITE_CALL_STAGE invoke_exception_begin");
     if(throwFn) b=OOGFOSScriptInvokeFunction(&js,&dispatch,
                                              throwFn,global,0,NULL,&returned);
     exceptionNull=(b==JSERR_EXCEPTION && returned==NULL);
+    printf("OOLITE_CALL_STAGE invoke_exception_end=%ld\n",(long)b);
     if(returned){JS_Free(js.task,returned);returned=NULL;}
     if(fn){JS_Free(js.task,fn);fn=NULL;}
     fn=JS_GetProp(js.task,global,"ooliteRecovery");
+    puts("OOLITE_CALL_STAGE invoke_recovery_begin");
     if(fn)c=OOGFOSScriptInvokeFunction(&js,&dispatch,
                                       fn,global,0,NULL,&returned);
+    printf("OOLITE_CALL_STAGE invoke_recovery_end=%ld\n",(long)c);
     if(c==JSERR_OK && returned)JS_ToLong(js.task,returned,&recovered);
     ok=registered&&setup==JSERR_OK&&a==JSERR_OK&&got==15&&
        b==JSERR_EXCEPTION&&exceptionNull&&returned!=NULL&&c==JSERR_OK&&recovered==20&&
