@@ -1059,3 +1059,23 @@ jsapi-regex-rebuilt-audit: $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/OOGFOSRegExp.o
 	    --nm "$(CROSS_NM)" --max-unique 100 \
 	    --json-out "$(OUT)/jsapi-regex-original-audit.json" \
 	    --markdown-out "$(OUT)/jsapi-regex-original-audit.md"
+
+# Exercise the public original Objective-C selectors, not merely the
+# javascript.library C bridge. Link the genuine GNUstep/Foundation runtime.
+$(OUT)/oolite-original-regex-objc-68040: tests/oolite_original_regex_objc_gate.m $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/OOGFOSRegExp.o
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul \
+	  -DGNUSTEP_BASE_LIBRARY=1 -I src/Core/original-replacements \
+	  -I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core -I $(UPSTREAM)/src/SDL \
+	  -I $(PREFIX)/m68k-amigaos/ndk-include.vendor \
+	  -c tests/oolite_original_regex_objc_gate.m -o $(OUT)/oolite_regex_objc_gate.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul \
+	  $(OUT)/oolite_regex_objc_gate.o $(OUT)/Core_OORegExpMatcher_m.o \
+	  $(OUT)/OOGFOSRegExp.o src/Core/OOGFOSJavaScript.c \
+	  -I $(GFOS_JS_INC) -I $(GFOS_JS_NDK) -I src/Core \
+	  -L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) \
+	  -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) \
+	  -Wl,--no-whole-archive $(GFOS_LIB_DIR)/libgfosfoundationports.a \
+	  $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a \
+	  -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: original-regex-objc
+original-regex-objc: $(OUT)/oolite-original-regex-objc-68040

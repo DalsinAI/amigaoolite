@@ -130,3 +130,22 @@ qualified; its selectors have not yet been invoked by a running Oolite
 game. There is no complete game relink or evidence that the other 100
 legacy symbols are gone. This is the first measured decrement, not a
 claim of a playable Oolite build.
+
+## Objective-C caller integration verified (19 November)
+
+The actual original OORegExpMatcher Objective-C class and NSString
+category are now linked against the real GFOS GNUstep Foundation
+(with the JSC regexp C bridge), not merely cross-compiled independently.
+The native AmigaOS 3.2.3 AC090 guest executed their public selectors:
+exact match, case-sensitive mismatch, ignore-case, multiline, NSString
+category dispatch, bad-regex rejection and recovery.
+
+OOLITE_ORIGINAL_REGEX_OBJC checks=7 status=PASS, return code 0.
+Actual guest transcript:
+tests/evidence/oolite-original-regex-objc-guest-20261119.log.
+Executable SHA-256:
+fb525ea15b6eb7b838f5e720fe601992201fc6940d011076eadf996a8dfcbe45.
+
+This establishes the original class ABI and Foundation/JSC integration.
+It does not claim a full original Oolite executable link, or change
+the measured 100 remaining SpiderMonkey APIs / 52 dependent objects.
