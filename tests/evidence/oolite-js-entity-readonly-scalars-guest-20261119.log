@@ -1,0 +1,32 @@
+Oolite native Entity read-only scalar property gate
+Date: 2026-11-19 (after 06:00 UTC)
+Lab: team1-oolite-jsapi-rc1-20261119
+Target: native AC090 68040 AmigaOS, canonical javascript.library v1
+Toolchain: OpenAmigaGCC 16.2.0-open3
+Native executable SHA256: ecaa1b9a8982f9006c8574130e886b505d5facb97f2157fa40464ab340a09115
+
+Original source: OoliteProject/oolite pinned
+src/Core/Scripting/OOJSEntity.m and Entity.h:
+  collisionRadius, distanceTravelled, mass and spawnTime are read-only
+  GLfloat-backed JavaScript properties.
+
+Implementation: four more real OOJSEntity JSHostClass getters routed through
+the game-owner Exec port, invoking native Objective-C selectors. An IEEE-754
+binary32 float is carried bit-exactly as LONG in the existing RPC message,
+then converted to a JavaScript Number. No ObjC selectors run on JSTask.
+
+Native ACAgent output:
+OOLITE_ENTITY_SCALARS_BEGIN
+OOLITE_ENTITY_SCALARS code=0 write=1 result=42 rpc=8 done=1 closed=1 status=PASS
+OOLITE_ENTITY_SCALARS_RC 0
+OOLITE_ENTITY_SCALARS_END
+
+The controlled ObjC fixture had collisionRadius=28.25,
+distanceTravelled=1234.5, mass=90.5 and spawnTime=3.75.
+JS evaluated all individual values and their sum 1357.0, result 42;
+eight getter RPCs were serviced. A strict-mode attempt to assign
+ship.mass=999 threw JSERR_EXCEPTION=1 as desired. The guest exited with
+RC 0 and closed the game RPC port cleanly.
+
+Limit: all source selectors match original pinned Entity.h but are backed by
+the controlled ObjC ShipEntity fixture, not the full game/Universe.
