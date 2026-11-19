@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <exec/libraries.h>
 typedef struct OOGFOSVector {DOUBLE x,y,z;} Vec3;
 static const struct JSHostClass vectorClass;
 static int valid(DOUBLE value){return isfinite(value);}
@@ -274,7 +275,7 @@ static const struct JSHostClass vectorClass={
 };
 LONG OOGFOSJSVectorInstall(JSTask task)
 {
-    JSValue global=NULL,native=NULL,probe=NULL,existing=NULL;
+    JSValue global=NULL,native=NULL,probe=NULL,existing=NULL,prototype=NULL;
     JSValue constructor=NULL,interpolator=NULL;
     JSClass cls;
     LONG rc=JSERR_BADARGS;
@@ -302,23 +303,37 @@ LONG OOGFOSJSVectorInstall(JSTask task)
         "delete g._gfosOoliteVectorFactory;})(this);",
         -1,(CONST_STRPTR)"oolite-vector-constructor.js",NULL);
     if(rc!=JSERR_OK)goto done;
-    /* Host classes already own their real prototype in the v1 engine.
-     * A temporary real JS-owned Vector3D snapshot lets us expose that
-     * prototype without fabricating a game-owned ShipEntity or requiring
-     * javascript.library v2's new JS_ClassPrototype vector. */
-    probe=create(task,0.0,0.0,0.0);
-    if(!probe){rc=JSERR_NOMEMORY;goto done;}
-    rc=JS_SetProp(task,global,(CONST_STRPTR)"_gfosOoliteVectorProbe",probe);
-    if(rc!=JSERR_OK)goto done;
-    rc=JS_Evaluate(task,
-        "Vector3D.prototype=Object.getPrototypeOf(_gfosOoliteVectorProbe);"
-        "Object.defineProperty(Vector3D.prototype,'constructor',"
-        "{value:Vector3D,enumerable:false,writable:true,configurable:true});"
-        "delete this._gfosOoliteVectorProbe;",
-        -1,(CONST_STRPTR)"oolite-vector-prototype.js",NULL);
-    if(rc!=JSERR_OK)goto done;
     constructor=JS_GetProp(task,global,(CONST_STRPTR)"Vector3D");
     if(!constructor){rc=JSERR_BADARGS;goto done;}
+#if defined(JAVASCRIPT_CLASS_PROTOTYPE_VERSION) && JAVASCRIPT_CLASS_PROTOTYPE_VERSION >= 2
+    /* Native v2: true class prototype, without any placeholder wrapper.
+     * JS_ClassPrototype safely returns NULL if the separately deployed
+     * JavaScriptEngine still has the older v1 callback table. */
+    if(JavaScriptBase &&
+       JavaScriptBase->lib_Version>=JAVASCRIPT_CLASS_PROTOTYPE_VERSION)
+        prototype=JS_ClassPrototype(task,cls);
+#endif
+    if(prototype){
+        rc=JS_SetProp(task,constructor,(CONST_STRPTR)"prototype",prototype);
+        if(rc!=JSERR_OK)goto done;
+    }else{
+        /* Older library/engine fallback: this is a JS-owned pure value,
+         * never a fake ShipEntity or other game-owned object. */
+        probe=create(task,0.0,0.0,0.0);
+        if(!probe){rc=JSERR_NOMEMORY;goto done;}
+        rc=JS_SetProp(task,global,(CONST_STRPTR)"_gfosOoliteVectorProbe",probe);
+        if(rc!=JSERR_OK)goto done;
+        rc=JS_Evaluate(task,
+            "Vector3D.prototype=Object.getPrototypeOf(_gfosOoliteVectorProbe);"
+            "delete this._gfosOoliteVectorProbe;",
+            -1,(CONST_STRPTR)"oolite-vector-v1-prototype.js",NULL);
+        if(rc!=JSERR_OK)goto done;
+    }
+    rc=JS_Evaluate(task,
+        "Object.defineProperty(Vector3D.prototype,'constructor',"
+        "{value:Vector3D,enumerable:false,writable:true,configurable:true});",
+        -1,(CONST_STRPTR)"oolite-vector-prototype.js",NULL);
+    if(rc!=JSERR_OK)goto done;
     interpolator=JS_NewFunction(task,(CONST_STRPTR)"interpolate",interpolate,NULL);
     if(!interpolator){rc=JSERR_NOMEMORY;goto done;}
     rc=JS_SetProp(task,constructor,(CONST_STRPTR)"interpolate",interpolator);
@@ -326,6 +341,7 @@ done:
     if(interpolator)JS_Free(task,interpolator);
     if(constructor)JS_Free(task,constructor);
     if(existing)JS_Free(task,existing);
+    if(prototype)JS_Free(task,prototype);
     if(probe)JS_Free(task,probe);
     if(native)JS_Free(task,native);
     JS_Free(task,global);
