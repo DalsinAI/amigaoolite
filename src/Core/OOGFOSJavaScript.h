@@ -23,6 +23,16 @@ LONG OOGFOSJSErrorText(struct OOGFOSJS *state, STRPTR buffer, LONG size);
 int OOGFOSJSExposeHostClass(struct OOGFOSJS *state,
                            const struct JSHostClass *hostClass,
                            APTR object, CONST_STRPTR globalName);
+/* Expose the canonical JSHostClass wrapper's real prototype as a named
+ * unconstructable Oolite class constructor (e.g. Ship.prototype).
+ * Oolite's original oolite-global-prefix.js installs methods there.
+ * Requires a bound instance (wrapperGlobal) of that class and names that
+ * are valid JavaScript identifiers. This is a SOURCE-compatibility bridge
+ * for JS_InitClass; it does not claim binary SpiderMonkey ABI layout. */
+int OOGFOSJSExposeHostConstructor(struct OOGFOSJS *state,
+                                 CONST_STRPTR constructorName,
+                                 CONST_STRPTR wrapperGlobal);
+
 /* Expose a native callback on the JS global; callback runs on script task. */
 int OOGFOSJSSetGlobalFunction(struct OOGFOSJS *state,
                              CONST_STRPTR name, JSMethodFunc callback, APTR data);
