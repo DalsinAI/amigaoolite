@@ -9,7 +9,7 @@ LONG OOGFOSJSValueToNumber(JSTask task, JSValue value, DOUBLE *out)
     if (!task || !out) return JSERR_BADARGS;
     return JS_ToDouble(task, value, out);
 }
-LONG OOGFOSJSValueToInt32(JSTask task, JSValue value, LONG *out)
+LONG OOGFOSJSValueToLong(JSTask task, JSValue value, LONG *out)
 {
     if (!task || !out) return JSERR_BADARGS;
     return JS_ToLong(task, value, out);
