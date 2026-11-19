@@ -233,7 +233,7 @@ static const char sGlue[] =
 "    newArray: function(n) { return new Array(n); },\n"
 "    regexp: function(s, f) { return new RegExp(s, f); },\n"
 "    objectProto: Object.prototype,\n"
-"    execIn: function(__gfosjsapiSource) { return eval(__gfosjsapiSource); }\n"
+"    execIn: function(__gfosjsapiSource) { with (this) { return eval(__gfosjsapiSource); } }\n"
 "  };\n"
 "})()";
 
