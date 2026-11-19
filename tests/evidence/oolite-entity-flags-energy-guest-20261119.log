@@ -1,0 +1,36 @@
+Native OOJSEntity energy/maxEnergy and Boolean classification qualification
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Target: AC090 68040 AmigaOS, canonical javascript.library
+Original source references: OOJSEntity.m getters/setters, Entity.h/Entity.m,
+pinned OOEntityStatus.tbl with STATUS_DEAD=-1.
+
+Fresh native binaries:
+oolite-js-entity-flags-68040 SHA256 05a3f5cc209ef7e7eb8e2dacfb1bf1f64db77f64a04bc6e71ac1f7bd0ed90f8d
+oolite-js-entity-energy-68040 SHA256 99b61d1b835b10ec7ea45dad4fb08bc441c809efe210525a45b5e085a8d9158e
+Original UTF-16 script regression binaries linked with expanded entity classes:
+one SHA256 7f93c8ffdba2969f574f65343f52b6b456f2d35241b76028b089768ff2e92b7b
+two SHA256 3d60b040db86285bbb47318c6c33deb5a46dd5421058e0f7248d12e9ef92af1f
+
+Native guest outputs:
+OOLITE_ENTITY_FLAGS_ENERGY_BEGIN
+OOLITE_JS_ENTITY_FLAGS live=1 dead=1 rpc=8 done=2 closed=1 status=PASS
+OOLITE_ENTITY_FLAGS_RC 0
+OOLITE_JS_ENTITY_ENERGY fraction=7725 final=200 rejected=1 energy=100 maximum=100 rpc=7 closed=1 status=PASS
+OOLITE_ENTITY_ENERGY_RC 0
+OOLITE_ENTITY_FLAGS_ENERGY_END
+
+OOLITE_ENTITY_ALL_UTF16_BEGIN
+OOLITE_ORIGINAL_UTF16_OBJC_EVENT bytes=7506 bound=1 methods=3 actions=4 rpc=4 completed=1 result=1 closed=1 status=PASS
+OOLITE_ENTITY_UTF16_ONE_RC 0
+OOLITE_UTF16_SCRIPT_OBJECTS bytes=7506 scripts=2 js_tasks=1 calls=3,3 actions=4,5 rpc=8 done=1 result=1 called=4 missing=0 closed=1 status=PASS
+OOLITE_ENTITY_UTF16_TWO_RC 0
+OOLITE_ENTITY_ALL_UTF16_END
+
+Script flags are real JS Booleans from game-owner selectors isValid/isShip/
+isStation/isPlayer/isDock/isInSpace. isValid transitions to false when
+the pinned status becomes STATUS_DEAD. Float properties preserve IEEE-754
+binary32 over Exec LONG scalar fields; energy clamps to [0,maxEnergy],
+maxEnergy requires >0. Existing original UTF-16 ship-script tests still pass
+after widening the host-class properties. Controlled selector-compatible
+ObjC fixtures are used, not complete original game entities.
