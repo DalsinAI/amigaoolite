@@ -1,0 +1,20 @@
+Oolite JSAPI native qualification - 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Friendly name: AmiCradle Team 1 - Oolite JSAPI RC1
+Runtime: AmiCradle AC090 native A1200, 68040, isolated lab
+Toolchain: OpenAmigaGCC 16.2.0-open3
+Libraries: canonical javascript.library + JavaScriptEngine from prior qualified GFOpenBrowser bundle
+Source HEAD for test: 88b9b711742d9e639f0a65caf9d5f1228c18e436
+oolite-js-values-68040 SHA256: 1f09bc2f49e314f751f8f204ddc676433d9316bbf63c5c908109d88ead9efb81
+oolite-jslib-two-owners-68040 SHA256: d8e030d6ceb052d759c0b8e641a84105250b8221280d6e81c4dea031fb138ad7
+
+Guest ACAgent transcript (verbatim):
+OOLITE_JSAPI_GUEST_SUITE_BEGIN
+OOLITE_JS_VALUES double=1 long=42 signed=-42 true=1 false=0 zero=0 status=PASS
+OOLITE_JS_VALUES_RC 0
+OOLITE_JSLIB_TWO_OWNERS first=42 second=56 base_cleared=1 status=PASS
+OOLITE_JS_TWO_OWNERS_RC 0
+OOLITE_JSAPI_GUEST_SUITE_END
+
+Both executables cross-compiled as AmigaOS loadseg binaries and executed with RC 0 in the same isolated lab.
+These are JSAPI adapter regression passes only; the full original Oolite engine still contains SpiderMonkey and is NOT yet a GFOS-only playable release.
