@@ -701,3 +701,11 @@ $(OUT)/oolite-jslib-two-owners-68040: tests/oolite_jslib_two_owners_gate.c src/C
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_jslib_two_owners_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: jslib-two-owners
 jslib-two-owners: $(OUT)/oolite-jslib-two-owners-68040
+
+# Source-compatible value conversion seam; this uses real GFOS JSValue handles
+# rather than pretending SpiderMonkey jsval has the same ABI.
+$(OUT)/oolite-js-values-68040: tests/oolite_js_values_gate.c src/Core/OOGFOSJSValues.c src/Core/OOGFOSJSValues.h src/Core/OOGFOSJavaScript.c $(GFOS_JS_INC)/libraries/javascript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_values_gate.c src/Core/OOGFOSJSValues.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-values
+js-values: $(OUT)/oolite-js-values-68040
