@@ -22,6 +22,7 @@ int main(void)
     }
     rc1 = OOGFOSJSEvaluateLong(&first, "6*7", "first-owner.js", &a);
     OOGFOSJSClose(&first);
+    OOGFOSJSClose(&first); /* idempotent; second owner must survive */
     /* A closing owner may not clear the canonical proto base used by the
      * remaining owner or by its task callbacks. */
     if (JavaScriptBase == second.library)
