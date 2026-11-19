@@ -749,3 +749,9 @@ $(OUT)/oolite-js-retain-68040: tests/oolite_js_retain_gate.c src/Core/OOGFOSJSPr
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_retain_gate.c src/Core/OOGFOSJSProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-retain
 js-retain: $(OUT)/oolite-js-retain-68040
+
+$(OUT)/oolite-js-inherit-68040: tests/oolite_js_inherit_gate.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_inherit_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-inherit
+js-inherit: $(OUT)/oolite-js-inherit-68040
