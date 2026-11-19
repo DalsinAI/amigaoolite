@@ -39,6 +39,35 @@ Verbatim output and hashes: [`tests/evidence/oolite-original-script-objc-guest-2
 
 A direct `m68k-amigaos-nm -u` audit of all **242 original compiled translation units** found **101 unique unresolved SpiderMonkey `JS_*` symbols**, listed in [`docs/OOLITE-JSAPI-UNDEFINED-SYMBOLS-20261119.md`](OOLITE-JSAPI-UNDEFINED-SYMBOLS-20261119.md). They include the runtime/context, GC root, host class, exception and regexp-object surfaces. This is the actual conversion/link gap; isolated adapter tests do not remove it.
 
+## Shared-ABI adapter expansion — later 19 November
+
+The dedicated `AmiCradle Team 1 - Oolite JSAPI RC1` lab now qualifies three more
+native 68040 test gates using the **canonical** installed `javascript.library`:
+
+- `OOGFOSJSProperties.{h,c}`: property lookup/update, indexed array access
+  and `JS_Call` with the correct receiver. Original-object style smoke script
+  evaluated and returned 26, **PASS RC 0**.
+- `OOGFOSJSReset`: transactional new `JSTask` creation followed by teardown
+  of the old task; a global set before reset was absent afterwards, **PASS RC 0**.
+  On task replacement, old JSValue handles must be discarded and host classes
+  re-registered.
+- `oolite_js_host_reset_gate.c`: an Oolite-style host class was released by
+  old task teardown and re-registered; the release callback fired twice after
+  reset and final shutdown, **PASS RC 0**.
+- `OOGFOSJSValueToInt32`: implement ECMAScript truncation/modulo-2^32 and
+  signed wrap via `JS_ToDouble`, not `JS_ToLong`; ten numeric boundary cases,
+  **PASS RC 0**.
+
+Guest evidence:
+[`oolite-js-properties-reset-host-guest-20261119.log`](../tests/evidence/oolite-js-properties-reset-host-guest-20261119.log),
+[`oolite-jsapi-int32-guest-20261119.log`](../tests/evidence/oolite-jsapi-int32-guest-20261119.log).
+
+These primitives narrow the conversion work but are **not** a claim of a
+SpiderMonkey-compatible binary ABI or complete Oolite OOJS object graph.
+The original `OOJavaScriptEngine.m` still owns a `JSRuntime`, `JSContext`,
+`JSObject` and SpiderMonkey-specific error/root management; all 101
+unresolved `JS_*` original link symbols remain a build gate.
+
 ## Semantic caveats and acceptance gates
 
 1. `JS_ToLong` is **not a proven substitute** for SpiderMonkey `JS_ValueToInt32` (`ToInt32` modulo semantics). The helper is named `OOGFOSJSValueToLong` until parity is established; do not alias it to the SpiderMonkey function.
