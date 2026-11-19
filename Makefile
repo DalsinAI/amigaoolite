@@ -784,3 +784,15 @@ $(OUT)/oolite-original-utf16-objc-68040: tests/oolite_js_original_utf16_objc_gat
 	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-original-utf16-objc
 js-original-utf16-objc: $(OUT)/oolite-original-utf16-objc-68040
+
+# Two original UTF-16 Oolite ship scripts, distinct ship owners, single
+# canonical JS task, routed game-task ObjC callbacks without cross-talk.
+$(OUT)/oolite-two-original-utf16-objc-68040: tests/oolite_js_two_original_utf16_objc_gate.c src/Core/OOGFOSScriptObjects.c $(OUT)/oolite-original-utf16-objc-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_two_original_utf16_objc_gate.c -o $(OUT)/oolite-two-original-utf16-gate.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-two-original-utf16-gate.o $(OUT)/oolite-original-utf16-script-objects.o $(OUT)/oolite-ship-events.o $(OUT)/oolite-objc-ship-mock.o $(OUT)/oolite-objc-game-shim.o $(OUT)/OOGFOSShipEntityBackend-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-properties.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group \
+	-Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a \
+	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-two-original-utf16-objc
+js-two-original-utf16-objc: $(OUT)/oolite-two-original-utf16-objc-68040
