@@ -1,0 +1,36 @@
+Full original Oolite locale-functions.js running on native GFOS javascript.library
+Date: 2026-11-19 06:18 UTC
+Lab: team1-oolite-jsapi-rc1-20261119
+Native AC090 68040 AmigaOS 3.2.3, OpenAmigaGCC 16.2.0-open3
+Binary SHA256: 09030b67227511b55ffd06a5c38886c81929479ba873b4b7c90819c8be8a5580
+Original UTF8 script SHA256: 1799db3356b422c25134e32033bb6399f4b3d47170a19d1119783ec278bcb936
+Source: OoliteProject/oolite pinned Resources/Scripts/oolite-locale-functions.js
+(No changes to original JS.)
+
+Guest ACAgent transcript:
+OOLITE_ORIGINAL_LOCALE_CORRECTED_BEGIN
+OOLITE_LOCALE_FUNCTIONS bytes=4066 setup=0 world=0 register=0 load=0 check=0 result=42 status=PASS
+OOLITE_ORIGINAL_LOCALE_CORRECTED_RC 0
+OOLITE_ORIGINAL_LOCALE_CORRECTED_END
+
+Native Oolite-like loader:
+- Exposed a game/global script host function expandDescription() (controlled
+  resource lookup fixture only, not the complete original ResourceManager)
+- Bound real global self (this.global=this)
+- Created the canonical immutable OOJSWorldScripts registry and a real
+  OOGFOSScriptObjects per-script instance. Registered world script name
+  'oolite-locale-functions', using the same JSValue object identity.
+- Loaded the ENTIRE UNMODIFIED original locale script in per-script this
+  context. The original script registered formatInteger and formatCredits
+  on the shared Oolite global scope.
+- Validated number grouping, deci-credit formatting, credit rounding and
+  world script identity, returning 42.
+
+Real bug corrected: JS_ToString returns a SIGNED STRING LENGTH, not JSERR_*.
+First guest run failed because the fixture incorrectly tested !=JSERR_OK.
+After changing to <0 for conversion failure, original script loaded and
+passed RC 0. That distinction should be respected in other GFOS adapters.
+
+Limitations: expandDescription is a fixture returning pinned lookup examples;
+not the real Oolite ResourceManager. Entire script runs native but original
+game/UI/cockpit/flight not yet executed without legacy SpiderMonkey.
