@@ -897,3 +897,12 @@ $(OUT)/oolite-js-script-result-68040: tests/oolite_js_script_result_gate.c src/C
 	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-script-result
 js-script-result: $(OUT)/oolite-js-script-result-68040
+
+# OOJSScript instances inherit the genuine Script.prototype extensions
+# from original oolite-global-prefix.js, while early scripts without a
+# Script constructor retain normal Object.prototype fallback.
+$(OUT)/oolite-js-script-prototype-68040: tests/oolite_js_script_prototype_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_script_prototype_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-script-prototype
+js-script-prototype: $(OUT)/oolite-js-script-prototype-68040
