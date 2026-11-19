@@ -81,6 +81,22 @@ This helper does **not** emulate the historical SpiderMonkey `JSErrorReport`
 layout, debugger callbacks or original error monitor. They remain explicit
 migration requirements alongside the 101 symbol inventory.
 
+## Further semantics — later 19 November
+
+- Extended `OOGFOSJSValueToInt32` native test to **13/13 PASS**, including
+  NaN, positive and negative infinity; see the source gate and the later
+  transcript recorded in the test history. Unlike `JS_ToLong`, this performs
+  explicit signed wrapping modulo `2^32`.
+- Added `OOGFOSJSRetainValue`/`OOGFOSJSReleaseValue` using canonical
+  `JS_Dup`/`JS_Free`. An object remained usable after removing its global
+  reference, then its owned handle was released. **Native guest PASS RC 0**:
+  [`tests/evidence/oolite-jsapi-retained-value-guest-20261119.log`](../tests/evidence/oolite-jsapi-retained-value-guest-20261119.log).
+
+**Compatibility warning:** these handles are task-local; this does not emulate
+SpiderMonkey's address-rooting ABI. Original Oolite callers must be adapted
+to explicit retain/release and discard old values on reset. The 242-unit
+original-engine link remains the next major gate.
+
 ## Semantic caveats and acceptance gates
 
 1. `JS_ToLong` is **not a proven substitute** for SpiderMonkey `JS_ValueToInt32` (`ToInt32` modulo semantics). The helper is named `OOGFOSJSValueToLong` until parity is established; do not alias it to the SpiderMonkey function.
