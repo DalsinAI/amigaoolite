@@ -64,6 +64,28 @@ static LONG setFloat(JSTask task, APTR self, JSValue input, unsigned property)
     }
     return JSERR_OK;
 }
+/* Original OOJSEntity's classification flags are JS Boolean values,
+ * never numerical 0/1. A DEAD status still has a retained ObjC owner,
+ * but the script-visible isValid flag correctly becomes false. */
+static JSValue getBoolean(JSTask task, APTR self, unsigned property)
+{
+    struct OOGFOSShipHandle *h=(struct OOGFOSShipHandle *)self;
+    LONG raw=0;
+    if(!h || !h->valid || !h->backend || !h->backend->getLong ||
+       !h->backend->getLong(h->ship,property,&raw))
+        return JS_Throw(task,(CONST_STRPTR)"Oolite entity classification unavailable");
+    return JS_NewBool(task,raw!=0);
+}
+#define SHIP_BOOLEAN_GETTER(name,property) \
+static JSValue get_##name(JSTask task,APTR self,APTR data) { \
+    (void)data;return getBoolean(task,self,property); }
+SHIP_BOOLEAN_GETTER(isValid, OOGFOS_SHIP_IS_VALID)
+SHIP_BOOLEAN_GETTER(isShip, OOGFOS_SHIP_IS_SHIP)
+SHIP_BOOLEAN_GETTER(isStation, OOGFOS_SHIP_IS_STATION)
+SHIP_BOOLEAN_GETTER(isPlayer, OOGFOS_SHIP_IS_PLAYER)
+SHIP_BOOLEAN_GETTER(isDock, OOGFOS_SHIP_IS_DOCK)
+SHIP_BOOLEAN_GETTER(isInSpace, OOGFOS_SHIP_IS_IN_SPACE)
+
 #define SHIP_FLOAT_ACCESSOR(name,property) \
 static JSValue get_##name(JSTask task,APTR self,APTR data) { \
     (void)data;return getFloat(task,self,property); } \
@@ -86,6 +108,12 @@ static const struct JSHostSlot shipSlots[]={
     { (CONST_STRPTR)"maxEscorts", JSS_ACCESSOR,0,(APTR)get_maxEscorts,(APTR)set_maxEscorts,0,0 },
     { (CONST_STRPTR)"energy", JSS_ACCESSOR,0,(APTR)get_energy,(APTR)set_energy,0,0 },
     { (CONST_STRPTR)"maxEnergy", JSS_ACCESSOR,0,(APTR)get_maxEnergy,(APTR)set_maxEnergy,0,0 },
+    { (CONST_STRPTR)"isValid", JSS_ACCESSOR,0,(APTR)get_isValid,NULL,0,0 },
+    { (CONST_STRPTR)"isShip", JSS_ACCESSOR,0,(APTR)get_isShip,NULL,0,0 },
+    { (CONST_STRPTR)"isStation", JSS_ACCESSOR,0,(APTR)get_isStation,NULL,0,0 },
+    { (CONST_STRPTR)"isPlayer", JSS_ACCESSOR,0,(APTR)get_isPlayer,NULL,0,0 },
+    { (CONST_STRPTR)"isDock", JSS_ACCESSOR,0,(APTR)get_isDock,NULL,0,0 },
+    { (CONST_STRPTR)"isInSpace", JSS_ACCESSOR,0,(APTR)get_isInSpace,NULL,0,0 },
     {NULL,0,0,NULL,NULL,0,0}
 };
 const struct JSHostClass *OOGFOSShipClass(void)
