@@ -877,3 +877,11 @@ $(OUT)/oolite-js-class-bootstrap-v2-68040: tests/oolite_js_class_bootstrap_v2_ga
 	$(CROSS_CC) -I $(GFOS_JS_V2_INC) $(GFOS_JS_FLAGS) tests/oolite_js_class_bootstrap_v2_gate.c src/Core/OOGFOSJSClassBootstrap.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-class-bootstrap-v2
 js-class-bootstrap-v2: $(OUT)/oolite-js-class-bootstrap-v2-68040
+
+# ABI v2 old-engine safety: library vector -210 checks older task table's
+# jt_Size before dispatching; use GFOS_JS_V2_INC generated SDK headers.
+$(OUT)/oolite-js-abi-v2-fallback-68040: tests/oolite_js_abi_v2_fallback_gate.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -I $(GFOS_JS_V2_INC) $(GFOS_JS_FLAGS) tests/oolite_js_abi_v2_fallback_gate.c -o $@
+.PHONY: js-abi-v2-fallback
+js-abi-v2-fallback: $(OUT)/oolite-js-abi-v2-fallback-68040
