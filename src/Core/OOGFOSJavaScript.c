@@ -11,6 +11,24 @@
 
 /* Canonical proto/javascript.h declares this library base. */
 struct Library *JavaScriptBase = NULL;
+/* Several Oolite script owners may share the same library base. A closing
+ * owner must never invalidate the remaining owners' canonical proto base. */
+static ULONG sOpenOwners = 0;
+
+static void ownerOpened(struct Library *base)
+{
+    Forbid();
+    JavaScriptBase = base;
+    ++sOpenOwners;
+    Permit();
+}
+
+static void ownerClosed(void)
+{
+    Forbid();
+    if (sOpenOwners && --sOpenOwners == 0) JavaScriptBase = NULL;
+    Permit();
+}
 
 int OOGFOSJSOpen(struct OOGFOSJS *s)
 {
@@ -18,12 +36,12 @@ int OOGFOSJSOpen(struct OOGFOSJS *s)
     memset(s, 0, sizeof(*s));
     s->library = OpenLibrary((CONST_STRPTR)JAVASCRIPTNAME, JAVASCRIPTVERSION);
     if (!s->library) return 0;
-    JavaScriptBase = s->library;
+    ownerOpened(s->library);
     s->task = JS_NewTask(NULL);
     if (!s->task) {
+        ownerClosed();
         CloseLibrary(s->library);
         s->library = NULL;
-        JavaScriptBase = NULL;
         return 0;
     }
     return 1;
@@ -55,10 +73,12 @@ void OOGFOSJSClose(struct OOGFOSJS *s)
     if (!s) return;
     JavaScriptBase = s->library;
     if (s->task) JS_EndTask(s->task);
-    if (s->library) CloseLibrary(s->library);
+    if (s->library) {
+        ownerClosed();
+        CloseLibrary(s->library);
+    }
     s->task = NULL;
     s->library = NULL;
-    JavaScriptBase = NULL;
 }
 
 int OOGFOSJSExposeHostClass(struct OOGFOSJS *s,
