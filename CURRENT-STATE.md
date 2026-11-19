@@ -52,9 +52,10 @@ exceptions, 12 isolated JSTasks, original Objective-C regex selectors,
 and credits including uint64_t. See tests/evidence and the cited docs.
 These are valid **component tests**, not a game startup.
 
-Two authentic original Objective-C translation units are REBUILT as
+Four authentic original Objective-C translation units are REBUILT as
 GFOS-facing original objects:
-Core_OORegExpMatcher_m.o and Core_OOStringParsing_m.o.
+Core_OORegExpMatcher_m.o, Core_OOStringParsing_m.o,
+Core_Scripting_OOJSFont_m.o and Core_Scripting_OOJSScript_m.o.
 An additional original scripting interface, OOJSFont's
 defaultFont.measureString, now has a separately compiled source-level
 GFOS C replacement plus an Objective-C owner callback that calls the
@@ -72,11 +73,11 @@ descriptors, ordinary mutable values and owned property retrieval.
 AC090 native proof in
 tests/evidence/oolite-worldscript-metadata-original-semantics-native-20261119.log.
 Original OOJSScript.m has NOT yet been replaced by this C adapter.
-Run make jsapi-three-original-replacements-audit with the pinned
+Run make jsapi-four-original-replacements-audit with the pinned
 headers and the entire **242-object** baseline. Last verified result:
-**242 objects / 50 still using JS_* / 98 unique historical JS_* externs**
+**242 objects / 49 still using JS_* / 85 unique historical JS_* externs**
 (unknown=0, overlap=0), evidence:
-tests/evidence/oolite-original-242-object-jsapi-98-50-20261119.json.
+tests/evidence/oolite-original-242-object-jsapi-85-49-20261119.json.
 This measures **legacy references in original objects**, NOT how
 much GFOpenJavaScript replacement functionality already exists.
 
@@ -84,7 +85,8 @@ much GFOpenJavaScript replacement functionality already exists.
 
 The original complete engine has NOT been linked with GFOS alone.
 Legacy original OOJavaScriptEngine.m still owns SpiderMonkey runtime
-and context; original OOJSScript.m and remaining OOJS classes still
+and context; the rebuilt OOJSScript.m is not yet wired to the full
+original engine; remaining OOJS classes still
 invoke historical APIs. The existing adapter functionality must be
 wired at the original game call sites, preserving original script
 identity and the SAME shared JSTask for worldScripts, not replaced
@@ -100,10 +102,10 @@ libjs_static.a. Keep as cross-reference ONLY. Extend this existing
 
 ## Highest-priority next EXECUTABLE engineering step
 
-1. Compare original src/Core/Scripting/OOJavaScriptEngine.m and
-   OOJSScript.m interfaces with the existing OOGFOS* implementations.
-   Build ORIGINAL class replacements (source migration, not a new
-   shim or new interpreter) using pinned GCC16/SDK.
+1. Migrate original src/Core/Scripting/OOJavaScriptEngine.m
+   using existing OOGFOS* implementations, and connect the already
+   rebuilt OOJSScript.m class to its original callers.
+   Use pinned GCC16/SDK; no new interpreter or JSAPI shim.
 2. Preserve singleton/reset/notifications and original script
    method selectors, manifest/name, shared globals, running-script
    stack, UTF-16 loading and owned-value semantics; use existing
@@ -144,8 +146,8 @@ libjs_static.a. Keep as cross-reference ONLY. Extend this existing
   /run/media/da1ek/DevDrive/AmiCradle-labs/oolite-rc1/source/port/build/full-link.mk
 - Original 242 objects:
   /run/media/da1ek/DevDrive/AmiCradle-labs/oolite-rc1/evidence/rc1-title-20261119/build/oolite-complete-objects
-- Last three-replacement reproducible audit:
-  /tmp/oolite-rc1-three-original-20261119/
+- Last four-replacement reproducible audit:
+  /tmp/oolite-rc1-four-original-20261119/
 - GCC16 prefix:
   /tmp/atlas-batch10-20261117/stove-isolated/prefix
 - Isolated native test instance:

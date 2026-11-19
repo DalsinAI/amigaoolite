@@ -1185,3 +1185,32 @@ $(OUT)/oolite-original-font-68040: tests/oolite_original_font_gfos_gate.c src/Co
 	  src/Core/OOGFOSJavaScript.c src/Core/OOGFOSGameDispatch.c -lm -o $@
 .PHONY: js-original-font
 js-original-font: $(OUT)/oolite-original-font-68040
+
+# Actual Oolite OOJSScript Objective-C class migrated from legacy SpiderMonkey
+# to the already-qualified OOGFOSScriptObjects/OOGFOSScriptInvoke on one JSTask.
+# This does not make old jsid/jsval callers link-compatible. They must migrate.
+$(OUT)/Core_Scripting_OOJSScript_m.o: src/Core/original-replacements/OOJSScript.m src/Core/original-replacements/OOJSScriptGFOS.h src/Core/OOGFOSOriginalScriptBridge.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul \
+	  -DGNUSTEP_BASE_LIBRARY=1 -I src/Core/original-replacements -I src/Core \
+	  -I $(GFOS_BASE_DIR)/Headers -I $(UPSTREAM)/src/Core \
+	  -I $(UPSTREAM)/src/Core/Scripting -I $(UPSTREAM)/src/SDL \
+	  -I $(PREFIX)/m68k-amigaos/ndk-include.vendor -c $< -o $@
+$(OUT)/OOGFOSOriginalScriptBridge.o: src/Core/OOGFOSOriginalScriptBridge.c src/Core/OOGFOSOriginalScriptBridge.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c $< -o $@
+.PHONY: js-original-script-objects
+js-original-script-objects: $(OUT)/Core_Scripting_OOJSScript_m.o $(OUT)/OOGFOSOriginalScriptBridge.o
+
+.PHONY: jsapi-four-original-replacements-audit
+jsapi-four-original-replacements-audit: $(OUT)/Core_OOStringParsing_m.o $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/Core_Scripting_OOJSFont_m.o $(OUT)/Core_Scripting_OOJSScript_m.o
+	@mkdir -p $(OUT)/jsapi-four-original-objects
+	cp -a $(JSAPI_ORIGINAL_OBJECTS)/. $(OUT)/jsapi-four-original-objects/
+	cp $(OUT)/Core_OOStringParsing_m.o $(OUT)/jsapi-four-original-objects/Core_OOStringParsing_m.o
+	cp $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/jsapi-four-original-objects/Core_OORegExpMatcher_m.o
+	cp $(OUT)/Core_Scripting_OOJSFont_m.o $(OUT)/jsapi-four-original-objects/Core_Scripting_OOJSFont_m.o
+	cp $(OUT)/Core_Scripting_OOJSScript_m.o $(OUT)/jsapi-four-original-objects/Core_Scripting_OOJSScript_m.o
+	python3 tools/jsapi_link_audit.py "$(OUT)/jsapi-four-original-objects" \
+	  --nm "$(CROSS_NM)" --max-unique 98 \
+	  --json-out "$(OUT)/jsapi-four-original-audit.json" \
+	  --markdown-out "$(OUT)/jsapi-four-original-audit.md"
