@@ -14,6 +14,10 @@ _Static_assert((int)OOGFOS_SHIP_IS_STATION==(int)OOGFOS_OOJS_IS_STATION,"IS_STAT
 _Static_assert((int)OOGFOS_SHIP_IS_PLAYER==(int)OOGFOS_OOJS_IS_PLAYER,"IS_PLAYER code mismatch");
 _Static_assert((int)OOGFOS_SHIP_IS_DOCK==(int)OOGFOS_OOJS_IS_DOCK,"IS_DOCK code mismatch");
 _Static_assert((int)OOGFOS_SHIP_IS_IN_SPACE==(int)OOGFOS_OOJS_IS_IN_SPACE,"IS_IN_SPACE code mismatch");
+_Static_assert((int)OOGFOS_SHIP_COLLISION_RADIUS==(int)OOGFOS_OOJS_COLLISION_RADIUS,"COLLISION_RADIUS code mismatch");
+_Static_assert((int)OOGFOS_SHIP_DISTANCE_TRAVELLED==(int)OOGFOS_OOJS_DISTANCE_TRAVELLED,"DISTANCE_TRAVELLED code mismatch");
+_Static_assert((int)OOGFOS_SHIP_MASS==(int)OOGFOS_OOJS_MASS,"MASS code mismatch");
+_Static_assert((int)OOGFOS_SHIP_SPAWN_TIME==(int)OOGFOS_OOJS_SPAWN_TIME,"SPAWN_TIME code mismatch");
 void OOGFOSShipEntityRegistryInit(struct OOGFOSShipEntityRegistry *r)
 {
     if(r) OOGFOSShipTokensInit(&r->tokens);
