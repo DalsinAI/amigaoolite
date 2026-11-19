@@ -21,7 +21,7 @@ int main(void)
     void *ship=NULL;ULONG token=0;
     LONG setup=JSERR_BADARGS,a=JSERR_BADARGS,b=JSERR_BADARGS,c=JSERR_BADARGS,
          got=-1,recovered=-1;
-    int registered=0,ok=0,closed=0;
+    int registered=0,ok=0,closed=0,exceptionNull=0;
     OOGFOSShipEntityRegistryInit(&registry);
     ship=OOGFOSTestObjCShipNew();
     if(!ship)return 75;
@@ -53,6 +53,7 @@ int main(void)
     if(returned){JS_Free(js.task,returned);returned=NULL;}
     if(throwFn) b=OOGFOSScriptInvokeFunction(&js,&dispatch,
                                              throwFn,global,0,NULL,&returned);
+    exceptionNull=(b==JSERR_EXCEPTION && returned==NULL);
     if(returned){JS_Free(js.task,returned);returned=NULL;}
     if(fn){JS_Free(js.task,fn);fn=NULL;}
     fn=JS_GetProp(js.task,global,"ooliteRecovery");
@@ -60,7 +61,7 @@ int main(void)
                                       fn,global,0,NULL,&returned);
     if(c==JSERR_OK && returned)JS_ToLong(js.task,returned,&recovered);
     ok=registered&&setup==JSERR_OK&&a==JSERR_OK&&got==15&&
-       b==JSERR_EXCEPTION&&returned!=NULL&&c==JSERR_OK&&recovered==20&&
+       b==JSERR_EXCEPTION&&exceptionNull&&returned!=NULL&&c==JSERR_OK&&recovered==20&&
        dispatch.requests==2&&dispatch.completions==3;
 cleanup:
     if(returned)JS_Free(js.task,returned);
