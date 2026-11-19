@@ -755,3 +755,11 @@ $(OUT)/oolite-js-inherit-68040: tests/oolite_js_inherit_gate.c src/Core/OOGFOSJa
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_inherit_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-inherit
 js-inherit: $(OUT)/oolite-js-inherit-68040
+
+# Oolite OOJavaScriptEngine context reset: candidate initialization, rollback
+# on prepare failure, notifications, and old wrapper teardown order.
+$(OUT)/oolite-js-prepared-reset-68040: tests/oolite_js_prepared_reset_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_prepared_reset_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-prepared-reset
+js-prepared-reset: $(OUT)/oolite-js-prepared-reset-68040
