@@ -229,6 +229,11 @@ static JSValue textVector(JSTask task,APTR self,LONG argc,JSValue *argv,APTR dat
         return JS_Throw(task,(CONST_STRPTR)"Vector3D representation too long");
     return JS_NewString(task,(CONST_STRPTR)output,(LONG)n);
 }
+static JSValue toSource(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
+{
+    (void)data;
+    return textVector(task,self,argc,argv,(APTR)1);
+}
 static JSValue interpolate(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
 {
     Vec3 *a,*b;DOUBLE t;
@@ -248,7 +253,7 @@ static const struct JSHostSlot slots[]={
     {(CONST_STRPTR)"y",JSS_ACCESSOR,0,(APTR)get_y,(APTR)set_y,0,0},
     {(CONST_STRPTR)"z",JSS_ACCESSOR,0,(APTR)get_z,(APTR)set_z,0,0},
     {(CONST_STRPTR)"toString",JSS_METHOD,0,(APTR)textVector,NULL,0,0},
-    {(CONST_STRPTR)"toSource",JSS_METHOD,0,(APTR)textVector,NULL,1,0},
+    {(CONST_STRPTR)"toSource",JSS_METHOD,0,(APTR)toSource,NULL,0,0},
     {(CONST_STRPTR)"angleTo",JSS_METHOD,0,(APTR)angleTo,NULL,0,1},
     {(CONST_STRPTR)"tripleProduct",JSS_METHOD,0,(APTR)tripleProduct,NULL,0,2},
     {(CONST_STRPTR)"magnitude",JSS_METHOD,0,(APTR)magnitude,NULL,0,0},
@@ -270,6 +275,7 @@ static const struct JSHostClass vectorClass={
 LONG OOGFOSJSVectorInstall(JSTask task)
 {
     JSValue global=NULL,native=NULL,probe=NULL,existing=NULL;
+    JSValue constructor=NULL,interpolator=NULL;
     JSClass cls;
     LONG rc=JSERR_BADARGS;
     if(!task)return JSERR_BADARGS;
@@ -310,7 +316,15 @@ LONG OOGFOSJSVectorInstall(JSTask task)
         "{value:Vector3D,enumerable:false,writable:true,configurable:true});"
         "delete this._gfosOoliteVectorProbe;",
         -1,(CONST_STRPTR)"oolite-vector-prototype.js",NULL);
+    if(rc!=JSERR_OK)goto done;
+    constructor=JS_GetProp(task,global,(CONST_STRPTR)"Vector3D");
+    if(!constructor){rc=JSERR_BADARGS;goto done;}
+    interpolator=JS_NewFunction(task,(CONST_STRPTR)"interpolate",interpolate,NULL);
+    if(!interpolator){rc=JSERR_NOMEMORY;goto done;}
+    rc=JS_SetProp(task,constructor,(CONST_STRPTR)"interpolate",interpolator);
 done:
+    if(interpolator)JS_Free(task,interpolator);
+    if(constructor)JS_Free(task,constructor);
     if(existing)JS_Free(task,existing);
     if(probe)JS_Free(task,probe);
     if(native)JS_Free(task,native);
