@@ -108,3 +108,57 @@ cleanup:
     if(global)JS_Free(task,global);
     return rc;
 }
+
+/* Decode native-endian unichar input of OOJSScript.m (JS_CompileUCScript)
+ * to canonical javascript.library UTF-8. Reject invalid UTF-16 rather than
+ * silently replacing invalid surrogate pairs or truncating embedded NULs. */
+LONG OOGFOSScriptObjectLoadUTF16(JSTask task, CONST_STRPTR scriptGlobal,
+                                CONST UWORD *source, LONG unitCount,
+                                CONST_STRPTR filename)
+{
+    unsigned char *utf8;
+    size_t i=0, n=0, capacity;
+    LONG rc;
+    if (!task || !validName(scriptGlobal) || !source ||
+        unitCount < 1 || unitCount > 262144) return JSERR_BADARGS;
+    /* Max 3 UTF-8 bytes per BMP word. A pair encodes in 4 bytes. */
+    capacity = (size_t)unitCount * 3u + 1u;
+    utf8=(unsigned char *)malloc(capacity);
+    if (!utf8) return JSERR_NOMEMORY;
+    while (i < (size_t)unitCount) {
+        unsigned long scalar=(unsigned long)source[i++];
+        if (!scalar) {rc=JSERR_BADARGS;goto cleanup;}
+        if (scalar >= 0xD800ul && scalar <= 0xDBFFul) {
+            unsigned long trail;
+            if (i == (size_t)unitCount) {rc=JSERR_BADARGS;goto cleanup;}
+            trail=(unsigned long)source[i++];
+            if (trail < 0xDC00ul || trail > 0xDFFFul) {
+                rc=JSERR_BADARGS;goto cleanup;
+            }
+            scalar=0x10000ul + ((scalar-0xD800ul)<<10) +
+                   (trail-0xDC00ul);
+        } else if (scalar >= 0xDC00ul && scalar <= 0xDFFFul) {
+            rc=JSERR_BADARGS;goto cleanup;
+        }
+        if (scalar < 0x80ul) utf8[n++]=(unsigned char)scalar;
+        else if (scalar < 0x800ul) {
+            utf8[n++]=(unsigned char)(0xC0ul|(scalar>>6));
+            utf8[n++]=(unsigned char)(0x80ul|(scalar&0x3Ful));
+        } else if (scalar < 0x10000ul) {
+            utf8[n++]=(unsigned char)(0xE0ul|(scalar>>12));
+            utf8[n++]=(unsigned char)(0x80ul|((scalar>>6)&0x3Ful));
+            utf8[n++]=(unsigned char)(0x80ul|(scalar&0x3Ful));
+        } else {
+            utf8[n++]=(unsigned char)(0xF0ul|(scalar>>18));
+            utf8[n++]=(unsigned char)(0x80ul|((scalar>>12)&0x3Ful));
+            utf8[n++]=(unsigned char)(0x80ul|((scalar>>6)&0x3Ful));
+            utf8[n++]=(unsigned char)(0x80ul|(scalar&0x3Ful));
+        }
+    }
+    utf8[n]=0;
+    rc=OOGFOSScriptObjectLoad(task,scriptGlobal,
+                             (CONST_STRPTR)utf8,(LONG)n,filename);
+cleanup:
+    free(utf8);
+    return rc;
+}
