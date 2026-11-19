@@ -150,4 +150,5 @@ else
   grep -v "undefined reference\|multiple definition\|more undefined\|first defined\|In function\|^/.*: in function" "$OUT/link.log" | head -30 | tee -a "$SUM"
 fi
 rm -rf "$PS"
+find "$OUT/logs" "$OUT/gfos" -name "*.log" -size 0 -delete 2>/dev/null
 exit 0
