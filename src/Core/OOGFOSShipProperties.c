@@ -93,6 +93,15 @@ static LONG set_##name(JSTask task,APTR self,JSValue input,APTR data) { \
     (void)data;return setFloat(task,self,input,property); }
 SHIP_FLOAT_ACCESSOR(energy, OOGFOS_SHIP_ENERGY)
 SHIP_FLOAT_ACCESSOR(maxEnergy, OOGFOS_SHIP_MAX_ENERGY)
+/* Original Entity read-only GLfloat properties; no script-side setters. */
+#define SHIP_FLOAT_GETTER(name,property) \
+static JSValue get_##name(JSTask task,APTR self,APTR data) { \
+    (void)data;return getFloat(task,self,property); }
+SHIP_FLOAT_GETTER(collisionRadius, OOGFOS_SHIP_COLLISION_RADIUS)
+SHIP_FLOAT_GETTER(distanceTravelled, OOGFOS_SHIP_DISTANCE_TRAVELLED)
+SHIP_FLOAT_GETTER(mass, OOGFOS_SHIP_MASS)
+SHIP_FLOAT_GETTER(spawnTime, OOGFOS_SHIP_SPAWN_TIME)
+
 
 #define SHIP_ACCESSOR(name, property) \
 static JSValue get_##name(JSTask task, APTR self, APTR data) { \
@@ -114,6 +123,10 @@ static const struct JSHostSlot shipSlots[]={
     { (CONST_STRPTR)"isPlayer", JSS_ACCESSOR,0,(APTR)get_isPlayer,NULL,0,0 },
     { (CONST_STRPTR)"isDock", JSS_ACCESSOR,0,(APTR)get_isDock,NULL,0,0 },
     { (CONST_STRPTR)"isInSpace", JSS_ACCESSOR,0,(APTR)get_isInSpace,NULL,0,0 },
+    { (CONST_STRPTR)"collisionRadius", JSS_ACCESSOR,0,(APTR)get_collisionRadius,NULL,0,0 },
+    { (CONST_STRPTR)"distanceTravelled", JSS_ACCESSOR,0,(APTR)get_distanceTravelled,NULL,0,0 },
+    { (CONST_STRPTR)"mass", JSS_ACCESSOR,0,(APTR)get_mass,NULL,0,0 },
+    { (CONST_STRPTR)"spawnTime", JSS_ACCESSOR,0,(APTR)get_spawnTime,NULL,0,0 },
     {NULL,0,0,NULL,NULL,0,0}
 };
 const struct JSHostClass *OOGFOSShipClass(void)
