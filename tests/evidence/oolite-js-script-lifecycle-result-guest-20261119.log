@@ -1,0 +1,46 @@
+Native Oolite original OOJSScript lifecycle and return-value qualification
+Date: 2026-11-19 (after 06:00 UTC)
+Lab: team1-oolite-jsapi-rc1-20261119
+Target: AC090 68040 AmigaOS, canonical javascript.library 1.0
+Toolchain: OpenAmigaGCC 16.2.0-open3
+Clean source: DalsinAI/amigaoolite main
+Original OOJSScript.m semantics motivating the changes:
+  - create script objects as instances of sScriptPrototype
+  - return jsval from callMethod when requested
+  - drop roots without destroying externally retained script objects
+
+Native binaries and SHA256:
+oolite-js-script-prototype-68040 a4e0c0918c6fba1a7629dc3d86031190c47f2353e9601ccc9fa45dc060dfbada
+oolite-js-script-drop-68040 aa7bbd2b8974f3ab4de65a11eaf04b735037b6b14084e21ccf8251c6beb4da62
+oolite-js-script-result-68040 c05895436ca7e5973bd1b145e9da391d98977d6d8b62e7809340986c2b99a438
+
+Verbatim ACAgent guest log:
+OOLITE_SCRIPT_LIFECYCLE_BEGIN
+OOLITE_SCRIPT_PROTOTYPE early=0 class=0 late=0 check=0 result=42 status=PASS
+OOLITE_SCRIPT_PROTOTYPE_RC 0
+OOLITE_SCRIPT_DROP first=0 save=0 drop=0 verify=0 renewed=0 check=0 attack=4 result=42 status=PASS
+OOLITE_SCRIPT_DROP_RC 0
+OOLITE_SCRIPT_RETURN setup=0,0,0 events=0,0,1,0 called=1,0,0,1 sum=44,44 valid=1,1 rpc=4 done=7 closed=1 status=PASS
+OOLITE_SCRIPT_RESULT_RC 0
+OOLITE_SCRIPT_LIFECYCLE_END
+
+- Script creation now allocates Object.create(Script.prototype) if
+  original Script class is registered; otherwise early startup scripts use
+  Object.prototype. Original prefix-installed Script.prototype methods are
+  inherited, not copied onto every script. Tests verify instance identity,
+  method receiver and inherited/native properties.
+- Script drop removes the lookup property entirely using 'delete' rather
+  than overwriting with undefined. Previously retained script JSValues
+  remain valid, and re-registering the same script name creates a fresh
+  independent script identity. Injection-like names are rejected.
+- Original script event call variant now returns arbitrary owned JSValue
+  objects, not only a called flag. Values remain owned by JSTask until
+  JS_Free. Native guest saw object result {sum:44,valid:1}, missing
+  event=success with called=0, deliberate exception=1 and called=0,
+  recovery call=success with same correct object result. All seven DONE
+  notifications arrived; four ObjC game task RPCs. Clean shutdown.
+- Existing OOGFOSScriptObjectEvent discards the returned owned value
+  explicitly and remains backward source-compatible with prior caller.
+
+These are actual AC090 guest tests with selector-compatible Objective-C
+fixtures, not full original Oolite gameplay/ship universe.
