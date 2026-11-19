@@ -62,6 +62,7 @@ int main(void)
     LONG bytes=0,setup=-1,load=-1,check=-1,result=-1,
          world=-1,registered=-1;
     int bound=0,expanded=0,ok;
+    char error[512]={0};
     char *source=loadSource("SYS:Oolite/Scripts/oolite-locale-functions.js",&bytes);
     if(!source){puts("OOLITE_LOCALE_FUNCTIONS asset=UNAVAILABLE");return 77;}
     if(!OOGFOSJSOpen(&js)){free(source);return 77;}
@@ -76,6 +77,7 @@ int main(void)
     if(registered==JSERR_OK)
        load=OOGFOSScriptObjectLoad(js.task,"localeScript",source,bytes,
                                   "oolite-locale-functions.js");
+    if(load!=JSERR_OK)OOGFOSJSErrorText(&js,error,sizeof(error));
     if(load==JSERR_OK)check=OOGFOSJSEvaluateLong(&js,
         "formatInteger(1234567)==='1,234,567' && "
         "formatCredits(123456.7,true,false)==='123,456.7' && "
@@ -91,5 +93,6 @@ int main(void)
     printf("OOLITE_LOCALE_FUNCTIONS bytes=%ld setup=%ld world=%ld register=%ld load=%ld check=%ld result=%ld status=%s\n",
       (long)bytes,(long)setup,(long)world,(long)registered,
       (long)load,(long)check,(long)result,ok?"PASS":"FAIL");
+    if(load!=JSERR_OK)printf("OOLITE_LOCALE_ERROR %s\\n",error);
     free(source);return ok?0:2;
 }
