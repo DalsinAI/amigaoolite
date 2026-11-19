@@ -1,0 +1,24 @@
+Experimental javascript.library v2 / legacy JavaScriptEngine v1 native fallback
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119, AC090 68040 native AmigaOS
+V2 library: DalsinAI/gfopenbrowser feature/javascript-class-prototype-v2-20261119
+Binary SHA256: 46bb9846ed22fc22e2d4845211f9801572e310c1f82679838c587192ff6ceab7
+Legacy JavaScriptEngine: original 20 MB guest installation from 18 November.
+Oolite class-bootstrap test SHA256: b1153ff89fc08d28ab3f38fbe04e009ef1fe01d7a0ce2139abeb33d11ed50725
+
+Observed guest output:
+JS_V2_OLD_ENGINE_BEGIN
+OOLITE_CLASS_BOOTSTRAP library_version=2
+OOLITE_CLASS_BOOTSTRAP class=0 wrapper=0 rc=4 answer=-1 status=REQUIRES_V2_ENGINE
+SYS:OoliteJSAPITests/oolite-js-class-bootstrap-v2-68040 failed returncode 77
+
+This is an EXPECTED FEATURE UNAVAILABLE result, not native v2 class
+bootstrap success. OOGFOSJSOpen established a live v1 JS task through the
+v2 javascript.library, and JS_ClassPrototype returned NULL rather than
+jumping beyond the older engine's table. Native test returned its intended
+skip code 77. The full original Ship prototype bootstrap still requires
+the paired v2 JavaScriptEngine build and end-to-end qualification.
+A subsequent old-API regression command was still pending at checkpoint;
+do not claim full backwards-compatibility until it completes.
+No canonical GFOpenBrowser/GFOpenSDK main branches changed. Feature PRs:
+gfopenbrowser#230 and gfopensdk#73. Isolated test lab only.
