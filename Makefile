@@ -885,3 +885,15 @@ $(OUT)/oolite-js-abi-v2-fallback-68040: tests/oolite_js_abi_v2_fallback_gate.c
 	$(CROSS_CC) -I $(GFOS_JS_V2_INC) $(GFOS_JS_FLAGS) tests/oolite_js_abi_v2_fallback_gate.c -o $@
 .PHONY: js-abi-v2-fallback
 js-abi-v2-fallback: $(OUT)/oolite-js-abi-v2-fallback-68040
+
+# Original OOJSScript -callMethod:result: arbitrary owned JSValue returns
+# after synchronous game task / JS task dispatch, errors, and recovery.
+$(OUT)/oolite-js-script-result-68040: tests/oolite_js_script_result_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSScriptEventInvoke.c $(OUT)/oolite-js-event-invoke-68040 $(OUT)/oolite-js-entity-flags-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_script_result_gate.c -o $(OUT)/oolite-script-result-gate.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptObjects.c -o $(OUT)/oolite-script-result-objects.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptEventInvoke.c -o $(OUT)/oolite-script-result-invoke.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-script-result-gate.o $(OUT)/oolite-script-result-objects.o $(OUT)/oolite-script-result-invoke.o $(OUT)/oolite-sync-invoke.o $(OUT)/oolite-energy-properties.o $(OUT)/oolite-energy-game-backend.o $(OUT)/oolite-energy-backend-objc.o $(OUT)/oolite-energy-mock-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-script-result
+js-script-result: $(OUT)/oolite-js-script-result-68040
