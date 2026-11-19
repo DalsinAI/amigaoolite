@@ -63,3 +63,24 @@ not a playable Oolite build.
 
 Restore/reconstruct the original pinned genuine cross-build kit and then
 compile/link Core_OOStringParsing_m.o, verify its ABI and rerun the audit.
+
+## High-value currency correctness gate: uint64_t / 68040
+
+Inspection of the *actual original* OOTypes.h established
+OOCreditsQuantity is typedef uint64_t. The first C bridge incorrectly
+accepted a 32-bit long, silently truncating credit totals above
+2^32-1 tenths. It was corrected before additional integration:
+all C and Objective-C bridge entry points now accept an unsigned 64-bit
+quantity (unsigned long long on the pinned m68k target), converted once
+to the double required by the original formatCredits JS contract.
+
+Native AC090 test specifically passes 12,345,678,901 tenths and verifies
+the script sees **1,234,567,890.1** without a 32-bit wrap. The original
+native fallback was also made 64-bit correct for a missing formatter.
+
+    OOLITE_NATIVE_CREDITS before=3 noMethod=5 formatted=0,0 exception=1 recovery=0 large=0 after=3 status=PASS
+    OOLITE_NATIVE_CREDITS_U64_RC 0
+
+Evidence: tests/evidence/oolite-original-credits-u64-native-20261119.log.
+This qualifies the native callback bridge; entire ObjC original unit
+remains pending the genuine pinned SDK headers.

@@ -30,7 +30,7 @@ void OOGFOSCreditsUnbindTask(JSTask task)
     }
 }
 struct CreditsCall {
-    long tenths;
+    unsigned long long tenths;
     int decimal, symbol;
     char *output;
     LONG size;
@@ -75,7 +75,7 @@ done:
     c->status=rc;
     return rc;
 }
-LONG OOGFOSCreditsFormat(long tenths,int decimal,int symbol,
+LONG OOGFOSCreditsFormat(unsigned long long tenths,int decimal,int symbol,
                         char *utf8,LONG capacity)
 {
     struct CreditsCall call;

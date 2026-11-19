@@ -273,7 +273,7 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
     static BOOL reentrancyLock;
     char buffer[512];
     NSString* result = nil;
-    LONG rc;
+    long rc;
 
     /* Native credit quantities always belong to the game. Only text
      * formatting is delegated to an OXP's optional formatCredits method.
@@ -282,13 +282,13 @@ NSString* OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
         return [NSString stringWithFormat:@"%0.1f", tenthsOfCredits * 0.1];
 
     reentrancyLock = YES;
-    rc = OOGFOSCreditsFormat((long)tenthsOfCredits,
+    rc = OOGFOSCreditsFormat((unsigned long long)tenthsOfCredits,
                             includeDecimal ? 1 : 0, includeSymbol ? 1 : 0,
                             buffer, (LONG)sizeof buffer);
     if (rc == 0 && buffer[0] != 0)
         result = [NSString stringWithUTF8String:buffer];
     if (result == nil)
-        result = [NSString stringWithFormat:@"%li", (long)tenthsOfCredits / 10];
+        result = [NSString stringWithFormat:@"%llu", (unsigned long long)(tenthsOfCredits / 10ULL)];
     reentrancyLock = NO;
     return result;
 }

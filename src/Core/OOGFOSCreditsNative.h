@@ -4,6 +4,6 @@
  */
 #ifndef OOGFOS_CREDITS_NATIVE_H
 #define OOGFOS_CREDITS_NATIVE_H
-long OOGFOSCreditsFormat(long tenths, int decimal, int symbol,
+long OOGFOSCreditsFormat(unsigned long long tenths, int decimal, int symbol,
                         char *utf8, long capacity);
 #endif

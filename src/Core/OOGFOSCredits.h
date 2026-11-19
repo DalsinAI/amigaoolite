@@ -14,6 +14,6 @@ void OOGFOSCreditsUnbindTask(JSTask task);
 /* Caller supplies a UTF-8 buffer; return JSERR_OK only on successful
  * conversion of the JS-supplied string. Preserve Oolite's native fallback
  * by leaving the output empty on exceptions / no registered task. */
-LONG OOGFOSCreditsFormat(long tenths, int decimal, int symbol,
+LONG OOGFOSCreditsFormat(unsigned long long tenths, int decimal, int symbol,
                         char *utf8, LONG capacity);
 #endif

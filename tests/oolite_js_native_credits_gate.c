@@ -13,7 +13,7 @@ int main(void)
 {
     struct OOGFOSJS js={0};
     char buffer[512];
-    LONG before,noMethod,one,twob,thrown,recovered,after;
+    LONG before,noMethod,one,twob,thrown,recovered,after,large;
     int ok;
     before=OOGFOSCreditsFormat(205,1,1,buffer,sizeof buffer);
     if(!OOGFOSJSOpen(&js))return 77;
@@ -37,13 +37,19 @@ int main(void)
         -1,"oolite-credits-recovery.js",NULL);
     recovered=OOGFOSCreditsFormat(205,1,1,buffer,sizeof buffer);
     ok=ok&&recovered==JSERR_OK&&strcmp(buffer,"Recovered")==0;
+    JS_Evaluate(js.task,
+        "this.formatCredits=function(amount){"
+        "return amount===1234567890.1?'BIG64_OK':'BAD64';};",
+        -1,"oolite-credits-large.js",NULL);
+    large=OOGFOSCreditsFormat(12345678901ULL,1,1,buffer,sizeof buffer);
+    ok=ok&&large==JSERR_OK&&strcmp(buffer,"BIG64_OK")==0;
     OOGFOSCreditsUnbindTask(js.task);
     OOGFOSJSClose(&js);
     after=OOGFOSCreditsFormat(205,1,1,buffer,sizeof buffer);
     ok=ok&&before==JSERR_NOENGINE&&noMethod!=JSERR_OK&&
        after==JSERR_NOENGINE&&buffer[0]==0;
-    printf("OOLITE_NATIVE_CREDITS before=%ld noMethod=%ld formatted=%ld,%ld exception=%ld recovery=%ld after=%ld status=%s\n",
+    printf("OOLITE_NATIVE_CREDITS before=%ld noMethod=%ld formatted=%ld,%ld exception=%ld recovery=%ld large=%ld after=%ld status=%s\n",
         (long)before,(long)noMethod,(long)one,(long)twob,
-        (long)thrown,(long)recovered,(long)after,ok?"PASS":"FAIL");
+        (long)thrown,(long)recovered,(long)large,(long)after,ok?"PASS":"FAIL");
     return ok?0:2;
 }
