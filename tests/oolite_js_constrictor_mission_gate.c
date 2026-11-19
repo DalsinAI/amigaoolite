@@ -51,6 +51,7 @@ int main(void)
  char *source=readSource("SYS:Oolite/Scripts/oolite-constrictor-library.js",&bytes);
  if(!source){puts("OOLITE_CONSTRICTOR asset=UNAVAILABLE");return 77;}
  if(!OOGFOSJSOpen(&js)){free(source);return 77;}
+ puts("OOLITE_CONSTRICTOR_STAGE js_open");
  setup=OOGFOSJSEvaluateSource(&js,"this.missionVariables={};","mission-variables.js");
  if(setup==JSERR_OK)create=OOGFOSScriptObjectCreate(js.task,"constrictorScript","missionVariables");
  /* For this test the documented shipGlobal must reference a JS object;
@@ -59,12 +60,18 @@ int main(void)
                 "constrictorScript","oolite-constrictor-library");
  if(world==JSERR_OK)load=OOGFOSScriptObjectLoad(js.task,
                "constrictorScript",source,bytes,"oolite-constrictor-library.js");
+ printf("OOLITE_CONSTRICTOR_STAGE load=%ld\\n",(long)load);
  if(load==JSERR_OK){
+  puts("OOLITE_CONSTRICTOR_STAGE other_begin");
   empty=missionAllows(js.task,"anaconda",&other);
+  printf("OOLITE_CONSTRICTOR_STAGE other_end=%ld\\n",(long)empty);
   if(empty==JSERR_OK)empty=missionAllows(js.task,"constrictor",&before);
+  printf("OOLITE_CONSTRICTOR_STAGE before_end=%ld\\n",(long)empty);
+  puts("OOLITE_CONSTRICTOR_STAGE set_begin");
   set=OOGFOSJSEvaluateSource(&js,
     "missionVariables.conhunt='HUNTING';","constrictor-save.js");
   if(set==JSERR_OK)set=missionAllows(js.task,"constrictor",&after);
+  printf("OOLITE_CONSTRICTOR_STAGE set_end=%ld\\n",(long)set);
   reset=OOGFOSJSEvaluateSource(&js,
     "delete missionVariables.conhunt;","constrictor-reset.js");
   if(reset==JSERR_OK)reset=missionAllows(js.task,"constrictor",&cleared);
