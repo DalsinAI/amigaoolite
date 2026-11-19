@@ -28,6 +28,10 @@ FFI=${GFOS_FFI_LIB:-$RC/foundation/gfopenfoundation-build/target-libffi/lib/libf
 RTG=${GFOS_RTG:-$RC/dependencies/gfopenrtg}
 OGG=${OGG_ROOT:-$RC/dependencies/legacy-debug/ogg-vorbis-stage}
 SDK=${GFOPENSDK:-$W/gfopensdk}
+# SDL3 with OpenGL (gfopenrtg team5/sdl3-opengl-20261119, SDL3.module 3): that
+# branch's Cradle build until it is merged and in the pinned SDK inputs.
+SDL3D=${GFOS_SDL3_DIR:-/run/media/da1ek/DevDrive/AmiCradle-dev/cradle-builds/jobs/j20261119T231525-fac24e/out}
+test -r "$SDL3D/libSDL3.a" || SDL3D=$RTG/build
 CACHE=${CACHE:-$W/fulllink-cache}
 JOBS=${JOBS:-$(nproc 2>/dev/null || echo 4)}
 CC="$P/bin/m68k-amigaos-gcc"
@@ -41,8 +45,8 @@ say() { echo "$*"; echo "$*" >> "$SUM"; }
 # -- inputs
 missing=0
 for f in "$CC" "$U/src/SDL/main.m" "$FD/libgnustep-base.a" "$FD/Headers/Foundation/Foundation.h" "$PTH" \
-         "$GLIB/libgfosfoundationports.a" "$GLIB/libgfosfoundationipc.a" "$FFI" "$RTG/build/libSDL3.a" \
-         "$RTG/build/include/SDL3/SDL_video.h" "$RTG/build/libopenal.a" "$RTG/build/include/AL/al.h" \
+         "$GLIB/libgfosfoundationports.a" "$GLIB/libgfosfoundationipc.a" "$FFI" "$SDL3D/libSDL3.a" \
+         "$SDL3D/include/SDL3/SDL_video.h" "$RTG/build/libopenal.a" "$RTG/build/include/AL/al.h" \
          "$RTG/build/glu/lib/libGLU.a" "$RTG/build/glu/include/GL/glu.h" "$OGG/lib/libvorbisfile.a" \
          "$SDK/Include/proto/javascript.h"; do
   test -e "$f" || { say "MISSING $f"; missing=1; }
@@ -53,10 +57,10 @@ for d in "$P/m68k-amigaos/port-deps/lib" "$RC/toolchain/prefix/m68k-amigaos/port
   test -r "$d/libpng.a" && test -r "$d/libz.a" && { PD="$d"; break; }
 done
 test -n "$PD" || { say "MISSING port-deps libpng.a/libz.a"; missing=1; }
-GLLIB=$(find "$P/m68k-amigaos/lib" "$P/m68k-amigaos/libnix/lib" "$RTG/build" "$RTG/sdk" -name libGL.a 2>/dev/null | head -1)
+GLLIB=$(find "$RTG/build" "$RTG/sdk" "$P/m68k-amigaos/lib" -name libGL.a 2>/dev/null | head -1)
 test -n "$GLLIB" || { say "MISSING libGL.a"; missing=1; }
 test $missing -eq 0 || { say "inputs missing: stopping"; exit 1; }
-say "inputs: upstream 21978c37; foundation $FD; port-deps $PD; libGL $GLLIB; jobs $JOBS"
+say "inputs: upstream 21978c37; foundation $FD; port-deps $PD; libGL $GLLIB; SDL3 $SDL3D; jobs $JOBS"
 
 # -- patched upstream copies (never the checkout itself)
 PS="$OUT/patched-src"
@@ -81,7 +85,7 @@ INCS="-I $HERE/src/Core/gfosjsapi -I $PS/src/Core -I $HERE/src/Core -I $FD/Heade
  -I $U/src/Core -I $U/src/Core/Tables -I $U/src/Core/Entities -I $U/src/Core/Materials -I $U/src/Core/Scripting \
  -I $U/src/Core/Debug -I $U/src/Core/OXPVerifier -I $U/src/Core/MiniZip -I $U/src/SDL -I $U/src/SDL/EXRSnapshotSupport \
  -I $P/m68k-amigaos/ndk-include.vendor -I $P/m68k-amigaos/include -I $P/m68k-amigaos/port-deps/include \
- -I $RTG/build/include -I $RTG/build/glu/include -I $OGG/include"
+ -I $SDL3D/include -I $RTG/build/include -I $RTG/build/glu/include -I $OGG/include"
 COMMON="-O2 -m68040 -m68881 -noixemul -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w $DEFS"
 
 # -- one compile, cached by (compiler, flags, source, every header it pulled in is not tracked:
@@ -129,12 +133,12 @@ gc extractor "$CC" -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobj
 # -- link: no libjs_static.a anywhere
 EXE="$OUT/oolite-68040"
 rm -f "$EXE"
-"$CXX" -fexceptions -m68040 -m68881 -noixemul -Wl,--wrap=exit -Wl,-Map,"$OUT/oolite.map" \
+"$CXX" -fexceptions -m68040 -m68881 -noixemul -Wl,--wrap=exit -Wl,--wrap=getcwd -Wl,-Map,"$OUT/oolite.map" \
   $(cat "$OUT/objects.txt") "$G"/*.o \
   -L "$PD" -L "$P/m68k-amigaos/libnix/lib" \
   -Wl,--start-group -Wl,--whole-archive "$FD/libgnustep-base.a" -Wl,--no-whole-archive \
   "$GLIB/libgfosfoundationports.a" "$GLIB/libgfosfoundationipc.a" \
-  "$RTG/build/libSDL3.a" "$RTG/build/libopenal.a" "$RTG/build/glu/lib/libGLU.a" \
+  "$SDL3D/libSDL3.a" "$RTG/build/libopenal.a" "$RTG/build/glu/lib/libGLU.a" \
   "$OGG/lib/libvorbisfile.a" "$OGG/lib/libvorbis.a" "$OGG/lib/libogg.a" "$PD/libpng.a" "$GLLIB" \
   -lobjc "$FFI" "$PD/libz.a" "$PTH" -lsocket -lm -Wl,--end-group -o "$EXE" > "$OUT/link.log" 2>&1
 lrc=$?

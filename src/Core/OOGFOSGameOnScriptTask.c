@@ -17,6 +17,11 @@
  *   quits with exit(0) from GameController), it returns to the launcher
  *   through the job instead of running the C library's exit on the wrong
  *   task; the launcher then exits with that code.
+ * - getcwd() is linked with -Wl,--wrap=getcwd: libnix answers it from the
+ *   Shell's (CLI's) current drawer name, and the script task has no CLI, so
+ *   NSFileManager's currentDirectoryPath was nil there and Oolite looked for
+ *   its Resources at "(null)". Here it is the name of the task's current
+ *   drawer lock (NameFromLock), which is right on any process.
  *
  * MIT, AmiCradle Team.
  */
@@ -26,7 +31,9 @@
 #include <proto/exec.h>
 #include <proto/dos.h>
 #include <proto/javascript.h>
+#include <errno.h>
 #include <setjmp.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -68,6 +75,31 @@ void __wrap_exit(int code)
         longjmp(sExitJump, 1);
     }
     __real_exit(code);
+}
+
+char *__wrap_getcwd(char *buf, size_t size)
+{
+    struct Process *me = (struct Process *)FindTask(NULL);
+    BPTR lock = me->pr_Task.tc_Node.ln_Type == NT_PROCESS ? me->pr_CurrentDir : 0;
+    int mine = 0;
+    if (!buf) {
+        if (size == 0) size = 1024;
+        buf = (char *)malloc(size);
+        if (!buf) { errno = ENOMEM; return NULL; }
+        mine = 1;
+    }
+    if (size == 0) { errno = EINVAL; return NULL; }
+    if (!lock) {
+        if (size < 5) { if (mine) free(buf); errno = ERANGE; return NULL; }
+        strcpy(buf, "SYS:");
+        return buf;
+    }
+    if (!NameFromLock(lock, (STRPTR)buf, (LONG)size)) {
+        if (mine) free(buf);
+        errno = IoErr() == ERROR_LINE_TOO_LONG ? ERANGE : EACCES;
+        return NULL;
+    }
+    return buf;
 }
 
 static struct Task **mainThreadSlot(void)
