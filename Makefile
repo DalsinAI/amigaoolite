@@ -717,3 +717,10 @@ $(OUT)/oolite-js-properties-68040: tests/oolite_js_properties_gate.c src/Core/OO
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_properties_gate.c src/Core/OOGFOSJSProperties.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-properties
 js-properties: $(OUT)/oolite-js-properties-68040
+
+# Transactional Oolite JS task recreation on the canonical shared engine.
+$(OUT)/oolite-js-reset-68040: tests/oolite_js_reset_gate.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSJavaScript.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_reset_gate.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-reset
+js-reset: $(OUT)/oolite-js-reset-68040
