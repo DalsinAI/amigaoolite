@@ -954,3 +954,12 @@ $(OUT)/oolite-js-routed-reset-68040: tests/oolite_js_routed_reset_gate.c src/Cor
 	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: js-routed-reset
 js-routed-reset: $(OUT)/oolite-js-routed-reset-68040
+
+# Entire unchanged original Oolite Constrictor ship-library script mission
+# gating: missionVariables.conhunt game-save state transitions plus exact
+# return-value handling; stage the pinned original JS file on guest SYS.
+$(OUT)/oolite-js-constrictor-mission-68040: tests/oolite_js_constrictor_mission_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_constrictor_mission_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-constrictor-mission
+js-constrictor-mission: $(OUT)/oolite-js-constrictor-mission-68040
