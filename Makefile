@@ -943,3 +943,14 @@ $(OUT)/oolite-js-original-locale-68040: tests/oolite_js_original_locale_gate.c s
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_original_locale_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-original-locale
 js-original-locale: $(OUT)/oolite-js-original-locale-68040
+
+# Oolite engine reset while JS candidate boot invokes real game-task ship
+# selectors. Aborted prepare preserves the original script object graph.
+$(OUT)/oolite-js-routed-reset-68040: tests/oolite_js_routed_reset_gate.c src/Core/OOGFOSScriptReset.c src/Core/OOGFOSScriptReset.h src/Core/OOGFOSScriptInvoke.c $(OUT)/oolite-js-sync-call-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_routed_reset_gate.c -o $(OUT)/oolite-routed-reset-gate.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptReset.c -o $(OUT)/oolite-routed-reset.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-routed-reset-gate.o $(OUT)/oolite-routed-reset.o $(OUT)/oolite-sync-invoke.o $(OUT)/oolite-energy-properties.o $(OUT)/oolite-energy-game-backend.o $(OUT)/oolite-energy-backend-objc.o $(OUT)/oolite-energy-mock-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group -Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a $(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-routed-reset
+js-routed-reset: $(OUT)/oolite-js-routed-reset-68040
