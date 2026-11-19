@@ -10,6 +10,7 @@ struct OOGFOSGameMessage {
     ULONG token;
     LONG value;
     LONG status;
+    char utf8[256]; /* bounded copy; never send an unsynchronised JS pointer */
 };
 /* Publish under Forbid: TryClose cannot delete the target between the
  * live-port check and PutMsg. The owner MUST keep the dispatch struct alive
@@ -161,6 +162,44 @@ static int routedSet(void *context, unsigned property, LONG value)
     if (!p || !p->dispatch || !p->token) return 0;
     return dispatchRPC(p->dispatch, OOGFOS_DISPATCH_SET, p->token, property, &value);
 }
+int OOGFOSGameDispatchSetMeasureText(struct OOGFOSGameDispatch *d,
+                                   OOGFOSGameMeasureTextFunc measure)
+{
+    if (!d || !d->gamePort || FindTask(NULL)!=d->gameTask) return 0;
+    Forbid();
+    if (d->inFlight || d->sealed) { Permit(); return 0; }
+    d->measureTextBackend=measure;
+    Permit();
+    return 1;
+}
+int OOGFOSGameDispatchMeasureText(struct OOGFOSGameDispatch *d,
+                                 const char *utf8, float *outWidth)
+{
+    struct MsgPort *reply;
+    struct OOGFOSGameMessage m;
+    struct Message *received;
+    size_t len;
+    int accepted;
+    if (!d || !utf8 || !outWidth || !d->measureTextBackend) return 0;
+    len=strlen(utf8);
+    if (len>=sizeof(m.utf8)) return 0;
+    reply=CreateMsgPort();
+    if (!reply) return 0;
+    memset(&m,0,sizeof(m));
+    m.msg.mn_Length=sizeof(m);
+    m.msg.mn_ReplyPort=reply;
+    m.magic=OOGFOS_RPC_MAGIC;
+    m.op=OOGFOS_DISPATCH_MEASURE_TEXT;
+    memcpy(m.utf8,utf8,len+1);
+    if (!sendTracked(d,&m)) { DeleteMsgPort(reply); return 0; }
+    WaitPort(reply);
+    received=GetMsg(reply);
+    accepted=received==&m.msg && m.status==1;
+    if (accepted) memcpy(outWidth,&m.value,sizeof(*outWidth));
+    DeleteMsgPort(reply);
+    finishTracked(d);
+    return accepted;
+}
 int OOGFOSGameDispatchSetAction(struct OOGFOSGameDispatch *d,
                                OOGFOSGameActionFunc action)
 {
@@ -251,6 +290,15 @@ static int dispatchServeNext(struct OOGFOSGameDispatch *d, int wait)
     } else if (m->op == OOGFOS_DISPATCH_ACTION) {
         m->status = d->actionBackend && m->token ?
             d->actionBackend(d->owner,m->token,m->property,m->value,&m->value) : 0;
+        d->requests++;
+    } else if (m->op == OOGFOS_DISPATCH_MEASURE_TEXT) {
+        float width=0.0f;
+        /* All text comes from the bounded in-message buffer, not from a
+         * JS-owned pointer that can expire while the owner pumps. */
+        m->utf8[sizeof(m->utf8)-1]=0;
+        m->status=d->measureTextBackend ?
+            d->measureTextBackend(d->owner,m->utf8,&width) : 0;
+        if (m->status) memcpy(&m->value,&width,sizeof(width));
         d->requests++;
     } else if (m->op == OOGFOS_DISPATCH_DONE) {
         d->resultCode = m->status;

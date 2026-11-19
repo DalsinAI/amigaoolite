@@ -7,7 +7,7 @@
 #include <exec/ports.h>
 #include "OOGFOSShipProperties.h"
 
-enum { OOGFOS_DISPATCH_GET=1, OOGFOS_DISPATCH_SET=2, OOGFOS_DISPATCH_DONE=3, OOGFOS_DISPATCH_ACTION=4 };
+enum { OOGFOS_DISPATCH_GET=1, OOGFOS_DISPATCH_SET=2, OOGFOS_DISPATCH_DONE=3, OOGFOS_DISPATCH_ACTION=4, OOGFOS_DISPATCH_MEASURE_TEXT=5 };
 struct OOGFOSGameRouteBackend {
     int (*getLong)(void *owner, ULONG token, unsigned property, LONG *value);
     int (*setLong)(void *owner, ULONG token, unsigned property, LONG value);
@@ -16,6 +16,9 @@ struct OOGFOSGameRouteBackend {
  * separate from scalar properties; production must implement game actions. */
 typedef int (*OOGFOSGameActionFunc)(void *owner, ULONG token,
                                    unsigned action, LONG argument, LONG *result);
+/* Original OOJSFont measures on the game/FontManager task, never the JS task. */
+typedef int (*OOGFOSGameMeasureTextFunc)(void *owner, const char *utf8,
+                                        float *outWidth);
 enum { OOGFOS_SHIP_ACTION_LEGACY=1 };
 struct OOGFOSGameDispatch;
 /* Caller-owned, stable while wrappers may call it; never pass ShipEntity here. */
@@ -30,6 +33,7 @@ struct OOGFOSGameDispatch {
     const struct OOGFOSShipBackend *ownerBackend;
     const struct OOGFOSGameRouteBackend *routeBackend;
     OOGFOSGameActionFunc actionBackend;
+    OOGFOSGameMeasureTextFunc measureTextBackend;
     ULONG inFlight; /* protected by Forbid/Permit with gamePort */
     ULONG sealed; /* stop new GET/SET; allow DONE for queued JS jobs */
     ULONG requests;
@@ -56,6 +60,15 @@ const struct OOGFOSShipBackend *OOGFOSGameShipProxyBackend(void);
 /* Configure action handler on game task before publishing JS wrappers. */
 int OOGFOSGameDispatchSetAction(struct OOGFOSGameDispatch *d,
                                OOGFOSGameActionFunc action);
+/* Register the original OOStringWidthInEm adapter on the owner task.
+ * Changes to this callback require a drained dispatch. */
+int OOGFOSGameDispatchSetMeasureText(struct OOGFOSGameDispatch *d,
+                                   OOGFOSGameMeasureTextFunc measure);
+/* JS-task request; UTF-8 copied into a bounded Exec message and consumed
+ * synchronously by the owner. On success returns the original float width. */
+int OOGFOSGameDispatchMeasureText(struct OOGFOSGameDispatch *d,
+                                 const char *utf8, float *outWidth);
+
 /* JS task action call; roundtrip via tracked Exec message to game owner. */
 int OOGFOSGameShipAction(struct OOGFOSGameShipProxy *proxy,
                         unsigned action, LONG argument, LONG *result);

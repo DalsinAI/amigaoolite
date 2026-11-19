@@ -19,7 +19,7 @@ Do not publish an RC tag until game runtime acceptance is actually proved.
 
 ## Pinned sources and current verified GitHub heads
 
-- DalsinAI/amigaoolite **75cf5d77fd4651b52e8c1cd022460de42f71b174** (main)
+- DalsinAI/amigaoolite **944b1030cda3cfaa8dd48e44b29192cdb66ff6fe** (main; baseline before this update)
 - DalsinAI/gfopenjavascript **45f9bda6d39ed8ac55a49e4b7a9f13ef5dca57bc** (stable v2 main)
 - OoliteProject/oolite **21978c37b2f11c8664adf3e2062efc1d0c875979** (upstream original)
 - Existing historical release v1.93.1-gfos-rc0-checkpoint-20261119
@@ -55,11 +55,21 @@ These are valid **component tests**, not a game startup.
 Two authentic original Objective-C translation units are REBUILT as
 GFOS-facing original objects:
 Core_OORegExpMatcher_m.o and Core_OOStringParsing_m.o.
-Run make jsapi-two-original-replacements-audit with the pinned
+An additional original scripting interface, OOJSFont's
+defaultFont.measureString, now has a separately compiled source-level
+GFOS C replacement plus an Objective-C owner callback that calls the
+real upstream OOStringWidthInEm; guest font RPC test and five existing
+game-dispatch regressions passed. The font measurement native guest
+test uses a controlled width fixture, not a running Oolite title UI.
+See tests/evidence/oolite-original-font-native-guest-20261119.log and
+tests/evidence/oolite-font-dispatch-five-native-regressions-20261119.log.
+This font replacement has NOT yet been wired into the original global
+setup in OOJavaScriptEngine.m; no full-game link is claimed.
+Run make jsapi-three-original-replacements-audit with the pinned
 headers and the entire **242-object** baseline. Last verified result:
-**242 objects / 51 still using JS_* / 98 unique historical JS_* externs**
+**242 objects / 50 still using JS_* / 98 unique historical JS_* externs**
 (unknown=0, overlap=0), evidence:
-tests/evidence/oolite-original-242-object-jsapi-98-20261119.json.
+tests/evidence/oolite-original-242-object-jsapi-98-50-20261119.json.
 This measures **legacy references in original objects**, NOT how
 much GFOpenJavaScript replacement functionality already exists.
 
@@ -114,7 +124,7 @@ libjs_static.a. Keep as cross-reference ONLY. Extend this existing
   do isolated adapter passes mean original game integration is done.
 - Do not repeat header archaeology: genuine pinned SDL3 3.4.14,
   GLU 9.0.3, legacy compile-time JSAPI headers and GCC16 ABI
-  tgmath header were already recovered and the two-object audit PASSED.
+  tgmath header were already recovered and the three-object audit PASSED.
 - No mock game, splash preview or -help exit counts as playable.
 
 ## Existing daletop locations — verify before use
@@ -127,8 +137,8 @@ libjs_static.a. Keep as cross-reference ONLY. Extend this existing
   /run/media/da1ek/DevDrive/AmiCradle-labs/oolite-rc1/source/port/build/full-link.mk
 - Original 242 objects:
   /run/media/da1ek/DevDrive/AmiCradle-labs/oolite-rc1/evidence/rc1-title-20261119/build/oolite-complete-objects
-- Last two-replacement reproducible audit:
-  /tmp/oolite-rc1-two-original-20261119/
+- Last three-replacement reproducible audit:
+  /tmp/oolite-rc1-three-original-20261119/
 - GCC16 prefix:
   /tmp/atlas-batch10-20261117/stove-isolated/prefix
 - Isolated native test instance:

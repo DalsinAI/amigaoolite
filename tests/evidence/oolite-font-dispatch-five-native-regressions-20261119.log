@@ -1,0 +1,12 @@
+OOLITE_DISPATCH_REGRESSIONS_BEGIN
+RUN_oolite-js-game-dispatch-68040
+OOLITE_JS_GAME_DISPATCH bound=1 post=0 completed=1 requests=6 writes=3 wrong_task=0 on_owner=0 sum=90 status=PASS
+RUN_oolite-js-game-reject-68040
+OOLITE_JS_GAME_REJECT bound=1 post=0 completed=1 requests=3 writes=0 wrong_task=0 on_owner=0 sum=3 status=PASS
+RUN_oolite-js-game-poll-68040
+OOLITE_JS_GAME_POLL bound=1 post=0 completed=1 requests=6 writes=3 wrong_task=0 on_owner=0 sum=90 idle=2 processed=6 status=PASS
+RUN_oolite-js-frame-budget-68040
+OOLITE_JS_FRAME_BUDGET bound=1 post=0 completed=1 requests=6 writes=3 wrong_task=0 on_owner=0 sum=90 idle=2 empty_budget=0 zero_budget=-1 processed=7 status=PASS
+RUN_oolite-js-game-frame-hook-68040
+OOLITE_JS_FRAME_HOOK bound=1 post=0 completed=1 requests=6 writes=3 wrong_task=0 on_owner=0 sum=90 idle=2 empty_budget=0 zero_budget=-1 processed=7 installed=1 uninstalled=1 idle_frame=0 foreign_frame=-1 foreign_unbind=0 status=PASS
+OOLITE_DISPATCH_REGRESSIONS_END

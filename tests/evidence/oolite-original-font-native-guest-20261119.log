@@ -1,0 +1,19 @@
+19 November 2026, AmigaOS 3.2.3 AC090 native 68040, canonical GFOpenJavaScript v2,
+Oolite original defaultFont.measureString source migration, real game-task
+Exec RPC with controlled width fixture; original OOStringWidthInEm owner
+implementation separately compiled as OOJSFontGame.o.
+
+OOLITE_FONT_GUEST_BEGIN
+OOLITE_ORIGINAL_FONT_GFOSTRANSPORT post=0 init=0 eval=0 result=42 measure_calls=2 wrong_task=0 messages=2 closed=1 status=PASS
+OOLITE_FONT_GUEST_END
+
+Built m68k-amigaos executable SHA256:
+a672e7e36fcffa72d7b6a5238723b42ea5a4bbc0c34f98792d2d73c28322a1af
+Original-script replacement object SHA256:
+168c2446eef3e189d6c986ab4c113160308c3fe31b1226052fb8901a3e2ddbc6
+Original HeadUpDisplay font selector bridge object SHA256:
+41a28d5097b9fd481ba94b2db5e26882fed115d50c361278dbfc5e7359a318b6
+
+Controlled callback is not proof original GUI font manager works at game startup.
+Real OOJSFontGame.m builds against Foundation and invokes exact original
+OOStringWidthInEm(NSString*), but full Oolite linkage is still missing.

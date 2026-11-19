@@ -1149,3 +1149,39 @@ jsapi-two-original-replacements-audit: $(OUT)/Core_OOStringParsing_m.o $(OUT)/Co
 	  --nm "$(CROSS_NM)" --max-unique 98 \
 	  --json-out "$(OUT)/jsapi-two-original-audit.json" \
 	  --markdown-out "$(OUT)/jsapi-two-original-audit.md"
+
+# Source migration of original OOJSFont.m's defaultFont.measureString
+# using canonical GFOS JS and the ORIGINAL game-task HeadUpDisplay font.
+# Rebuilds the ORIGINAL object's slot rather than retaining JS_DefineObject
+# and JS_DefineFunction; not a full-game link by itself.
+$(OUT)/Core_Scripting_OOJSFont_m.o: src/Core/original-replacements/OOJSFont.c src/Core/original-replacements/OOJSFontGFOS.h src/Core/OOGFOSGameDispatch.h
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -I src/Core/original-replacements -c $< -o $@
+$(OUT)/OOJSFontGame.o: src/Core/original-replacements/OOJSFontGame.m
+	@mkdir -p $(OUT)
+	$(CROSS_CC) -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul \
+	  -DGNUSTEP_BASE_LIBRARY=1 -I $(GFOS_BASE_DIR)/Headers -c $< -o $@
+.PHONY: js-original-font-objects
+js-original-font-objects: $(OUT)/Core_Scripting_OOJSFont_m.o $(OUT)/OOJSFontGame.o
+
+# Consume ALL original game objects and substitute only genuine rebuilt
+# GFOS source units. Audit must still report exactly 242 source objects.
+.PHONY: jsapi-three-original-replacements-audit
+jsapi-three-original-replacements-audit: $(OUT)/Core_OOStringParsing_m.o $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/Core_Scripting_OOJSFont_m.o
+	@mkdir -p $(OUT)/jsapi-three-original-objects
+	cp -a $(JSAPI_ORIGINAL_OBJECTS)/. $(OUT)/jsapi-three-original-objects/
+	cp $(OUT)/Core_OOStringParsing_m.o $(OUT)/jsapi-three-original-objects/Core_OOStringParsing_m.o
+	cp $(OUT)/Core_OORegExpMatcher_m.o $(OUT)/jsapi-three-original-objects/Core_OORegExpMatcher_m.o
+	cp $(OUT)/Core_Scripting_OOJSFont_m.o $(OUT)/jsapi-three-original-objects/Core_Scripting_OOJSFont_m.o
+	python3 tools/jsapi_link_audit.py "$(OUT)/jsapi-three-original-objects" \
+	  --nm "$(CROSS_NM)" --max-unique 98 \
+	  --json-out "$(OUT)/jsapi-three-original-audit.json" \
+	  --markdown-out "$(OUT)/jsapi-three-original-audit.md"
+
+$(OUT)/oolite-original-font-68040: tests/oolite_original_font_gfos_gate.c src/Core/original-replacements/OOJSFont.c src/Core/OOGFOSJavaScript.c src/Core/OOGFOSGameDispatch.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -I src/Core/original-replacements \
+	  tests/oolite_original_font_gfos_gate.c src/Core/original-replacements/OOJSFont.c \
+	  src/Core/OOGFOSJavaScript.c src/Core/OOGFOSGameDispatch.c -lm -o $@
+.PHONY: js-original-font
+js-original-font: $(OUT)/oolite-original-font-68040
