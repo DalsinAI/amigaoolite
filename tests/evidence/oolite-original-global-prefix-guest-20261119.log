@@ -1,0 +1,38 @@
+Unmodified Oolite global prefix script on canonical javascript.library
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Friendly name: AmiCradle Team 1 - Oolite JSAPI RC1
+Target: native AC090 68040 AmigaOS, OpenAmigaGCC 16.2.0-open3
+Binary SHA256: 9092b140fc1e9b2b21596d4f10c5b1ebf27fa42e9b55c02261bae21e4c5b9dfb
+Original JS asset SHA256: feeb4fae69ac8fe261b988df7476f96451a27126312b06627bc7b86f6201529a
+Original: OoliteProject/oolite@21978c37b2f11c8664adf3e2062efc1d0c875979
+Resources/Scripts/oolite-global-prefix.js (unmodified UTF-8)
+
+Verbatim ACAgent native guest output:
+OOLITE_ORIGINAL_GLOBAL_PREFIX_BEGIN
+OOLITE_GLOBAL_PREFIX setup=0 load=0 verify=0 result=42 shipCalls=1,0 exported=1 idempotent=1 rejected=1 status=PASS
+OOLITE_ORIGINAL_GLOBAL_PREFIX_RC 0
+OOLITE_ORIGINAL_GLOBAL_PREFIX_END
+
+OOGFOSJSExposeHostConstructor bridges original JS_InitClass semantics:
+- obtains the actual, protected GFOS JSHostClass prototype using
+  Object.getPrototypeOf on a registered JS_Wrap host instance
+- exports a named unconstructable global Ship constructor whose .prototype
+  IS the same object (including for independent ship wrappers)
+- preserves prototype.constructor and instanceof checks
+- re-export of same constructor is idempotent; invalid JS names rejected
+- no added or changed javascript.library vectors; no SpiderMonkey ABI claims
+
+Executed the entire unmodified original oolite-global-prefix.js, not a
+rewritten or shortened version. It installed its documented prototype
+extensions, global properties and worldScriptNames. The native Ship.spawn
+method returned a test fixture object with index 0=42, and the ORIGINAL
+Ship.prototype.spawnOne() returned 42 on shipA; shipB remained untouched.
+This demonstrates genuine host-prototype extension without adapting each
+script-defined method individually.
+
+IMPORTANT LIMIT: Only Ship was a real GFOS JSHostClass wrapper. The remaining
+original script classes (Mission, SystemInfo, System, SoundSource, Script,
+Vector3D) used explicitly declared JS test-fixture constructors; these
+must be native classes for a full game startup. This is not a playable Oolite
+release or a proof that all original OOJS class hooks are equivalent.
