@@ -763,3 +763,10 @@ $(OUT)/oolite-js-prepared-reset-68040: tests/oolite_js_prepared_reset_gate.c src
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_prepared_reset_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-prepared-reset
 js-prepared-reset: $(OUT)/oolite-js-prepared-reset-68040
+
+# Original OOJSScript UTF-16 source -> native GFOS JavaScript UTF-8.
+$(OUT)/oolite-js-utf16-68040: tests/oolite_js_utf16_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSScriptObjects.h src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_utf16_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-utf16
+js-utf16: $(OUT)/oolite-js-utf16-68040
