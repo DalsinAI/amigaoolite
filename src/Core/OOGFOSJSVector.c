@@ -208,17 +208,51 @@ static const struct JSHostClass vectorClass={
 };
 LONG OOGFOSJSVectorInstall(JSTask task)
 {
-    JSValue global=NULL,constructor=NULL;
+    JSValue global=NULL,native=NULL,probe=NULL,existing=NULL;
     JSClass cls;
     LONG rc=JSERR_BADARGS;
     if(!task)return JSERR_BADARGS;
     cls=JS_RegisterClass(task,&vectorClass);
     if(!cls)return JSERR_NOMEMORY;
-    constructor=JS_NewFunction(task,(CONST_STRPTR)"Vector3D",construct,NULL);
-    if(!constructor)return JSERR_NOMEMORY;
     global=JS_Global(task);
-    if(global)rc=JS_SetProp(task,global,(CONST_STRPTR)"Vector3D",constructor);
-    if(global)JS_Free(task,global);
-    JS_Free(task,constructor);
+    if(!global)return JSERR_BADARGS;
+    existing=JS_GetProp(task,global,(CONST_STRPTR)"Vector3D");
+    if(existing && JS_TypeOf(task,existing)!=JST_UNDEFINED){
+        rc=JSERR_TYPE;goto done;
+    }
+    /* javascript.library's HostFunction is callable but not a JS
+     * constructor. Original OOJSVector requires 'new Vector3D(...)'.
+     * A genuine JS function returned by this closure is constructible;
+     * its native factory returns the JS_Wrap() host object as the value. */
+    native=JS_NewFunction(task,(CONST_STRPTR)"_gfosVectorNative",construct,NULL);
+    if(!native){rc=JSERR_NOMEMORY;goto done;}
+    rc=JS_SetProp(task,global,(CONST_STRPTR)"_gfosOoliteVectorFactory",native);
+    if(rc!=JSERR_OK)goto done;
+    rc=JS_Evaluate(task,
+        "(function(g){g.Vector3D=(function(nativeCreate){"
+        "return function Vector3D(){return nativeCreate.apply(null,arguments);};"
+        "})(g._gfosOoliteVectorFactory);"
+        "delete g._gfosOoliteVectorFactory;})(this);",
+        -1,(CONST_STRPTR)"oolite-vector-constructor.js",NULL);
+    if(rc!=JSERR_OK)goto done;
+    /* Host classes already own their real prototype in the v1 engine.
+     * A temporary real JS-owned Vector3D snapshot lets us expose that
+     * prototype without fabricating a game-owned ShipEntity or requiring
+     * javascript.library v2's new JS_ClassPrototype vector. */
+    probe=create(task,0.0,0.0,0.0);
+    if(!probe){rc=JSERR_NOMEMORY;goto done;}
+    rc=JS_SetProp(task,global,(CONST_STRPTR)"_gfosOoliteVectorProbe",probe);
+    if(rc!=JSERR_OK)goto done;
+    rc=JS_Evaluate(task,
+        "Vector3D.prototype=Object.getPrototypeOf(_gfosOoliteVectorProbe);"
+        "Object.defineProperty(Vector3D.prototype,'constructor',"
+        "{value:Vector3D,enumerable:false,writable:true,configurable:true});"
+        "delete this._gfosOoliteVectorProbe;",
+        -1,(CONST_STRPTR)"oolite-vector-prototype.js",NULL);
+done:
+    if(existing)JS_Free(task,existing);
+    if(probe)JS_Free(task,probe);
+    if(native)JS_Free(task,native);
+    JS_Free(task,global);
     return rc;
 }
