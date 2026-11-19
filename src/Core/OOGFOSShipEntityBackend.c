@@ -8,6 +8,12 @@ _Static_assert((int)OOGFOS_SHIP_HOME_SYSTEM==(int)OOGFOS_OOJS_HOME_SYSTEM,"homeS
 _Static_assert((int)OOGFOS_SHIP_MAX_ESCORTS==(int)OOGFOS_OOJS_MAX_ESCORTS,"escort code mismatch");
 _Static_assert((int)OOGFOS_SHIP_ENERGY==(int)OOGFOS_OOJS_ENERGY,"energy code mismatch");
 _Static_assert((int)OOGFOS_SHIP_MAX_ENERGY==(int)OOGFOS_OOJS_MAX_ENERGY,"maxEnergy code mismatch");
+_Static_assert((int)OOGFOS_SHIP_IS_VALID==(int)OOGFOS_OOJS_IS_VALID,"IS_VALID code mismatch");
+_Static_assert((int)OOGFOS_SHIP_IS_SHIP==(int)OOGFOS_OOJS_IS_SHIP,"IS_SHIP code mismatch");
+_Static_assert((int)OOGFOS_SHIP_IS_STATION==(int)OOGFOS_OOJS_IS_STATION,"IS_STATION code mismatch");
+_Static_assert((int)OOGFOS_SHIP_IS_PLAYER==(int)OOGFOS_OOJS_IS_PLAYER,"IS_PLAYER code mismatch");
+_Static_assert((int)OOGFOS_SHIP_IS_DOCK==(int)OOGFOS_OOJS_IS_DOCK,"IS_DOCK code mismatch");
+_Static_assert((int)OOGFOS_SHIP_IS_IN_SPACE==(int)OOGFOS_OOJS_IS_IN_SPACE,"IS_IN_SPACE code mismatch");
 void OOGFOSShipEntityRegistryInit(struct OOGFOSShipEntityRegistry *r)
 {
     if(r) OOGFOSShipTokensInit(&r->tokens);
