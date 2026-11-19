@@ -24,6 +24,10 @@
 - (void)setEnergy:(float)value;
 - (float)maxEnergy;
 - (void)setMaxEnergy:(float)value;
+- (float)collisionRadius;
+- (float)distanceTravelled;
+- (float)mass;
+- (float)spawnTime;
 - (int)status; /* OOEntityStatus is enum-backed int in pinned Entity.h */
 - (BOOL)isShip;
 - (BOOL)isStation;
@@ -73,9 +77,20 @@ int OOGFOSShipObjCGetLong(void *raw,unsigned property,int32_t *out)
     case OOGFOS_OOJS_IS_DOCK:*out=([ship isDock]!=NO);return 1;
     case OOGFOS_OOJS_IS_IN_SPACE:*out=([ship isInSpace]!=NO);return 1;
     case OOGFOS_OOJS_ENERGY:
-    case OOGFOS_OOJS_MAX_ENERGY: {
-        float value=property==OOGFOS_OOJS_ENERGY ?
-                    [ship energy] : [ship maxEnergy];
+    case OOGFOS_OOJS_MAX_ENERGY:
+    case OOGFOS_OOJS_COLLISION_RADIUS:
+    case OOGFOS_OOJS_DISTANCE_TRAVELLED:
+    case OOGFOS_OOJS_MASS:
+    case OOGFOS_OOJS_SPAWN_TIME: {
+        float value=0;
+        switch(property){
+        case OOGFOS_OOJS_ENERGY:value=[ship energy];break;
+        case OOGFOS_OOJS_MAX_ENERGY:value=[ship maxEnergy];break;
+        case OOGFOS_OOJS_COLLISION_RADIUS:value=[ship collisionRadius];break;
+        case OOGFOS_OOJS_DISTANCE_TRAVELLED:value=[ship distanceTravelled];break;
+        case OOGFOS_OOJS_MASS:value=[ship mass];break;
+        case OOGFOS_OOJS_SPAWN_TIME:value=[ship spawnTime];break;
+        }
         _Static_assert(sizeof(float)==sizeof(int32_t),"Float scalar ABI must be 32-bit");
         memcpy(out,&value,sizeof(value));
         return 1;
