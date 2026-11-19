@@ -874,6 +874,6 @@ js-global-prefix: $(OUT)/oolite-js-global-prefix-68040
 GFOS_JS_V2_INC ?= $(GFOS_JS_INC)
 $(OUT)/oolite-js-class-bootstrap-v2-68040: tests/oolite_js_class_bootstrap_v2_gate.c src/Core/OOGFOSJSClassBootstrap.c src/Core/OOGFOSJSClassBootstrap.h src/Core/OOGFOSJavaScript.c
 	@mkdir -p $(OUT)
-	$(CROSS_CC) $(GFOS_JS_FLAGS) -I $(GFOS_JS_V2_INC) tests/oolite_js_class_bootstrap_v2_gate.c src/Core/OOGFOSJSClassBootstrap.c src/Core/OOGFOSJavaScript.c -o $@
+	$(CROSS_CC) -I $(GFOS_JS_V2_INC) $(GFOS_JS_FLAGS) tests/oolite_js_class_bootstrap_v2_gate.c src/Core/OOGFOSJSClassBootstrap.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-class-bootstrap-v2
 js-class-bootstrap-v2: $(OUT)/oolite-js-class-bootstrap-v2-68040
