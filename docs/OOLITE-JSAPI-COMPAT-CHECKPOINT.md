@@ -23,17 +23,17 @@ The original Scripting sources still use `JS_NewNumberValue` (~137 call sites), 
 
 The isolated GCC 16.2.0-open3 cross-compiler on daletop produced:
 
-- `oolite-js-values-68040` SHA-256 `37e707d0af03eb8a8c8000d5540500b703f718f5069f08640075d7e854c1c90c`;
+- `oolite-js-values-68040` SHA-256 `1f09bc2f49e314f751f8f204ddc676433d9316bbf63c5c908109d88ead9efb81`;
 - `oolite-jslib-two-owners-68040` SHA-256 `d8e030d6ceb052d759c0b8e641a84105250b8221280d6e81c4dea031fb138ad7`.
 
-**These are cross-build passes, not newly executed guest tests.** Prior guest tests for Oolite script objects and host classes are documented separately under `docs/OOLITE-JSLIB-GUEST-PASS.md`.
+**Both gates have now passed in the isolated named AC090 68040 AmigaOS guest with RC 0.** The two-owner gate returned 42 then 56 after first-owner double close and cleared the base after final shutdown. The values gate checked 42.5, signed -42, true, undefined false and zero falsiness. Exact output: [`tests/evidence/oolite-jsapi-twoowners-values-guest-20261119.log`](../tests/evidence/oolite-jsapi-twoowners-values-guest-20261119.log). The dedicated lab is `team1-oolite-jsapi-rc1-20261119` (friendly name `AmiCradle Team 1 - Oolite JSAPI RC1`). This evidence concerns standalone adapter gates, not original Oolite full-engine execution. Prior guest tests for ship host objects remain in `docs/OOLITE-JSLIB-GUEST-PASS.md`.
 
 ## Semantic caveats and acceptance gates
 
 1. `JS_ToLong` is **not a proven substitute** for SpiderMonkey `JS_ValueToInt32` (`ToInt32` modulo semantics). The helper is named `OOGFOSJSValueToLong` until parity is established; do not alias it to the SpiderMonkey function.
 2. `JS_ToBool` has a Boolean result, not a `JSERR_*` failure code. The adapter returns success separately and exposes the converted Boolean through an out-parameter.
 3. A JSValue is scoped to its owning JSTask; callback-provided borrowed values must not be `JS_Free`d. Do not expose game-owned pointers to the script task.
-4. Next: native guest execution of both new gates; property/prototype/array and GC-root adapter design; Oolite `OOJavaScriptEngine` lifecycle conversion; original OOJS host-class conversion; original 242-unit GFOS-only link **without** `libjs_static.a`; full title/gameplay tests.
+4. Next: property/prototype/array and GC-root adapter design; Oolite `OOJavaScriptEngine` lifecycle conversion; original OOJS host-class conversion; original 242-unit GFOS-only link **without** `libjs_static.a`; full title/gameplay tests.
 5. Any future compatibility facade must define explicitly which SpiderMonkey API functions are exact, adapted or unsupported. Class hooks, pending exceptions, GC roots and synchronous callbacks need independent parity tests before the original game relies on them.
 
 No game, original upstream code or third-party assets are copied into this record.
