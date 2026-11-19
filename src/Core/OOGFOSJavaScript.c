@@ -141,3 +141,18 @@ LONG OOGFOSJSEvaluateSource(struct OOGFOSJS *s,
     return JS_Evaluate(s->task, src, -1,
                        filename ? filename : (CONST_STRPTR)"oolite.js", NULL);
 }
+
+LONG OOGFOSJSEvaluateChecked(struct OOGFOSJS *s, CONST_STRPTR src,
+                             CONST_STRPTR filename, STRPTR errorBuffer,
+                             LONG errorBufferSize)
+{
+    LONG rc;
+    if (!errorBuffer || errorBufferSize < 1) return JSERR_BADARGS;
+    errorBuffer[0] = 0;
+    if (!s || !s->task || !src) return JSERR_BADARGS;
+    rc = OOGFOSJSEvaluateSource(s, src, filename);
+    if (rc != JSERR_OK)
+        OOGFOSJSErrorText(s, errorBuffer, errorBufferSize);
+    return rc;
+}
+
