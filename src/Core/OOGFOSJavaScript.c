@@ -68,6 +68,22 @@ LONG OOGFOSJSErrorText(struct OOGFOSJS *s, STRPTR buffer, LONG size)
     return JS_ErrorText(s->task, buffer, size);
 }
 
+int OOGFOSJSReset(struct OOGFOSJS *s)
+{
+    JSTask replacement, previous;
+    if (!s || !s->library || !s->task) return 0;
+    JavaScriptBase = s->library;
+    /* If creation fails, all existing Oolite scripts remain live. */
+    replacement = JS_NewTask(NULL);
+    if (!replacement) return 0;
+    previous = s->task;
+    /* EndTask calls host-wrapper release callbacks on the old task.
+     * Do not pass old JSValues into the replacement task. */
+    JS_EndTask(previous);
+    s->task = replacement;
+    return 1;
+}
+
 void OOGFOSJSClose(struct OOGFOSJS *s)
 {
     if (!s || !s->library) return; /* Repeated close must not clear another owner's base. */
