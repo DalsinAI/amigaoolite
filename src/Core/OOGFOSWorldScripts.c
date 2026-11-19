@@ -59,7 +59,7 @@ cleanup:
 LONG OOGFOSWorldScriptsRegister(JSTask task, CONST_STRPTR scriptGlobal,
                                CONST_STRPTR worldName)
 {
-    JSValue global=NULL,world=NULL,script=NULL;
+    JSValue global=NULL,world=NULL,script=NULL,existing=NULL;
     char source[320];int bytes;
     LONG rc=JSERR_BADARGS;
     if(!task || !validScriptIdentifier(scriptGlobal) ||
@@ -72,6 +72,13 @@ LONG OOGFOSWorldScriptsRegister(JSTask task, CONST_STRPTR scriptGlobal,
     script=JS_GetProp(task,global,scriptGlobal);
     if(!world || JS_TypeOf(task,world)!=JST_OBJECT ||
        !script || JS_TypeOf(task,script)!=JST_OBJECT){
+        rc=JSERR_TYPE;goto cleanup;
+    }
+    /* Oolite world scripts cannot be replaced or deleted once registered.
+     * Reject duplicate names before JS_SetProp, which could silently
+     * ignore assignment to an existing read-only property. */
+    existing=JS_GetProp(task,world,worldName);
+    if(existing && JS_TypeOf(task,existing)!=JST_UNDEFINED) {
         rc=JSERR_TYPE;goto cleanup;
     }
     rc=JS_SetProp(task,world,worldName,script);
@@ -90,6 +97,7 @@ LONG OOGFOSWorldScriptsRegister(JSTask task, CONST_STRPTR scriptGlobal,
     rc=JS_Evaluate(task,(CONST_STRPTR)source,-1,
                    (CONST_STRPTR)"oolite-worldscripts-register.js",NULL);
 cleanup:
+    if(existing)JS_Free(task,existing);
     if(script)JS_Free(task,script);
     if(world)JS_Free(task,world);
     JS_Free(task,global);
