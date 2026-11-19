@@ -1,0 +1,21 @@
+Oolite two original ship scripts via UTF-16 GFOS and native ObjC callbacks
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Toolchain: GCC 16.2.0-open3, AC090 68040 native AmigaOS
+Binary SHA256: 06709fb2b58becf38814fbf1fd2e61749152ad6454870f53e5581691177612b1
+Original UTF-8 script: OoliteProject/oolite@21978c37b2f11c8664adf3e2062efc1d0c875979 Resources/Scripts/oolite-default-ship-script.js
+Guest UTF-16BE asset: SYS:Oolite/Scripts/oolite-default-ship-script.utf16be
+Encoded asset SHA256: 5492a18b4768ac3588879851703fe3ae144d8d32cc51355df002e6f9c578d61a
+
+Native guest transcript:
+OOLITE_TWO_UTF16_BEGIN
+OOLITE_UTF16_SCRIPT_OBJECTS bytes=7506 scripts=2 js_tasks=1 calls=3,3 actions=4,5 rpc=8 done=1 result=1 called=4 missing=0 closed=1 status=PASS
+OOLITE_TWO_UTF16_RC 0
+OOLITE_TWO_UTF16_END
+
+Two independent script this-objects on one canonical JSTask with separate
+ship identity tokens and Objective-C game-task receivers. Triggered real
+unmodified shipSpawned/shipDied handlers and verified action isolation,
+one-shot handler removal, distinct action counts, RPC completion and clean
+shutdown. Uses selector-compatible ObjC test fixtures, not complete original
+ShipEntity/Universe/full game.
