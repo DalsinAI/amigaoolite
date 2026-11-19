@@ -730,3 +730,10 @@ $(OUT)/oolite-js-host-reset-68040: tests/oolite_js_host_reset_gate.c src/Core/OO
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_host_reset_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-host-reset
 js-host-reset: $(OUT)/oolite-js-host-reset-68040
+
+# Exact ECMA-262 ToInt32 numeric coercion (not JS_ToLong alias).
+$(OUT)/oolite-js-int32-68040: tests/oolite_js_int32_gate.c src/Core/OOGFOSJSValues.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_int32_gate.c src/Core/OOGFOSJSValues.c src/Core/OOGFOSJavaScript.c -lm -o $@
+.PHONY: js-int32
+js-int32: $(OUT)/oolite-js-int32-68040
