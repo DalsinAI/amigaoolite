@@ -770,3 +770,17 @@ $(OUT)/oolite-js-utf16-68040: tests/oolite_js_utf16_gate.c src/Core/OOGFOSScript
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_utf16_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-utf16
 js-utf16: $(OUT)/oolite-js-utf16-68040
+
+# Original UTF-8 Oolite script (converted to UTF-16BE on media to reproduce
+# OOJSScript's unichar input) -> per-ship JS object -> Exec -> ObjC selectors.
+# Guest data: SYS:Oolite/Scripts/oolite-default-ship-script.utf16be.
+$(OUT)/oolite-original-utf16-objc-68040: tests/oolite_js_original_utf16_objc_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSScriptObjects.h $(OUT)/oolite-original-objc-event-68040
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_original_utf16_objc_gate.c -o $(OUT)/oolite-original-utf16-objc-gate.o
+	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptObjects.c -o $(OUT)/oolite-original-utf16-script-objects.o
+	$(CROSS_CC) -m68040 -m68881 -noixemul $(OUT)/oolite-original-utf16-objc-gate.o $(OUT)/oolite-original-utf16-script-objects.o $(OUT)/oolite-ship-events.o $(OUT)/oolite-objc-ship-mock.o $(OUT)/oolite-objc-game-shim.o $(OUT)/OOGFOSShipEntityBackend-objc.o $(OUT)/oolite-objc-tokens.o $(OUT)/oolite-objc-dispatch.o $(OUT)/oolite-objc-properties.o $(OUT)/oolite-objc-jslib.o \
+	-L $(GFOS_DEPS_LIB) -L $(GFOS_LIBNIX_LIB) -Wl,--start-group \
+	-Wl,--whole-archive $(GFOS_BASE_ARCHIVE) -Wl,--no-whole-archive \
+	$(GFOS_LIB_DIR)/libgfosfoundationports.a $(GFOS_LIB_DIR)/libgfosfoundationipc.a \
+	$(GFOS_FFI_DIR)/lib/libffi.a -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
+.PHONY: js-original-utf16-objc
+js-original-utf16-objc: $(OUT)/oolite-original-utf16-objc-68040
