@@ -1,0 +1,29 @@
+Oolite canonical javascript.library property / function / reset regression
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Friendly name: AmiCradle Team 1 - Oolite JSAPI RC1
+Target: AC090 native 68040 AmigaOS guest
+Toolchain: GCC 16.2.0-open3, original GFOpenSDK javascript.library vector ABI
+Property binary SHA256: 1066bdaf3f69491458099ad253110c949dad86e5acbd9b910cd4510791664687
+Reset binary SHA256: 84da5943902115d48c1a4e3b898e3dbe92fc7150566cd1e191f3d3ae49a1c9e7
+
+Property gate ACAgent guest transcript:
+OOLITE_JS_PROPERTIES_SUITE_BEGIN
+OOLITE_JS_PROPERTIES eval=0 result=26 failure=0 status=PASS
+OOLITE_JS_PROPERTIES_RC 0
+OOLITE_JS_PROPERTIES_SUITE_END
+
+Reset gate ACAgent guest transcript:
+OOLITE_JS_RESET_SUITE_BEGIN
+OOLITE_JS_RESET before=41 reset=1 after=42 status=PASS
+OOLITE_JS_RESET_RC 0
+OOLITE_JS_RESET_SUITE_END
+
+Property test covered canonical JS_GetProp/SetProp, JS_GetIndex/SetIndex,
+JS_Call with the correct self argument and argument validation. Reset gate
+created a first JS task, set a global, recreated the task and checked that
+the global was absent in the fresh task; old task closed on reset.
+
+These are tested GFOS adapter primitives. Oolite's original OOJavaScriptEngine
+and all 101 old JSAPI symbol users still require integration and semantic
+qualification before the full game is SpiderMonkey-free.
