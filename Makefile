@@ -709,3 +709,11 @@ $(OUT)/oolite-js-values-68040: tests/oolite_js_values_gate.c src/Core/OOGFOSJSVa
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_values_gate.c src/Core/OOGFOSJSValues.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-values
 js-values: $(OUT)/oolite-js-values-68040
+
+# Native AC090 property/index/function seam qualification against the canonical
+# shared JavaScriptEngine; no embedded SpiderMonkey or fake JSAPI symbols.
+$(OUT)/oolite-js-properties-68040: tests/oolite_js_properties_gate.c src/Core/OOGFOSJSProperties.c src/Core/OOGFOSJSProperties.h src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_properties_gate.c src/Core/OOGFOSJSProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-properties
+js-properties: $(OUT)/oolite-js-properties-68040
