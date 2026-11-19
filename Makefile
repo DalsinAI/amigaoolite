@@ -743,3 +743,9 @@ $(OUT)/oolite-js-errors-68040: tests/oolite_js_errors_gate.c src/Core/OOGFOSJava
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_errors_gate.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-errors
 js-errors: $(OUT)/oolite-js-errors-68040
+
+$(OUT)/oolite-js-retain-68040: tests/oolite_js_retain_gate.c src/Core/OOGFOSJSProperties.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_retain_gate.c src/Core/OOGFOSJSProperties.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-retain
+js-retain: $(OUT)/oolite-js-retain-68040
