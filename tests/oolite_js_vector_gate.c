@@ -49,8 +49,10 @@ static LONG run(JSTask task,APTR user)
     p->withNew=JS_Evaluate(task,
         "var v=new Vector3D(7,8,9);v.z===9 ? 42:0",
         -1,"oolite-vector-construct.js",&src);
-    if(p->withNew==JSERR_OK)
-        p->withNew=JS_ToLong(task,src,&p->withNew)==JSERR_OK?p->withNew:JSERR_TYPE;
+    if(p->withNew==JSERR_OK){
+        LONG result=0;
+        p->withNew=JS_ToLong(task,src,&result)==JSERR_OK ? result : -1;
+    } else p->withNew=-1;
 cleanup:
     if(src)JS_Free(task,src);
     if(a)JS_Free(task,a);
@@ -67,7 +69,7 @@ int main(void)
     post=JS_Post(js.task,run,&p,1);
     ok=post==JSERR_OK && p.rc==JSERR_OK && p.valid==42 &&
        p.convert==JSERR_OK && p.x==1.25 && p.y==2.5 && p.z==3.75 &&
-       p.invalid==JSERR_EXCEPTION && p.recovered==42;
+       p.invalid==JSERR_EXCEPTION && p.recovered==42 && p.withNew==42;
     OOGFOSJSClose(&js);
     printf("OOLITE_JS_VECTOR valid=%ld converted=%ld coords=%ld,%ld,%ld exception=%ld recovered=%ld newCode=%ld status=%s\n",
        (long)p.valid,(long)p.convert,(long)(p.x*100),(long)(p.y*100),
