@@ -29,5 +29,11 @@ int OOGFOSJSSetGlobalFunction(struct OOGFOSJS *state,
 /* Evaluate a complete script for side effects, without coercing its result. */
 LONG OOGFOSJSEvaluateSource(struct OOGFOSJS *state,
                             CONST_STRPTR source, CONST_STRPTR filename);
+/* Recreate a fresh script task without replacing or closing javascript.library.
+ * The old task is ended only after the new task starts successfully.
+ * The caller must discard old JSValue handles and re-register host classes.
+ * Return 1 on success; 0 leaves the old task unchanged.
+ */
+int OOGFOSJSReset(struct OOGFOSJS *state);
 void OOGFOSJSClose(struct OOGFOSJS *state);
 #endif
