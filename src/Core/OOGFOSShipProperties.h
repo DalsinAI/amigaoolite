@@ -13,7 +13,8 @@ struct OOGFOSShipBackend {
     int (*setLong)(void *ship, unsigned property, LONG value);
 };
 enum { OOGFOS_SHIP_BOUNTY=1, OOGFOS_SHIP_HOME_SYSTEM=2,
-       OOGFOS_SHIP_MAX_ESCORTS=3, OOGFOS_SHIP_ENERGY=4,\n       OOGFOS_SHIP_MAX_ENERGY=5 };
+       OOGFOS_SHIP_MAX_ESCORTS=3, OOGFOS_SHIP_ENERGY=4,
+       OOGFOS_SHIP_MAX_ENERGY=5 };
 struct OOGFOSShipHandle {
     void *ship;
     const struct OOGFOSShipBackend *backend;
