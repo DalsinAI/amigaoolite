@@ -1,0 +1,20 @@
+Oolite GFOS retained JavaScript value native qualification
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Friendly name: AmiCradle Team 1 - Oolite JSAPI RC1
+Toolchain: GCC16.2 -m68040 -m68881 -noixemul
+Binary SHA256: 4785cca2f7bd3fd236a46d14e30f851ac11dba0bf019d5ef7ae6db4434e3dd36
+Native ACAgent transcript:
+OOLITE_JS_RETAIN_SUITE_BEGIN
+OOLITE_JS_RETAIN cargo=42 status=PASS
+OOLITE_JS_RETAIN_RC 0
+OOLITE_JS_RETAIN_SUITE_END
+
+Setup: global Oolite-style object {cargo:42}. The adapter obtains its
+canonical JSValue from the global, calls JS_Dup to retain ownership, drops
+the original handle, deletes the global property, reads cargo=42 from the
+retained handle, then frees the retained handle. Result RC 0 on AC090 guest.
+
+This is explicit JSTask-owned retention; not transparent compatibility for
+SpiderMonkey's pointer-based JS_AddValueRoot/JS_RemoveValueRoot APIs. All
+old handles are invalid after OOGFOSJSReset and must be cleared by callers.
