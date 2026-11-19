@@ -60,3 +60,54 @@ LONG OOGFOSScriptInvoke(struct OOGFOSJS *js,
     if(job.rc==JSERR_OK) *result=job.value;
     return job.rc;
 }
+
+/* OOJavaScriptEngine -callJSFunction: parity boundary for canonical GFOS.
+ * The callback's JS_Call result is an owned handle. A bare result pointer
+ * must not be confused with SpiderMonkey's in-place jsval word. */
+struct OOGFOSFunctionCall {
+    JSTask expectedTask;
+    JSValue function, self;
+    LONG argc;
+    JSValue *argv;
+    JSValue returned;
+};
+static LONG executeFunction(JSTask task, APTR user, LONG *ignored)
+{
+    struct OOGFOSFunctionCall *call=(struct OOGFOSFunctionCall *)user;
+    LONG rc;
+    if(ignored) *ignored=0;
+    if(!call || task!=call->expectedTask) return JSERR_BADARGS;
+    call->returned=NULL;
+    rc=JS_Call(task,call->function,call->self,call->argc,
+               call->argv,&call->returned);
+    if(rc!=JSERR_OK && call->returned){
+        JS_Free(task,call->returned);
+        call->returned=NULL;
+    }
+    return rc;
+}
+LONG OOGFOSScriptInvokeFunction(struct OOGFOSJS *js,
+                               struct OOGFOSGameDispatch *dispatch,
+                               JSValue function, JSValue self,
+                               LONG argc, JSValue *argv, JSValue *result)
+{
+    struct OOGFOSFunctionCall call;
+    LONG ignored=0,rc;
+    if(result) *result=NULL;
+    if(!js || !js->task || !dispatch || !function ||
+       argc<0 || (argc>0 && !argv) || !result) return JSERR_BADARGS;
+    call.expectedTask=js->task;
+    call.function=function;
+    call.self=self;
+    call.argc=argc;
+    call.argv=argv;
+    call.returned=NULL;
+    rc=OOGFOSScriptInvoke(js,dispatch,executeFunction,&call,&ignored);
+    if(rc==JSERR_OK)*result=call.returned;
+    else if(call.returned){
+        /* A failed posted callback should already have released its
+         * result, but avoid carrying a stale value across Oolite tasks. */
+        JS_Free(js->task,call.returned);
+    }
+    return rc;
+}
