@@ -10,6 +10,7 @@
 #include <math.h>
 #include <string.h>
 #include <stddef.h>
+#include <stdio.h>
 typedef struct OOGFOSVector {DOUBLE x,y,z;} Vec3;
 static const struct JSHostClass vectorClass;
 static int valid(DOUBLE value){return isfinite(value);}
@@ -186,10 +187,70 @@ static JSValue toArray(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
     if(!ok){JS_Free(task,arr);return NULL;}
     return arr;
 }
+/* Remaining pure-math methods from upstream OOJSVector.m. Quaternion
+ * rotation/coordinate-system methods require the separate OOJSQuaternion
+ * migration and are deliberately not represented by placeholders. */
+static JSValue angleTo(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
+{
+    Vec3 *a=(Vec3*)self,*b=other(task,argc,argv);
+    DOUBLE da,db,ratio;
+    (void)data;
+    if(!b)return badArgs(task);
+    da=sqrt(a->x*a->x+a->y*a->y+a->z*a->z);
+    db=sqrt(b->x*b->x+b->y*b->y+b->z*b->z);
+    ratio=da>0.0 && db>0.0 ?
+          (a->x*b->x+a->y*b->y+a->z*b->z)/(da*db):0.0;
+    if(ratio>1.0)ratio=1.0;
+    if(ratio< -1.0)ratio=-1.0;
+    return newNumber(task,acos(ratio));
+}
+static JSValue tripleProduct(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
+{
+    Vec3 *a=(Vec3*)self,*b,*c;
+    DOUBLE triple;
+    (void)data;
+    if(argc<2 || !argv)return badArgs(task);
+    b=other(task,1,argv);c=other(task,1,argv+1);
+    if(!b || !c)return badArgs(task);
+    triple=a->x*(b->y*c->z-b->z*c->y)
+          +a->y*(b->z*c->x-b->x*c->z)
+          +a->z*(b->x*c->y-b->y*c->x);
+    return newNumber(task,triple);
+}
+static JSValue textVector(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
+{
+    Vec3 *v=(Vec3*)self;char output[160];
+    int n;
+    (void)argc;(void)argv;
+    n=data ?
+      snprintf(output,sizeof(output),"Vector3D(%g, %g, %g)",v->x,v->y,v->z):
+      snprintf(output,sizeof(output),"(%g, %g, %g)",v->x,v->y,v->z);
+    if(n<0 || n>=(int)sizeof(output))
+        return JS_Throw(task,(CONST_STRPTR)"Vector3D representation too long");
+    return JS_NewString(task,(CONST_STRPTR)output,(LONG)n);
+}
+static JSValue interpolate(JSTask task,APTR self,LONG argc,JSValue *argv,APTR data)
+{
+    Vec3 *a,*b;DOUBLE t;
+    (void)self;(void)data;
+    if(argc<3 || !argv)return badArgs(task);
+    a=other(task,1,argv);
+    b=other(task,1,argv+1);
+    if(!a || !b || JS_ToDouble(task,argv[2],&t)!=JSERR_OK || !valid(t))
+        return JS_Throw(task,(CONST_STRPTR)"Vector3D.interpolate expects two vectors and a number");
+    return create(task,a->x+(b->x-a->x)*t,
+                       a->y+(b->y-a->y)*t,
+                       a->z+(b->z-a->z)*t);
+}
+
 static const struct JSHostSlot slots[]={
     {(CONST_STRPTR)"x",JSS_ACCESSOR,0,(APTR)get_x,(APTR)set_x,0,0},
     {(CONST_STRPTR)"y",JSS_ACCESSOR,0,(APTR)get_y,(APTR)set_y,0,0},
     {(CONST_STRPTR)"z",JSS_ACCESSOR,0,(APTR)get_z,(APTR)set_z,0,0},
+    {(CONST_STRPTR)"toString",JSS_METHOD,0,(APTR)textVector,NULL,0,0},
+    {(CONST_STRPTR)"toSource",JSS_METHOD,0,(APTR)textVector,NULL,1,0},
+    {(CONST_STRPTR)"angleTo",JSS_METHOD,0,(APTR)angleTo,NULL,0,1},
+    {(CONST_STRPTR)"tripleProduct",JSS_METHOD,0,(APTR)tripleProduct,NULL,0,2},
     {(CONST_STRPTR)"magnitude",JSS_METHOD,0,(APTR)magnitude,NULL,0,0},
     {(CONST_STRPTR)"squaredMagnitude",JSS_METHOD,0,(APTR)squaredMagnitude,NULL,0,0},
     {(CONST_STRPTR)"direction",JSS_METHOD,0,(APTR)direction,NULL,0,0},
