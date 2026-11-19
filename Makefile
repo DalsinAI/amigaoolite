@@ -1079,3 +1079,12 @@ $(OUT)/oolite-original-regex-objc-68040: tests/oolite_original_regex_objc_gate.m
 	  -lobjc -lpthread -lm -lz -lsocket -Wl,--end-group -o $@
 .PHONY: original-regex-objc
 original-regex-objc: $(OUT)/oolite-original-regex-objc-68040
+
+# Native game state remains C/Objective-C; JS executes OXP-supplied behaviour.
+# Two independent OXP script objects on the same canonical JavaScriptCore
+# task, original worldScripts lookup and native Vector3D + Quaternion values.
+$(OUT)/oolite-native-oxp-boundary-68040: tests/oolite_js_native_game_boundary_gate.c src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSQuaternion.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_native_game_boundary_gate.c 	  src/Core/OOGFOSJSVector.c src/Core/OOGFOSJSQuaternion.c 	  src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c 	  src/Core/OOGFOSJavaScript.c -lm -o $@
+.PHONY: js-native-oxp-boundary
+js-native-oxp-boundary: $(OUT)/oolite-native-oxp-boundary-68040
