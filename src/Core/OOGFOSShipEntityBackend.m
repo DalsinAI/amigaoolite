@@ -24,12 +24,26 @@
 - (void)setEnergy:(float)value;
 - (float)maxEnergy;
 - (void)setMaxEnergy:(float)value;
+- (int)status; /* OOEntityStatus is enum-backed int in pinned Entity.h */
+- (BOOL)isShip;
+- (BOOL)isStation;
+- (BOOL)isPlayer;
+- (BOOL)isDock;
+- (BOOL)isInSpace;
 @end
 #define MAX_ESCORTS 16
 #include "OOGFOSShipEntitySelectors.h"
 #include <limits.h>
 #include <math.h>
 #include <string.h>
+
+/* Use Oolite's pinned status table: never guess or duplicate STATUS_DEAD. */
+#define ENTRY(label, value) label = value,
+enum OOGFOSPinnedEntityStatus {
+#include "OOEntityStatus.tbl"
+};
+#undef ENTRY
+
 
 void *OOGFOSShipObjCRetain(void *ship)
 {
@@ -52,6 +66,12 @@ int OOGFOSShipObjCGetLong(void *raw,unsigned property,int32_t *out)
     }
     case OOGFOS_OOJS_HOME_SYSTEM:*out=(int32_t)[ship homeSystem];return 1;
     case OOGFOS_OOJS_MAX_ESCORTS:*out=(int32_t)[ship maxEscortCount];return 1;
+    case OOGFOS_OOJS_IS_VALID:*out=([ship status]!=STATUS_DEAD);return 1;
+    case OOGFOS_OOJS_IS_SHIP:*out=([ship isShip]!=NO);return 1;
+    case OOGFOS_OOJS_IS_STATION:*out=([ship isStation]!=NO);return 1;
+    case OOGFOS_OOJS_IS_PLAYER:*out=([ship isPlayer]!=NO);return 1;
+    case OOGFOS_OOJS_IS_DOCK:*out=([ship isDock]!=NO);return 1;
+    case OOGFOS_OOJS_IS_IN_SPACE:*out=([ship isInSpace]!=NO);return 1;
     case OOGFOS_OOJS_ENERGY:
     case OOGFOS_OOJS_MAX_ENERGY: {
         float value=property==OOGFOS_OOJS_ENERGY ?
