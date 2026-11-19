@@ -22,7 +22,7 @@ static JSValue expandDescription(JSTask task,APTR self,LONG argc,
     char key[128]={0};char result[256]={0};
     JSValue value=NULL;
     (void)self;(void)data;
-    if(argc<1 || !argv || JS_ToString(task,argv[0],key,sizeof(key))!=JSERR_OK)
+    if(argc<1 || !argv || JS_ToString(task,argv[0],key,sizeof(key))<0)
         return JS_Throw(task,"Oolite expansion key required");
     if(!strcmp(key,"[number-group-threshold]"))return JS_NewString(task,"4",-1);
     if(!strcmp(key,"[number-group-size]"))return JS_NewString(task,"3",-1);
@@ -93,6 +93,6 @@ int main(void)
     printf("OOLITE_LOCALE_FUNCTIONS bytes=%ld setup=%ld world=%ld register=%ld load=%ld check=%ld result=%ld status=%s\n",
       (long)bytes,(long)setup,(long)world,(long)registered,
       (long)load,(long)check,(long)result,ok?"PASS":"FAIL");
-    if(load!=JSERR_OK)printf("OOLITE_LOCALE_ERROR %s\\n",error);
+    if(load!=JSERR_OK)printf("OOLITE_LOCALE_ERROR %s\n",error);
     free(source);return ok?0:2;
 }
