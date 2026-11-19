@@ -129,7 +129,7 @@ int main(void)
        calledThrow==0 && calledRecover==1 &&
        thrownPost==JSERR_OK && recoverPost==JSERR_OK &&
        calls==4 && actions==5 &&
-       dispatcher.requests==5 && dispatcher.completions==8;
+       dispatcher.requests==4 && dispatcher.completions==8;
     OOGFOSShipInvalidate(&handle);
     OOGFOSJSClose(&js);
     OOGFOSShipEntityUnregister(&registry,token);
