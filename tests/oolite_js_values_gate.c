@@ -23,14 +23,14 @@ int main(void)
         OOGFOSJSValueToNumber(js.task, number, &converted) : JSERR_BADARGS;
     rc3 = OOGFOSJSIntValue(js.task, 42, &integer);
     rc4 = rc3 == JSERR_OK ?
-        OOGFOSJSValueToInt32(js.task, integer, &intResult) : JSERR_BADARGS;
+        OOGFOSJSValueToLong(js.task, integer, &intResult) : JSERR_BADARGS;
     rc5 = rc4 == JSERR_OK ?
         OOGFOSJSValueToBool(js.task, integer, &yes) : JSERR_BADARGS;
     if (rc5 == JSERR_OK) rc5 = OOGFOSJSValueToBool(js.task, NULL, &no);
     ok = rc1 == JSERR_OK && rc2 == JSERR_OK && rc3 == JSERR_OK &&
          rc4 == JSERR_OK && rc5 == JSERR_OK &&
          converted == input && intResult == 42 && yes == 1 && no == 0 &&
-         OOGFOSJSValueToInt32(js.task, integer, NULL) == JSERR_BADARGS &&
+         OOGFOSJSValueToLong(js.task, integer, NULL) == JSERR_BADARGS &&
          OOGFOSJSNumberValue(js.task, NULL, &number) == JSERR_BADARGS;
     if (number) JS_Free(js.task, number);
     if (integer) JS_Free(js.task, integer);
