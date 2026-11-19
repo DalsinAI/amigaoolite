@@ -1,0 +1,25 @@
+Oolite original OOJSScript UTF-16 source loader native qualification
+Date: 2026-11-19
+Lab: team1-oolite-jsapi-rc1-20261119
+Target: AC090 native AmigaOS 68040, GCC 16.2.0-open3
+Executable SHA256: 465643b0d8c36ec28e4a0075b41d0d7424a229a3426312aa982888005b44cc3d
+Source: src/Core/OOGFOSScriptObjects.c OOGFOSScriptObjectLoadUTF16
+
+Original Oolite JS_CompileUCScript receives NSString utf16DataWithBOM:NO
+(native-endian 16-bit units). Canonical GFOS JS_Evaluate receives UTF-8.
+The new loader validates the code units, converts both BMP and valid
+surrogate pairs to UTF-8, rejects malformed sequences and embedded zero,
+then passes the script to the existing per-script-this execution seam.
+
+Verbatim ACAgent native guest output:
+OOLITE_JS_UTF16_SUITE_BEGIN
+OOLITE_JS_UTF16 posted=0 valid=0 malformed=4 nul=4 low=4 called=1 result=42 status=PASS
+OOLITE_JS_UTF16_RC 0
+OOLITE_JS_UTF16_SUITE_END
+
+The resulting script's event method sees note.length==3 containing U+00E9
+and the UTF-16 pair U+D83D U+DE80 (U+1F680), and returns 42.
+JSERR_BADARGS=4 is observed for an unmatched high surrogate, embedded
+NUL, and unmatched low surrogate. Test executes in the JS task.
+This validates the encoding boundary, not all original OOJSScript loading,
+manifest properties, XDR cached scripts or full game operation.
