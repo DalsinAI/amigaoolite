@@ -834,7 +834,7 @@ js-sync-call: $(OUT)/oolite-js-sync-call-68040
 
 # Original Oolite default ship script: per-ship UTF-16 event invocations with
 # synchronous game-task Exec pump and guaranteed completion on errors.
-$(OUT)/oolite-js-event-invoke-68040: tests/oolite_js_event_invoke_gate.c src/Core/OOGFOSScriptEventInvoke.c src/Core/OOGFOSScriptInvoke.c src/Core/OOGFOSScriptObjects.c $(OUT)/oolite-js-sync-call-68040
+$(OUT)/oolite-js-event-invoke-68040: tests/oolite_js_event_invoke_gate.c src/Core/OOGFOSScriptEventInvoke.c src/Core/OOGFOSScriptInvoke.c src/Core/OOGFOSScriptObjects.c $(OUT)/oolite-js-sync-call-68040 $(OUT)/oolite-original-objc-event-68040
 	$(CROSS_CC) $(GFOS_JS_FLAGS) -c tests/oolite_js_event_invoke_gate.c -o $(OUT)/oolite-event-invoke-gate.o
 	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptEventInvoke.c -o $(OUT)/oolite-event-invoke.o
 	$(CROSS_CC) $(GFOS_JS_FLAGS) -c src/Core/OOGFOSScriptInvoke.c -o $(OUT)/oolite-sync-invoke.o
