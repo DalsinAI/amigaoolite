@@ -906,3 +906,12 @@ $(OUT)/oolite-js-script-prototype-68040: tests/oolite_js_script_prototype_gate.c
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_script_prototype_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-script-prototype
 js-script-prototype: $(OUT)/oolite-js-script-prototype-68040
+
+# Original OOJSScript GC-root removal: script global lookup must be truly
+# deleted, not left as enumerable undefined; retainers remain valid, and a
+# new script with the same name can be created without stale identity.
+$(OUT)/oolite-js-script-drop-68040: tests/oolite_js_script_drop_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_script_drop_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-script-drop
+js-script-drop: $(OUT)/oolite-js-script-drop-68040
