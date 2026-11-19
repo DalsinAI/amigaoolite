@@ -1,6 +1,7 @@
 #include "OOGFOSScriptObjects.h"
 #include <proto/javascript.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 static int validName(CONST_STRPTR name)
@@ -79,15 +80,24 @@ LONG OOGFOSScriptObjectLoad(JSTask task, CONST_STRPTR scriptGlobal,
 }
 LONG OOGFOSScriptObjectDrop(JSTask task, CONST_STRPTR scriptGlobal)
 {
-    JSValue global;
+    char source[100];
+    int bytes;
+    JSValue deleted=NULL;
     LONG rc;
-    if (!task || !validName(scriptGlobal)) return JSERR_BADARGS;
-    global=JS_Global(task);
-    if (!global) return JSERR_BADARGS;
-    /* GFOS NULL JSValue represents JavaScript undefined. Dropping the global
-     * reference does not forcibly destroy scripts held by other objects. */
-    rc=JS_SetProp(task,global,scriptGlobal,NULL);
-    JS_Free(task,global);
+    if(!task || !validName(scriptGlobal))return JSERR_BADARGS;
+    /* Script globals are a GFOS lookup mechanism, not properties of
+     * Oolite's original global scope. Delete the lookup entirely so
+     * enumeration and a later script re-registration behave correctly.
+     * Existing other JS references keep their own objects alive.
+     * Input is a strictly validated identifier; no untrusted JS source
+     * text can be interpolated here. */
+    bytes=snprintf(source,sizeof(source),"delete this.%s",scriptGlobal);
+    if(bytes<0 || (size_t)bytes>=sizeof(source))return JSERR_BADARGS;
+    rc=JS_Evaluate(task,(CONST_STRPTR)source,-1,
+                   (CONST_STRPTR)"oolite-script-drop.js",&deleted);
+    if(rc==JSERR_OK && (!deleted || !JS_ToBool(task,deleted)))
+        rc=JSERR_TYPE;
+    if(deleted)JS_Free(task,deleted);
     return rc;
 }
 LONG OOGFOSScriptObjectEventValue(JSTask task, CONST_STRPTR scriptGlobal,
