@@ -29,7 +29,13 @@ static LONG run(JSTask task,APTR user)
       " && Vector3D().magnitude()===0"
       " && Vector3D(a).x===3 && a instanceof Vector3D"
       " && Object.getPrototypeOf(a)===Vector3D.prototype"
-      " && Vector3D.prototype.constructor===Vector3D) ? 42:0",
+      " && Vector3D.prototype.constructor===Vector3D"
+      " && a.toSource()===\'Vector3D(3, 4, 0)\'"
+      " && typeof a.toString()===\'string\'"
+      " && eq(a.angleTo(Vector3D(0,1,0)),Math.acos(0.8))"
+      " && a.tripleProduct(b,Vector3D(0,0,1))===2"
+      " && Vector3D.interpolate(a,b,0.25).x===2.5"
+      " && Vector3D.interpolate(a,b,0.25).z===0.75) ? 42:0",
       -1,"oolite-vector-arithmetic.js",&src);
     if(p->rc==JSERR_OK) p->rc=JS_ToLong(task,src,&p->valid);
     if(src)JS_Free(task,src);src=NULL;
