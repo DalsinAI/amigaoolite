@@ -6,6 +6,8 @@ _Static_assert(sizeof(LONG)==sizeof(int32_t),"GFOS script LONG must be 32-bit");
 _Static_assert((int)OOGFOS_SHIP_BOUNTY==(int)OOGFOS_OOJS_BOUNTY,"bounty code mismatch");
 _Static_assert((int)OOGFOS_SHIP_HOME_SYSTEM==(int)OOGFOS_OOJS_HOME_SYSTEM,"homeSystem code mismatch");
 _Static_assert((int)OOGFOS_SHIP_MAX_ESCORTS==(int)OOGFOS_OOJS_MAX_ESCORTS,"escort code mismatch");
+_Static_assert((int)OOGFOS_SHIP_ENERGY==(int)OOGFOS_OOJS_ENERGY,"energy code mismatch");
+_Static_assert((int)OOGFOS_SHIP_MAX_ENERGY==(int)OOGFOS_OOJS_MAX_ENERGY,"maxEnergy code mismatch");
 void OOGFOSShipEntityRegistryInit(struct OOGFOSShipEntityRegistry *r)
 {
     if(r) OOGFOSShipTokensInit(&r->tokens);
