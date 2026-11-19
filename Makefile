@@ -934,3 +934,12 @@ $(OUT)/oolite-js-worldscripts-68040: tests/oolite_js_worldscripts_gate.c src/Cor
 	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_worldscripts_gate.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSJavaScript.c -o $@
 .PHONY: js-worldscripts
 js-worldscripts: $(OUT)/oolite-js-worldscripts-68040
+
+# Entire unmodified upstream Oolite locale-functions.js including normal
+# formatting calls, per-script this and real OOJSWorldScripts registration.
+# Stage SYS:Oolite/Scripts/oolite-locale-functions.js from pinned upstream.
+$(OUT)/oolite-js-original-locale-68040: tests/oolite_js_original_locale_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSJavaScript.c
+	@mkdir -p $(OUT)
+	$(CROSS_CC) $(GFOS_JS_FLAGS) tests/oolite_js_original_locale_gate.c src/Core/OOGFOSScriptObjects.c src/Core/OOGFOSWorldScripts.c src/Core/OOGFOSJavaScript.c -o $@
+.PHONY: js-original-locale
+js-original-locale: $(OUT)/oolite-js-original-locale-68040
