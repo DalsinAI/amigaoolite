@@ -38,11 +38,14 @@ int main(void)
     } else rc5 = JSERR_NOMEMORY;
     ok = rc1 == JSERR_OK && rc2 == JSERR_OK && rc3 == JSERR_OK &&
          rc4 == JSERR_OK && rc5 == JSERR_OK &&
-         converted == input && intResult == 42 && negativeResult == -42 &&\n         yes == 1 && no == 0 && zeroResult == 0 &&
+         converted == input && intResult == 42 && negativeResult == -42 && 
+         yes == 1 && no == 0 && zeroResult == 0 &&
          OOGFOSJSValueToLong(js.task, integer, NULL) == JSERR_BADARGS &&
          OOGFOSJSNumberValue(js.task, NULL, &number) == JSERR_BADARGS;
     if (number) JS_Free(js.task, number);
-    if (integer) JS_Free(js.task, integer);\n    if (negative) JS_Free(js.task, negative);\n    if (zero) JS_Free(js.task, zero);
+    if (integer) JS_Free(js.task, integer); 
+    if (negative) JS_Free(js.task, negative); 
+    if (zero) JS_Free(js.task, zero);
     OOGFOSJSClose(&js);
     printf("OOLITE_JS_VALUES double=%d long=%ld true=%ld false=%ld status=%s\n",
            converted == input, (long)intResult, (long)negativeResult, (long)yes, (long)no, (long)zeroResult,
