@@ -30,14 +30,16 @@ Commit: "gfosjsapi: scripts run against an object see its properties".
 
 - Every exception gfosjsapi makes pending goes through `setPendingOwned`, and with `SetEnv GFOSJSAPI_TRACE 1` it prints `gfosjsapi: pending exception: <text>`. `JS_SetPendingException`, `JS_RestoreExceptionState` and failed glue calls all go that way.
 - run4.out has no `gfosjsapi: pending` line, although run4 had the trace on. The trace goes to **stderr**. `Run >file` captures stdout only, and on this Shell (Kickstart 47.2) `*>file` is not accepted, so stderr went to the console instead of the file.
-- To catch it next time, do one of these:
-  1. Have the trace write to stdout (or to both stdout and stderr) so `Run >file` captures it.
-  2. Have the trace append to a fixed file, such as `T:gfosjsapi-trace.txt`.
-- Once the trace is in the file, the first `gfosjsapi: pending` line before "Found Scripts/oolite-global-prefix.js" shows which setup call raised it (likely a define or class-init glue call during `JS_InitStandardClasses` or Oolite's `InitOOJS*`).
+- Fixed for run5: the trace now goes to **stdout**, numbered, with the exception's JS stack (`gfosjsapi: pending exception N: ...` and `... N stack: ...`), so `Run >SYS:OoliteT5/run5.out` catches it. The first one before "Found Scripts/oolite-global-prefix.js" is the setup call that raised it; the stack names the glue helper (defineValue, defineAccessor, freeze, ...).
+- Oolite clears that exception and carries on, so it is not what stopped run4; `special` was.
+
+## Gate
+
+`tests/gfosjsapi_gate.c` now checks the prefix script's pattern: a strict script run against an object sees the object's `special` as a variable, still sees the globals, and `this.name` lands on the object.
 
 ## Still to check
 
-- Top-level `var` and `function` declarations in a script run against an object. Under `with (this)` plus `eval`, they land in `execIn`'s own scope, not on the object; SpiderMonkey puts them on the object. Oolite's world scripts set `this.name`, `this.startUp = function ...` on `this`, which works. Plain `var x` or `function f()` at the top of a script would stay local. A possible fix: evaluate in a fresh function whose scope chain is the object, then copy the declared names across (the gfosjsapi gate can test both forms).
+- Top-level `var` and `function` declarations in a script run against an object stay in `execIn`'s own scope; SpiderMonkey puts them on the object. Checked in Node with the same glue: the script's own functions still reach them (closures work), so it only matters when something outside the script looks them up as properties. oolite-global-prefix.js has none (strict, everything through `this` and an inner function). Left as it is until a script needs it.
 - How run4 ended: its oolite process (9) was still alive and ignored Ctrl-C; the screen showed the blanker. Restart the lab before run5.
 
 ## Next steps

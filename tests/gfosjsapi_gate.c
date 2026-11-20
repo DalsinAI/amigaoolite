@@ -253,6 +253,19 @@ int gfosjsapiGateBody(void)
     check("script with this = object", run(cx, o, "this.answer = 42; this.answer", &v) && isNum(cx, v, 42));
     JS_GetProperty(cx, o, "answer", &v);
     check("... property landed on the object", isNum(cx, v, 42));
+    /* the object's properties are variables in the script, as oolite-global-prefix.js uses `special` */
+    if (run(cx, global, "({ mark: 7 })", &v) && JSVAL_IS_OBJECT(v))
+        JS_DefineProperty(cx, o, "special", v, NULL, NULL, JSPROP_ENUMERATE);
+    check("script sees the object's properties as variables",
+          run(cx, o, "\"use strict\";\nthis.name = 'prefix';\n(function (special) { return special.mark; })(special)", &v)
+          && isNum(cx, v, 7));
+    check("... and still sees the globals", run(cx, o, "special.mark + add(1, 2)", &v) && isNum(cx, v, 10));
+    {
+        JSBool m = JS_FALSE;
+        JS_GetProperty(cx, o, "name", &v);
+        if (JSVAL_IS_STRING(v)) JS_StringEqualsAscii(cx, JSVAL_TO_STRING(v), "prefix", &m);
+        check("... this.name landed on the object", m);
+    }
     run(cx, o, "var topLevel = 1; function topFn() {}", NULL);
     JS_GetProperty(cx, global, "topLevel", &v);
     printf("INFO top-level var in a this-script reaches the global: %s (SpiderMonkey: yes)\n", JSVAL_IS_VOID(v) ? "no" : "yes");
