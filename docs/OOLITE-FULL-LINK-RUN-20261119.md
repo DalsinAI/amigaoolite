@@ -65,8 +65,10 @@ Built with Cradle's stove_build under the old name DalsinAI/amigaoolite (GitHub 
 | 10, 11 | first frame, drawing the player's ship (patch 0020 markers) | The mesh waited in ensureFinishedLoading for textures from the async work threads, which never deliver. Patch 0021: async work runs on the game task. |
 | 12 | **runs**: "Loading complete in about 20 s", over 1,500 ticks, the title screen's demo ships drawn textured and shaded with OpenGL 4.3 (virgl), turning and changing | |
 
-Still open, from run 12:
-- No text on the title screen. The GUI's divider line is drawn and the font texture loads (texture 13, 1024x1024), so the textured quads that draw text are the suspect.
+| 13 | **plays**: title screen with text and menu; Start New Commander, Normal Start; docked at Lave (status screen, full HUD); F1 launches into flight, with Lave's generated planet and atmosphere on the forward view | Patch 0022: GNUstep converts the font's CP1252 through iconv, which the GFOS Foundation lacks, so every string came back nil and drew nothing. Built-in Latin-1/CP1252 conversion when it does. |
+
+Still open, from run 13:
+- Lave's planet texture takes about two minutes to generate after Normal Start (OOPlanetTextureGenerator, now inline on the 68040).
 - The theme music: OpenAL streaming logs "Incomplete, trying next for OoliteTheme.ogg" every frame.
 - The trace patches 0018 and 0020 (launch and first-frame markers) can come out once the game reaches gameplay.
 
