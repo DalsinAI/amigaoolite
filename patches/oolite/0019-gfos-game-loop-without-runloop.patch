@@ -1,0 +1,52 @@
+--- a/src/Core/GameController.m
++++ b/src/Core/GameController.m
+@@ -317,7 +317,15 @@
+     // Release anything allocated above that is not required.
+     [pool release];
+ 
+-#if !OOLITE_MAC_COCOA_UI
++#if OOLITE_GFOS
++    for (;;) {
++        if (sGFOSTicking) {
++            NSAutoreleasePool *tickPool = [[NSAutoreleasePool alloc] init];
++            [self performGameTick:self];
++            [tickPool release];
++        }
++    }
++#elif !OOLITE_MAC_COCOA_UI
+     [[NSRunLoop currentRunLoop] run];
+ #endif
+ }
+@@ -418,8 +426,21 @@
+     }
+ }
+ 
++#if OOLITE_GFOS
++/* GFOS: the game runs on javascript.library's script task, where GNUstep's
++ * NSRunLoop never returns from currentRunLoop. The animation timer only
++ * calls performGameTick:, so the game loop at the end of
++ * applicationDidFinishLaunching calls it directly while this is on, and
++ * SDL's vsync paces the frames. */
++static BOOL sGFOSTicking = NO;
++#endif
++
+ - (void)startAnimationTimer
+ {
++#if OOLITE_GFOS
++    sGFOSTicking = YES;
++    return;
++#endif
+     if (timer == nil) {
+         NSTimeInterval ti = _animationTimerInterval; // default one two-hundredth of a second (should be a fair bit faster than expected frame rate ~60Hz to avoid problems with phase differences)
+ 
+@@ -435,6 +456,10 @@
+ 
+ - (void)stopAnimationTimer
+ {
++#if OOLITE_GFOS
++    sGFOSTicking = NO;
++    return;
++#endif
+     if (timer != nil) {
+         [timer invalidate];
+         [timer release];
