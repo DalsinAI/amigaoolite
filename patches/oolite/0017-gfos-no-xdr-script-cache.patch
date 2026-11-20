@@ -1,0 +1,17 @@
+--- a/src/Core/Scripting/OOJSScript.m
++++ b/src/Core/Scripting/OOJSScript.m
+@@ -23,8 +23,14 @@
+ */
+ 
+ #ifndef OO_CACHE_JS_SCRIPTS
++#if OOLITE_GFOS
++/* GFOS: no SpiderMonkey XDR. javascript.library keeps each script's
++ * bytecode between runs itself (JSA_CacheDir). */
++#define OO_CACHE_JS_SCRIPTS 0
++#else
+ #define OO_CACHE_JS_SCRIPTS 1
+ #endif
++#endif
+ 
+ #import "OOJSScript.h"
+ #import "OOJSEngineTimeManagement.h"
