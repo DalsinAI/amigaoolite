@@ -1,0 +1,38 @@
+--- a/src/Core/Entities/PlayerEntityControls.m
++++ b/src/Core/Entities/PlayerEntityControls.m
+@@ -4211,6 +4211,17 @@
+ 
+     switch (gui_screen) {
+     case GUI_SCREEN_INTRO1:
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++        {
++            static int lastState = -1;
++            int st = ([gameView isDown:13] ? 1 : 0) | ([self checkKeyPress:n_key_gui_select] ? 2 : 0) | (selectPressed ? 4 : 0) | (((int)[gui selectedRow] & 0xFF) << 3) | (1 << 12);
++            if (st != lastState) {
++                printf("OOLITE_GFOS_KEYS intro1 down13=%d check=%d selectPressed=%d row=%d\n", st & 1, (st >> 1) & 1, (st >> 2) & 1, (int)[gui selectedRow]);
++                fflush(stdout);
++                lastState = st;
++            }
++        }
++#endif
+         [self handleGUIUpDownArrowKeys];
+ 
+         int row_zero = 21;
+@@ -4317,6 +4328,17 @@
+         break;
+ 
+     case GUI_SCREEN_NEWGAME:
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++        {
++            static int lastState = -1;
++            int st = ([gameView isDown:13] ? 1 : 0) | ([self checkKeyPress:n_key_gui_select] ? 2 : 0) | (selectPressed ? 4 : 0) | (((int)[gui selectedRow] & 0xFF) << 3) | (2 << 12);
++            if (st != lastState) {
++                printf("OOLITE_GFOS_KEYS newgame down13=%d check=%d selectPressed=%d row=%d\n", st & 1, (st >> 1) & 1, (st >> 2) & 1, (int)[gui selectedRow]);
++                fflush(stdout);
++                lastState = st;
++            }
++        }
++#endif
+         if ([self handleGUIUpDownArrowKeys]) {
+             [self showScenarioDetails];
+         }
