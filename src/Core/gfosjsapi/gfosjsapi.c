@@ -1041,6 +1041,16 @@ static JSBool defineAccessor(JSObject *obj, const char *name, jsid id, JSPropert
     if (!a) return JS_FALSE;
     a->getter = getter && getter != JS_PropertyStub ? getter : NULL;
     a->setter = setter && setter != JS_StrictPropertyStub ? setter : NULL;
+    if (classHooks) {
+        /* SpiderMonkey takes a missing getter or setter from the class of the
+           object the property is defined on, when it is defined: Entity's
+           properties on Entity.prototype use EntityGetProperty even when read
+           from a PlayerShip, whose own getter knows only its own ids
+           ("Invalid property identifier -10 for instance of PlayerShip"). */
+        JSClass *c = JS_GetClass(CX, obj);
+        if (c && !a->getter && c->getProperty && c->getProperty != JS_PropertyStub) a->getter = c->getProperty;
+        if (c && !a->setter && c->setProperty && c->setProperty != JS_StrictPropertyStub) a->setter = c->setProperty;
+    }
     a->id = id;
     a->flags = (uint8)attrs;
     a->name = name ? strdup(name) : NULL;
