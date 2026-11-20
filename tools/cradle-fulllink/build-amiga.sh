@@ -15,6 +15,8 @@
 # line per missing symbol, with how many references), compile-errors.txt,
 # summary.txt. Team 5, 19 Nov 2026.
 set -u
+# one order for globs and sorts, so a commit always links the same way
+export LC_ALL=C
 HERE="$(cd "$(dirname "$0")/../.." && pwd)"
 OUT=${OUT:-$HERE/out/fulllink}
 W=${OOLITE_WORK:-$HOME/t5scratch/oolite-20261119}
@@ -119,7 +121,12 @@ rm -f "\$obj.tmp"; echo "ERROR \$name" >&2; exit 1
 EOF
 mkdir -p "$OUT/logs"
 t0=$(date +%s)
-grep -v '^$' "$HERE/build/oolite-meson-242.list" | xargs -P "$JOBS" -n 1 sh "$OUT/cc1.sh" > "$OUT/objects.txt" 2> "$OUT/compile-errors.txt"
+grep -v '^$' "$HERE/build/oolite-meson-242.list" | xargs -P "$JOBS" -n 1 sh "$OUT/cc1.sh" > "$OUT/objects.done" 2> "$OUT/compile-errors.txt"
+# the link takes the objects in the list's order, not the order the parallel compile finished them:
+# each is in the cache now, so cc1.sh only names it (a failed one is left out, as before)
+grep -v '^$' "$HERE/build/oolite-meson-242.list" | while read -r n; do
+  grep -qx "ERROR $n" "$OUT/compile-errors.txt" || sh "$OUT/cc1.sh" "$n"
+done > "$OUT/objects.txt" 2>/dev/null
 nobj=$(grep -c '\.o$' "$OUT/objects.txt"); nerr=$(grep -c '^ERROR' "$OUT/compile-errors.txt")
 say "upstream: $nobj objects, $nerr failed ($(( $(date +%s) - t0 )) s)"
 if [ "$nerr" -gt 0 ]; then
