@@ -67,7 +67,8 @@ PS="$OUT/patched-src"
 rm -rf "$PS"; mkdir -p "$PS/src"
 for name in Core/GameController.m Core/OOLogOutputHandler.m Core/OOLogging.m Core/Universe.m Core/OOCPUInfo.m \
             Core/OOCPUInfo.h Core/OOLogHeader.m Core/OOOpenGL.m Core/OOPolygonSprite.m SDL/EXRSnapshotSupport/miniz.c \
-            SDL/main.m SDL/OOSDLJoystickManager.m SDL/MyOpenGLView.m Core/Scripting/OOJSScript.m; do
+            SDL/main.m SDL/OOSDLJoystickManager.m SDL/MyOpenGLView.m Core/Scripting/OOJSScript.m \
+            Core/OOAsyncWorkManager.m; do
   mkdir -p "$PS/src/$(dirname "$name")"; cp "$U/src/$name" "$PS/src/$name"
 done
 for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-gfos-native-glu-header \
@@ -76,7 +77,8 @@ for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-g
          0011-gfos-defer-early-log-preferences 0013-gfos-controller-default-tick \
          0014-gfos-sdl3-joystick-lifecycle 0015-gfos-view-early-prefs-fallback 0016-gfos-main-on-script-task \
          0017-gfos-no-xdr-script-cache 0018-gfos-launch-trace \
-         0019-gfos-game-loop-without-runloop 0020-gfos-draw-trace; do
+         0019-gfos-game-loop-without-runloop 0020-gfos-draw-trace \
+         0021-gfos-async-work-on-the-game-task; do
   (cd "$PS" && patch -s -N -p1 < "$HERE/patches/oolite/$p.patch") || { say "PATCH FAILED $p"; exit 1; }
 done
 
