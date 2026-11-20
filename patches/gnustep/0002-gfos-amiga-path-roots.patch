@@ -1,0 +1,59 @@
+--- a/Source/NSString.m	2026-11-19 21:12:53.771608679 +0000
++++ b/Source/NSString.m	2026-11-19 21:12:53.808985564 +0000
+@@ -484,6 +484,29 @@
+ 	}
+       else
+ 	{
++#if defined(__amigaos__)
++	  /* AmigaOS: a path is rooted by its device, volume or assign name,
++	   * "SYS:", "RAM:", "PROGDIR:" (or ":" for the current volume): the
++	   * root is everything up to and including the first ':' that comes
++	   * before any '/'. */
++	  {
++	    unsigned	i;
++
++	    for (i = 0; i < l; i++)
++	      {
++		unichar	ch = [s characterAtIndex: i];
++
++		if (ch == ':')
++		  {
++		    return i + 1;
++		  }
++		if (pathSepMember(ch))
++		  {
++		    break;
++		  }
++	      }
++	  }
++#endif
+ 	  if (pathSepMember(c))
+ 	    {
+ 	      root++;
+@@ -4678,6 +4701,14 @@
+        * append to the drive specification directly, leaving a relative
+        * path like c:foo
+        */
++#if defined(__amigaos__)
++      /* AmigaOS: "SYS:" + "x" is "SYS:x"; a '/' there would mean the parent. */
++      if (length > 0 && buf[length-1] == ':')
++	{
++	  ;
++	}
++      else
++#endif
+       if (length != 2 || buf[1] != ':' || GSPathHandlingUnix() == YES
+ 	|| buf[0] < 'A' || buf[0] > 'z' || (buf[0] > 'Z' && buf[0] < 'a')
+ 	|| (root > 0 && pathSepMember([aString characterAtIndex: root-1])))
+@@ -5728,6 +5759,11 @@
+     {
+       return YES;		// Begins with tilde ... absolute
+     }
++#if defined(__amigaos__)
++  /* AmigaOS: absolute when it starts with a device, volume or assign. */
++  root = rootOf(self, l);
++  return (root > 0 && [self characterAtIndex: root - 1] == ':') ? YES : NO;
++#endif
+ 
+   /*
+    * Any string beginning with '/' is absolute ... except in windows mode

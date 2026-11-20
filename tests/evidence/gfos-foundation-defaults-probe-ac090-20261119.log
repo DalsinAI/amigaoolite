@@ -1,0 +1,44 @@
+INFO argv[0] System:OoliteT5/DefaultsProbe
+STEP initialized
+INFO user amiga
+INFO home SYS:Prefs/Env-Archive
+GNUSTEP_CONFIG_FILE value ('/tmp/gfopenfoundation-build-20261118/host-gnustep/etc/GNUstep/GNUstep.conf') is not an absolute path.  Please rebuild GNUstep-base specifying a valid path to the config file.
+INFO defaults root SYS:Prefs/Env-Archive/GNUstep/Defaults
+STEP NSThread sleepForTimeInterval 0.1
+STEP NSDate
+INFO interval 0.000000
+STEP createDirectoryAtPath PROGDIR:probe-dir
+FAIL createDirectory
+STEP createDirectoryAtPath with intermediates
+PASS createDirectory intermediates
+STEP standardUserDefaults (before any time zone)
+PASS early standardUserDefaults
+STEP NSTimeZone systemTimeZone
+2026-11-19 21:38:20.740 DefaultsProbe[1075825168:1103357578] Warning: [NSBundle+bundleForClass:] unable to determine version of library '(null)' containing 'NSObject' for executable 'System:OoliteT5/DefaultsProbe'
+INFO system time zone GMT+0000
+STEP NSTimeZone localTimeZone
+INFO local time zone GMT+0000
+STEP NSDate description
+INFO now 2026-11-19 21:38:20 +0000
+STEP fileAttributesAtPath
+PASS attributes, date 2026-11-19 21:14:20 +0000
+STEP NSDistributedLock
+2026-11-19 21:38:20.760 DefaultsProbe[1075825168:1103357578] parent directory of lock file 'PROGDIR:probe.lck' is not writable
+STEP NSDistributedLock tryLock
+FAIL tryLock
+STEP NSDistributedLock unlock
+STEP [NSUserDefaults class]
+STEP standardUserDefaults
+PASS standardUserDefaults
+PASS defaults set/get
+STEP synchronize
+PASS synchronize
+STEP NSLog
+2026-11-19 21:38:21.220 DefaultsProbe[1075825168:1103357578] NSLog works
+STEP exception: @throw an NSException directly
+PASS direct @throw caught
+STEP exception: stack trace alone
+INFO 1 return addresses
+STEP exception: +raise:format:
+PASS +raise:format: caught
+STEP done

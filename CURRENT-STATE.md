@@ -6,6 +6,11 @@ The repository and its real build/test artifacts are authoritative; refresh
 the pinned heads and audit before starting new work. Update this document
 in the SAME GitHub change that advances a release milestone.
 
+## In flight (Team 5, 19 Nov 2026)
+
+- Branch `team5/gfos-runtime-foundation-20261119`: the game on javascript.library's script task (direct JS calls; gate PASS on AC090), and eight GFOS toolchain/Foundation faults fixed (exceptions need `-fexceptions` at compile **and link**; Foundation rebuilt for 68040+FPU with native exceptions; user/group/uid shim; Amiga path roots; absolute argv[0]). NSUserDefaults, NSLog and time zones now work. See `docs/GFOS-RUNTIME-FOUNDATION-20261119.md`.
+- Dale's route, 19 Nov: SpiderMonkey's code and libraries go completely; its API *names* may stay, through a header implemented on javascript.library. Team 5 owns `OOJavaScriptEngine.m` and that header; please don't start on either without a word in `teams/team5/`.
+
 ## Goal and acceptance contract
 
 Deliver original upstream Oolite 1.93.1 as a playable native AmigaOS 3.2.3
