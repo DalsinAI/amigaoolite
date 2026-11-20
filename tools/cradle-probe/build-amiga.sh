@@ -12,7 +12,7 @@ echo "== out/gnustep-base-gfos"; ls "$W/amigaoolite/out/gnustep-base-gfos" | hea
 echo "== rc1 dependencies"; ls "$RC/dependencies" "$RC/dependencies"/* 2>&1 | head -60
 echo "== rc1 source"; ls "$RC/source" "$RC/toolchain" "$RC/foundation" 2>&1 | head -40
 echo "== libs"
-for n in libgfosfoundationports.a libgfosfoundationipc.a libffi.a libvorbisfile.a libogg.a libopenal.a libGLU.a libSDL3.a libpng.a libz.a javascript.h jsl.h NSMessagePort.m.o; do
+for n in libgfosfoundationports.a libgfosfoundationipc.a libffi.a libopenal.a libGLU.a libSDL3.a libpng.a libz.a javascript.h jsl.h NSMessagePort.m.o; do
   echo "-- $n"; find "$W" "$RC" "$STOVE" -name "$n" 2>/dev/null | head -4
 done
 echo "== SDL3 headers"; find "$RC" "$W" -path '*SDL3/SDL_video.h' 2>/dev/null | head -3
