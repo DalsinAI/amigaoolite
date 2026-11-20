@@ -7,7 +7,7 @@
 #
 # Inputs are daletop's, by path, until the pinned SDK inputs of Dale's
 # decision 4 exist (team5 work tree for the upstream checkout and the
-# Foundation; the oolite-rc1 lab folder for SDL3, OpenAL, GLU, ogg/vorbis and
+# Foundation; the oolite-rc1 lab folder for SDL3, OpenAL, GLU and
 # libffi). Objects are cached by content in $CACHE, so a rerun compiles only
 # what changed.
 #
@@ -28,7 +28,6 @@ PTH=${GFOS_PTHREAD_LIB:-$W/amigaoolite/out/libpthread-gfos.a}
 GLIB=${GFOS_LIB_DIR:-$RC/foundation/gfopengnustep/ci-check/out}
 FFI=${GFOS_FFI_LIB:-$RC/foundation/gfopenfoundation-build/target-libffi/lib/libffi.a}
 RTG=${GFOS_RTG:-$RC/dependencies/gfopenrtg}
-OGG=${OGG_ROOT:-$RC/dependencies/legacy-debug/ogg-vorbis-stage}
 SDK=${GFOPENSDK:-$W/gfopensdk}
 # SDL3 with OpenGL (gfopenrtg team5/sdl3-opengl-20261119, SDL3.module 3): that
 # branch's Cradle build until it is merged and in the pinned SDK inputs.
@@ -49,7 +48,7 @@ missing=0
 for f in "$CC" "$U/src/SDL/main.m" "$FD/libgnustep-base.a" "$FD/Headers/Foundation/Foundation.h" "$PTH" \
          "$GLIB/libgfosfoundationports.a" "$GLIB/libgfosfoundationipc.a" "$FFI" "$SDL3D/libSDL3.a" \
          "$SDL3D/include/SDL3/SDL_video.h" "$RTG/build/libopenal.a" "$RTG/build/include/AL/al.h" \
-         "$RTG/build/glu/lib/libGLU.a" "$RTG/build/glu/include/GL/glu.h" "$OGG/lib/libvorbisfile.a" \
+         "$RTG/build/glu/lib/libGLU.a" "$RTG/build/glu/include/GL/glu.h" \
          "$SDK/Include/proto/javascript.h"; do
   test -e "$f" || { say "MISSING $f"; missing=1; }
 done
@@ -74,7 +73,7 @@ for name in Core/GameController.m Core/OOLogOutputHandler.m Core/OOLogging.m Cor
             Core/Materials/OOPlanetTextureGenerator.m SDL/MyOpenGLView+Input.m Core/Scripting/OOJSSystem.m \
             Core/Scripting/OOJSShipGroup.m Core/Scripting/OOJSEquipmentInfo.m Core/Scripting/OOJSSystemInfo.m \
             Core/AI.m Core/Entities/PlayerEntitySound.m Core/Entities/ShipEntityAI.m Core/Scripting/OOJSShip.m \
-            Core/OOOpenGLExtensionManager.m Core/Materials/OOShaderProgram.m Core/OOOpenALController.m Core/OOALSoundDecoder.m; do
+            Core/OOOpenGLExtensionManager.m Core/Materials/OOShaderProgram.m Core/OOOpenALController.m; do
   mkdir -p "$PS/src/$(dirname "$name")"; cp "$U/src/$name" "$PS/src/$name"
 done
 for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-gfos-native-glu-header \
@@ -89,9 +88,11 @@ for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-g
          0025-gfos-logging-preferences-after-start-up \
          0027-gfos-root-cached-js-objects 0028-gfos-delayed-performs-without-runloop \
          0029-gfos-default-detail-minimum 0030-gfos-opengl-3.1-on-the-pi \
-         0031-gfos-openal-ahi-mix 0032-vorbis-samples-in-cpu-byte-order; do
+         0031-gfos-openal-ahi-mix; do
   (cd "$PS" && patch -s -N -p1 < "$HERE/patches/oolite/$p.patch") || { say "PATCH FAILED $p"; exit 1; }
 done
+# Ogg Vorbis through the datatypes (and AkikoPlus), not libvorbis: the decoder is ours on GFOS
+mkdir -p "$PS/src/Core"; cp "$HERE/src/Core/OOALSoundDecoder-gfos.m" "$PS/src/Core/OOALSoundDecoder.m"
 
 # (single-quoted inside: DEFS is written into cc1.sh as text)
 DEFS="-DOOLITE_GFOS=1 -DOOLITE_BIG_ENDIAN=1 -DGL_GLEXT_PROTOTYPES=1 -DGNUSTEP_BASE_LIBRARY=1 -DNDEBUG -DOOLITE_GFOS_STARTUP_TRACE=1 \
@@ -100,7 +101,7 @@ INCS="-I $HERE/src/Core/gfosjsapi -I $PS/src/Core -I $HERE/src/Core -I $FD/Heade
  -I $U/src/Core -I $U/src/Core/Tables -I $U/src/Core/Entities -I $U/src/Core/Materials -I $U/src/Core/Scripting \
  -I $U/src/Core/Debug -I $U/src/Core/OXPVerifier -I $U/src/Core/MiniZip -I $U/src/SDL -I $U/src/SDL/EXRSnapshotSupport \
  -I $P/m68k-amigaos/ndk-include.vendor -I $P/m68k-amigaos/include -I $P/m68k-amigaos/port-deps/include \
- -I $SDL3D/include -I $RTG/build/include -I $RTG/build/glu/include -I $OGG/include"
+ -I $SDL3D/include -I $RTG/build/include -I $RTG/build/glu/include"
 # no build paths in the objects (__FILE__ in asserts and logs): the same commit gives the same bytes anywhere
 MAPS="-ffile-prefix-map=$HERE=amigaoolite -ffile-prefix-map=$U=oolite -ffile-prefix-map=$PS=patched-src"
 COMMON="$MAPS -O2 -m68040 -m68881 -noixemul -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w $DEFS"
@@ -148,6 +149,7 @@ gc onscript $GC -I "$HERE/src/Core" -I "$SDK/Include" -I "$P/m68k-amigaos/ndk-in
 gc process $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSProcess.c" -o "$G/OOGFOSProcess.o"
 gc passwd $GC -idirafter "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSPasswd.c" -o "$G/OOGFOSPasswd.o"
 gc sysinfo $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSSystemInfo.c" -o "$G/OOGFOSSystemInfo.o"
+gc dtsound $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSDTSound.c" -o "$G/OOGFOSDTSound.o"
 gc preflight $GC -I "$HERE/src/Core" -I "$U/src/Core/MiniZip" -I "$P/m68k-amigaos/port-deps/include" -c "$HERE/src/Core/OOOXZArchivePreflight.c" -o "$G/OOOXZArchivePreflight.o"
 gc deferred "$CC" $MAPS -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobjc-exceptions -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w \
    -I "$HERE/src/Core" -I "$FD/Headers" -c "$HERE/src/Core/OOGFOSDeferredCalls.m" -o "$G/OOGFOSDeferredCalls.o"
@@ -170,7 +172,7 @@ rm -f "$EXE"
   -Wl,--start-group -Wl,--whole-archive "$FD/libgnustep-base.a" -Wl,--no-whole-archive \
   "$GLIB/libgfosfoundationports.a" "$GLIB/libgfosfoundationipc.a" \
   "$SDL3D/libSDL3.a" "$RTG/build/libopenal.a" "$RTG/build/glu/lib/libGLU.a" \
-  "$OGG/lib/libvorbisfile.a" "$OGG/lib/libvorbis.a" "$OGG/lib/libogg.a" "$PD/libpng.a" "$GLLIB" \
+  "$PD/libpng.a" "$GLLIB" \
   -lobjc "$FFI" "$PD/libz.a" "$PTH" -lsocket -lm -Wl,--end-group -o "$EXE" > "$OUT/link.log" 2>&1
 lrc=$?
 grep -o "undefined reference to \`[^']*'" "$OUT/link.log" | sed "s/undefined reference to \`//;s/'$//" | sort | uniq -c | sort -rn > "$OUT/undefined.txt"
