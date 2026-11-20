@@ -53,15 +53,10 @@ for f in "$CC" "$U/src/SDL/main.m" "$FD/libgnustep-base.a" "$FD/Headers/Foundati
   test -e "$f" || { say "MISSING $f"; missing=1; }
 done
 test "$(git -C "$U" rev-parse HEAD 2>/dev/null)" = 21978c37b2f11c8664adf3e2062efc1d0c875979 || { say "MISSING upstream at 21978c37 in $U"; missing=1; }
-PD=""
-for d in "$P/m68k-amigaos/port-deps/lib" "$RC/toolchain/prefix/m68k-amigaos/port-deps/lib"; do
-  test -r "$d/libpng.a" && test -r "$d/libz.a" && { PD="$d"; break; }
-done
-test -n "$PD" || { say "MISSING port-deps libpng.a/libz.a"; missing=1; }
 GLLIB=$(find "$RTG/build" "$RTG/sdk" "$P/m68k-amigaos/lib" -name libGL.a 2>/dev/null | head -1)
 test -n "$GLLIB" || { say "MISSING libGL.a"; missing=1; }
 test $missing -eq 0 || { say "inputs missing: stopping"; exit 1; }
-say "inputs: upstream 21978c37; foundation $FD; port-deps $PD; libGL $GLLIB; SDL3 $SDL3D; jobs $JOBS"
+say "inputs: upstream 21978c37; foundation $FD; libGL $GLLIB; SDL3 $SDL3D; jobs $JOBS"
 
 # -- patched upstream copies (never the checkout itself)
 PS="$OUT/patched-src"
@@ -101,7 +96,7 @@ cp "$HERE/src/Core/OOPNGTextureLoader-gfos.h" "$PS/src/Core/Materials/OOPNGTextu
 # (single-quoted inside: DEFS is written into cc1.sh as text)
 DEFS="-DOOLITE_GFOS=1 -DOOLITE_BIG_ENDIAN=1 -DGL_GLEXT_PROTOTYPES=1 -DGNUSTEP_BASE_LIBRARY=1 -DNDEBUG -DOOLITE_GFOS_STARTUP_TRACE=1 \
  -DUSE_FILE32API=1 -DOO_VERSION_FULL='\"1.93.1-255\"' -DOO_BUILDER='\"AmiCradle Team\"' -DOO_BUILD_DATE='\"2026-11-19\"'"
-INCS="-I $HERE/src/Core/gfosjsapi -I $PS/src/Core -I $HERE/src/Core -I $FD/Headers \
+INCS="-I $HERE/src/Core/gfos-zlib -I $HERE/src/Core/gfosjsapi -I $PS/src/Core -I $HERE/src/Core -I $FD/Headers \
  -I $U/src/Core -I $U/src/Core/Tables -I $U/src/Core/Entities -I $U/src/Core/Materials -I $U/src/Core/Scripting \
  -I $U/src/Core/Debug -I $U/src/Core/OXPVerifier -I $U/src/Core/MiniZip -I $U/src/SDL -I $U/src/SDL/EXRSnapshotSupport \
  -I $P/m68k-amigaos/ndk-include.vendor -I $P/m68k-amigaos/include -I $P/m68k-amigaos/port-deps/include \
@@ -155,6 +150,8 @@ gc passwd $GC -idirafter "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core
 gc sysinfo $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSSystemInfo.c" -o "$G/OOGFOSSystemInfo.o"
 gc dtsound $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSDTSound.c" -o "$G/OOGFOSDTSound.o"
 gc dtpicture $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSDTPicture.c" -o "$G/OOGFOSDTPicture.o"
+gc zlib $GC -I "$HERE/src/Core/gfos-zlib" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/gfos-zlib/zlib-on-zlibrary.c" -o "$G/zlib-on-zlibrary.o"
+gc noexr $GC -c "$HERE/src/Core/OOGFOSNoEXR.c" -o "$G/OOGFOSNoEXR.o"
 gc preflight $GC -I "$HERE/src/Core" -I "$U/src/Core/MiniZip" -I "$P/m68k-amigaos/port-deps/include" -c "$HERE/src/Core/OOOXZArchivePreflight.c" -o "$G/OOOXZArchivePreflight.o"
 gc deferred "$CC" $MAPS -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobjc-exceptions -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w \
    -I "$HERE/src/Core" -I "$FD/Headers" -c "$HERE/src/Core/OOGFOSDeferredCalls.m" -o "$G/OOGFOSDeferredCalls.o"
@@ -173,12 +170,12 @@ EXE="$OUT/oolite-68040"
 rm -f "$EXE"
 "$CXX" -fexceptions -m68040 -m68881 -noixemul -Wl,--wrap=exit -Wl,--wrap=getcwd -Wl,-Map,"$OUT/oolite.map" \
   $(cat "$OUT/objects.txt") "$G"/*.o \
-  -L "$PD" -L "$P/m68k-amigaos/libnix/lib" \
+  -L "$P/m68k-amigaos/libnix/lib" \
   -Wl,--start-group -Wl,--whole-archive "$FD/libgnustep-base.a" -Wl,--no-whole-archive \
   "$GLIB/libgfosfoundationports.a" "$GLIB/libgfosfoundationipc.a" \
   "$SDL3D/libSDL3.a" "$RTG/build/libopenal.a" "$RTG/build/glu/lib/libGLU.a" \
   "$GLLIB" \
-  -lobjc "$FFI" "$PD/libz.a" "$PTH" -lsocket -lm -Wl,--end-group -o "$EXE" > "$OUT/link.log" 2>&1
+  -lobjc "$FFI" "$PTH" -lsocket -lm -Wl,--end-group -o "$EXE" > "$OUT/link.log" 2>&1
 lrc=$?
 grep -o "undefined reference to \`[^']*'" "$OUT/link.log" | sed "s/undefined reference to \`//;s/'$//" | sort | uniq -c | sort -rn > "$OUT/undefined.txt"
 grep -o "multiple definition of \`[^']*'" "$OUT/link.log" | sort -u > "$OUT/multiple.txt"
