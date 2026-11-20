@@ -147,7 +147,7 @@ gc extractor "$CC" -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobj
 # -- gfosjsapi's unit gate (run it on GFOS with a 1 MB stack): out/gfosjsapi-gate
 GT="$OUT/gate"; mkdir -p "$GT"
 gc gate $GC -I "$HERE/src/Core/gfosjsapi" -c "$HERE/tests/gfosjsapi_gate.c" -o "$GT/gate.o" &&
-gc gatemain $GC -I "$HERE/src/Core/gfosjsapi" -c "$HERE/tests/gfosjsapi_gate_main.c" -o "$GT/gate_main.o" &&
+gc gatemain $GC -I "$HERE/src/Core/gfosjsapi" -I "$SDK/Include" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/tests/gfosjsapi_gate_main.c" -o "$GT/gate_main.o" &&
 gc gatelink "$CC" -m68040 -m68881 -noixemul "$GT/gate_main.o" "$GT/gate.o" "$G/gfosjsapi.o" "$G/oojsl.o" -lm -o "$OUT/gfosjsapi-gate" &&
   say "gate: $OUT/gfosjsapi-gate"
 
