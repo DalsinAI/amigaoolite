@@ -73,7 +73,7 @@ for name in Core/GameController.m Core/OOLogOutputHandler.m Core/OOLogging.m Cor
             Core/Materials/OOPlanetTextureGenerator.m SDL/MyOpenGLView+Input.m Core/Scripting/OOJSSystem.m \
             Core/Scripting/OOJSShipGroup.m Core/Scripting/OOJSEquipmentInfo.m Core/Scripting/OOJSSystemInfo.m \
             Core/AI.m Core/Entities/PlayerEntitySound.m Core/Entities/ShipEntityAI.m Core/Scripting/OOJSShip.m \
-            Core/OOOpenGLExtensionManager.m Core/Materials/OOShaderProgram.m Core/OOOpenALController.m; do
+            Core/OOOpenGLExtensionManager.m Core/Materials/OOShaderProgram.m Core/OOOpenALController.m Core/Materials/OOTextureLoader.m; do
   mkdir -p "$PS/src/$(dirname "$name")"; cp "$U/src/$name" "$PS/src/$name"
 done
 for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-gfos-native-glu-header \
@@ -93,6 +93,10 @@ for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-g
 done
 # Ogg Vorbis through the datatypes (and AkikoPlus), not libvorbis: the decoder is ours on GFOS
 mkdir -p "$PS/src/Core"; cp "$HERE/src/Core/OOALSoundDecoder-gfos.m" "$PS/src/Core/OOALSoundDecoder.m"
+# PNG textures through the picture datatypes (and AkikoPlus), not libpng
+mkdir -p "$PS/src/Core/Materials"
+cp "$HERE/src/Core/OOPNGTextureLoader-gfos.m" "$PS/src/Core/Materials/OOPNGTextureLoader.m"
+cp "$HERE/src/Core/OOPNGTextureLoader-gfos.h" "$PS/src/Core/Materials/OOPNGTextureLoader.h"
 
 # (single-quoted inside: DEFS is written into cc1.sh as text)
 DEFS="-DOOLITE_GFOS=1 -DOOLITE_BIG_ENDIAN=1 -DGL_GLEXT_PROTOTYPES=1 -DGNUSTEP_BASE_LIBRARY=1 -DNDEBUG -DOOLITE_GFOS_STARTUP_TRACE=1 \
@@ -150,6 +154,7 @@ gc process $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$
 gc passwd $GC -idirafter "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSPasswd.c" -o "$G/OOGFOSPasswd.o"
 gc sysinfo $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSSystemInfo.c" -o "$G/OOGFOSSystemInfo.o"
 gc dtsound $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSDTSound.c" -o "$G/OOGFOSDTSound.o"
+gc dtpicture $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSDTPicture.c" -o "$G/OOGFOSDTPicture.o"
 gc preflight $GC -I "$HERE/src/Core" -I "$U/src/Core/MiniZip" -I "$P/m68k-amigaos/port-deps/include" -c "$HERE/src/Core/OOOXZArchivePreflight.c" -o "$G/OOOXZArchivePreflight.o"
 gc deferred "$CC" $MAPS -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobjc-exceptions -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w \
    -I "$HERE/src/Core" -I "$FD/Headers" -c "$HERE/src/Core/OOGFOSDeferredCalls.m" -o "$G/OOGFOSDeferredCalls.o"
@@ -172,7 +177,7 @@ rm -f "$EXE"
   -Wl,--start-group -Wl,--whole-archive "$FD/libgnustep-base.a" -Wl,--no-whole-archive \
   "$GLIB/libgfosfoundationports.a" "$GLIB/libgfosfoundationipc.a" \
   "$SDL3D/libSDL3.a" "$RTG/build/libopenal.a" "$RTG/build/glu/lib/libGLU.a" \
-  "$PD/libpng.a" "$GLLIB" \
+  "$GLLIB" \
   -lobjc "$FFI" "$PD/libz.a" "$PTH" -lsocket -lm -Wl,--end-group -o "$EXE" > "$OUT/link.log" 2>&1
 lrc=$?
 grep -o "undefined reference to \`[^']*'" "$OUT/link.log" | sed "s/undefined reference to \`//;s/'$//" | sort | uniq -c | sort -rn > "$OUT/undefined.txt"
