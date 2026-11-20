@@ -198,12 +198,8 @@ static NSString* OOGFOSUnzipToTemp(NSString* zipFile, NSString* containedFile)
     size_t want = OOAL_STREAM_CHUNK_SIZE / frameSize, done = 0;
 
     _readStarted = YES;
-    while (done < want) {
-        unsigned long got = OOGFOSDTSoundRead(_sound, (short*)(buffer + done * frameSize), want - done);
-        if (got == 0)
-            break;
-        done += got;
-    }
+    // the stream's own process decodes ahead, four refills' worth
+    done = OOGFOSDTSoundStream(_sound, (short*)buffer, want, 4 * OOAL_STREAM_CHUNK_SIZE);
     return done * frameSize;
 }
 

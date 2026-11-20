@@ -23,4 +23,11 @@ unsigned long OOGFOSDTSoundRead(OOGFOSDTSound *s, short *buffer, unsigned long m
 int OOGFOSDTSoundRewind(OOGFOSDTSound *s);
 void OOGFOSDTSoundClose(OOGFOSDTSound *s);
 
+/* Streaming (music): a process of its own ("Oolite sound stream") decodes
+ * ahead into a ring of ringBytes, so the game's task only copies. The first
+ * call starts it; OOGFOSDTSoundRewind and OOGFOSDTSoundClose stop it. The
+ * same 16-bit frames as OOGFOSDTSoundRead; 0 at the end. Call it, Rewind and
+ * Close from one task. */
+unsigned long OOGFOSDTSoundStream(OOGFOSDTSound *s, short *buffer, unsigned long maxFrames, unsigned long ringBytes);
+
 #endif

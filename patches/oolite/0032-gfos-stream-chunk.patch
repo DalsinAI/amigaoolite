@@ -1,0 +1,17 @@
+--- a/src/Core/OOALSoundDecoder.h
++++ b/src/Core/OOALSoundDecoder.h
+@@ -32,7 +32,14 @@
+ 
+ #import <Foundation/Foundation.h>
+ 
++#if OOLITE_GFOS
++/*	GFOS: 64 KB a refill, about 0.37 s of 44.1 kHz stereo. A refill is copied
++    from what the stream's own process decoded ahead; at 400 KB (2.3 s) the
++    game's task waited on each one long enough to drop frames. */
++#define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 65536)
++#else
+ #define OOAL_STREAM_CHUNK_SIZE (sizeof(char) * 409600)
++#endif
+ 
+ @interface OOALSoundDecoder : NSObject
+ 

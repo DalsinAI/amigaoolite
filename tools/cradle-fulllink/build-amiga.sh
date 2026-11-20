@@ -68,7 +68,7 @@ for name in Core/GameController.m Core/OOLogOutputHandler.m Core/OOLogging.m Cor
             Core/Materials/OOPlanetTextureGenerator.m SDL/MyOpenGLView+Input.m Core/Scripting/OOJSSystem.m \
             Core/Scripting/OOJSShipGroup.m Core/Scripting/OOJSEquipmentInfo.m Core/Scripting/OOJSSystemInfo.m \
             Core/AI.m Core/Entities/PlayerEntitySound.m Core/Entities/ShipEntityAI.m Core/Scripting/OOJSShip.m \
-            Core/OOOpenGLExtensionManager.m Core/Materials/OOShaderProgram.m Core/OOOpenALController.m; do
+            Core/OOOpenGLExtensionManager.m Core/Materials/OOShaderProgram.m Core/OOOpenALController.m Core/OOALSoundDecoder.h Core/OOALStreamedSound.m; do
   mkdir -p "$PS/src/$(dirname "$name")"; cp "$U/src/$name" "$PS/src/$name"
 done
 for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-gfos-native-glu-header \
@@ -83,7 +83,7 @@ for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-g
          0025-gfos-logging-preferences-after-start-up \
          0027-gfos-root-cached-js-objects 0028-gfos-delayed-performs-without-runloop \
          0029-gfos-default-detail-minimum 0030-gfos-opengl-3.1-on-the-pi \
-         0031-gfos-openal-ahi-mix; do
+         0031-gfos-openal-ahi-mix 0032-gfos-stream-chunk; do
   (cd "$PS" && patch -s -N -p1 < "$HERE/patches/oolite/$p.patch") || { say "PATCH FAILED $p"; exit 1; }
 done
 # Ogg Vorbis through the datatypes (and AkikoPlus), not libvorbis: the decoder is ours on GFOS
