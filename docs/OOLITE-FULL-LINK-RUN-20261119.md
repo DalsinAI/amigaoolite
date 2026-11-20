@@ -96,3 +96,16 @@ Still open:
 - Music: no OpenAL errors; not heard, since the lab is muted.
 
 Team 5
+
+## 20 Nov 2026: runs 28 to 30 (branch team5/oolite-memory-20261120)
+
+| Run | Result | Fix |
+|-----|--------|-----|
+| 28 | flies with traffic; the two earlier returns to the title were deaths from collisions in the station lane, not crashes; 42 "Failed to get non block flag for perform in thread" from the Trader AI | Patch 0028 (merged in #9): delayed performs go to OOGFOSDeferredCalls, run by the game loop. |
+| 29 | no JavaScript errors in about three minutes of flight; 0.57 GB of 0.62 in flight; after three games, 0.53 GB at the title and the Coriolis normal maps fail to allocate (8-16 MB each) | |
+| 30 | **0.35 GB at the title, 0.42 docked, 0.44 in flight**; about 40 fps by tick count (22 before); no errors | Patch 0029: minimum graphics detail by default (no shaders, so no normal or specular maps). gfosjsapi: one dynamic-class proxy per class (the cache had filled after a few JS resets and then held a new Proxy for every SystemInfo object). Patch 0026 (setPopulator trace) removed. |
+
+Still open: memory over several games in a row (not measured since the proxy fix); input through GFOpenInput/OpenControllers (quick taps still merge: a second Return was lost in run 30); the 60 s new-commander load.
+
+Team 5
+
