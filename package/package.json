@@ -1,0 +1,26 @@
+{
+  "drawer": "Oolite",
+  "archive": "oolite-{version}-68040",
+  "members": [
+    {"name": "oolite", "build": "oolite", "check": "executable_sha256"},
+    {"name": "Oolite-Start", "repo": "package/files/Oolite-Start", "script": true},
+    {"name": "Oolite-Start.info", "repo": "icons/Oolite-Start.info"},
+    {"name": "ReadMe", "readme": "package/ReadMe.in"},
+    {"name": "ReadMe.info", "repo": "icons/ReadMe.info"},
+    {"name": "", "tar": "data.tar"}
+  ],
+  "aminet": [
+    ["Short", "Oolite 1.93.1, the space trading game, on GFOS"],
+    ["Author", "Giles C Williams, Jens Ayton and contributors; Amiga port: AmiCradle Team"],
+    ["Uploader", "AmiCradle Team"],
+    ["Type", "game/shoot"],
+    ["Version", "{version}"],
+    ["Requires", "GFOS on AmiCradle (AC090 68040 JIT), GFOpenGPU with OpenGL 3.1+"],
+    ["Architecture", "m68k-amigaos >= 3.2"]
+  ],
+  "drawer_icon": "icons/Oolite.info",
+  "root": [
+    {"name": "Install-Oolite", "repo": "package/installer/Install-Oolite", "installer": true},
+    {"name": "Install-Oolite.info", "repo": "package/installer/Install-Oolite.info"}
+  ]
+}

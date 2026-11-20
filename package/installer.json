@@ -1,0 +1,13 @@
+{
+  "name": "Oolite",
+  "version": "1.93.1-amigaos3-rc1",
+  "drawer": "Oolite",
+  "program": "Oolite-Start",
+  "cpu": "68040",
+  "fpu": true,
+  "space": 300000000,
+  "modules": [],
+  "keep": [],
+  "parent": "Work:Games",
+  "badge": "../icons/art/oolite.png"
+}
