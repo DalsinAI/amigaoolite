@@ -20,7 +20,7 @@
          if (!JS_ValueToObject(context, OOJS_ARGV[1], &params)) {
              OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"key, settings");
              return NO;
-@@ -1246,9 +1252,18 @@
+@@ -1246,23 +1252,44 @@
          }
  
          OOJSPopulatorDefinition* populator = [[OOJSPopulatorDefinition alloc] init];
@@ -39,7 +39,18 @@
          [settings setObject:populator forKey:@"callbackObj"];
  
          jsval coords = JSVAL_NULL;
-@@ -1261,8 +1276,14 @@
+         if (JS_GetProperty(context, params, "coordinates", &coords) != JS_FALSE && !JSVAL_IS_VOID(coords)) {
+             Vector coordinates = kZeroVector;
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++            printf("OOLITE_GFOS_POP coords-got %s\n", JSVAL_IS_OBJECT(coords) && !JSVAL_IS_NULL(coords) ? OOJSGetClass(context, JSVAL_TO_OBJECT(coords))->name : "(not an object)"); fflush(stdout);
++#endif
+             if (JSValueToVector(context, coords, &coordinates)) {
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++                printf("OOLITE_GFOS_POP coords-vector\n"); fflush(stdout);
++#endif
+                 // convert vector in NS-storable form
+                 [settings setObject:[NSArray arrayWithObjects:[NSNumber numberWithFloat:coordinates.x], [NSNumber numberWithFloat:coordinates.y], [NSNumber numberWithFloat:coordinates.z], nil] forKey:@"coordinates"];
+             }
          }
  
          [populator release];
