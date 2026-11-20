@@ -1,0 +1,58 @@
+--- a/src/SDL/MyOpenGLView+Input.m
++++ b/src/SDL/MyOpenGLView+Input.m
+@@ -140,8 +140,31 @@
+ // key down that brought you into the submenu is still registered
+ // as down when we're in. This makes isDown return NO until a key up
+ // event has been received from SDL.
++#if OOLITE_GFOS
++static BOOL sGFOSReleaseNext[NUM_KEYS];   /* defined with the other GFOS key state below */
++static BOOL sGFOSHeld[NUM_KEYS];
++#endif
+ - (void)suppressKeysUntilKeyUp
+ {
++#if OOLITE_GFOS
++    /* GFOS: the screen change can come a tick or more after the press, when
++     * a quick tap is already up again; waiting for a key-up then swallows
++     * the next key instead (Return on Start New Commander needed pressing
++     * twice). Suppress only while a key is still held, as upstream intends. */
++    if (keys[gvMouseDoubleClick] == NO) {
++        int i;
++        BOOL held = NO;
++        for (i = 0; i < NUM_KEYS; i++) {
++            if (i != gvMouseLeftButton && i != gvMouseDoubleClick && sGFOSHeld[i]) held = YES;
++            sGFOSReleaseNext[i] = NO;
++        }
++        suppressKeys = held;
++        [self clearKeys];
++    } else {
++        [self clearMouse];
++    }
++    return;
++#endif
+     if (keys[gvMouseDoubleClick] == NO) {
+         suppressKeys = YES;
+         [self clearKeys];
+@@ -229,6 +252,7 @@
+  * held to the start of the next poll, so every tap is seen for one tick. */
+ static BOOL sGFOSDownThisPoll[NUM_KEYS];
+ static BOOL sGFOSReleaseNext[NUM_KEYS];
++static BOOL sGFOSHeld[NUM_KEYS];   /* down on the keyboard now: key-down seen, key-up not yet */
+ 
+ /* Returns YES when a held-over release was applied: that is when its key-up
+  * counts, for suppressKeysUntilKeyUp too (a screen change in the tick between
+@@ -251,6 +275,7 @@
+ static void GFOSKeyDown(BOOL *keyTable, int k)
+ {
+     if (k < 0 || k >= NUM_KEYS) return;
++    sGFOSHeld[k] = YES;
+     keyTable[k] = YES;
+     sGFOSDownThisPoll[k] = YES;
+     sGFOSReleaseNext[k] = NO;
+@@ -260,6 +285,7 @@
+ static BOOL GFOSKeyUp(BOOL *keyTable, int k)
+ {
+     if (k < 0 || k >= NUM_KEYS) return NO;
++    sGFOSHeld[k] = NO;
+     if (sGFOSDownThisPoll[k]) { sGFOSReleaseNext[k] = YES; return YES; }
+     keyTable[k] = NO;
+     return NO;
