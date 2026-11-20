@@ -260,6 +260,17 @@ int gfosjsapiGateBody(void)
     }
     JS_RemoveObjectRoot(cx, &rooted);
 
+    /* JS_DefineObject's result is kept in unrooted statics by Oolite (sPlayerObject) */
+    {
+        JSObject *defd = JS_DefineObject(cx, global, "defd", NULL, NULL, 0);
+        jsval n = INT_TO_JSVAL(7);
+        JS_EndRequest(cx);
+        JS_BeginRequest(cx);
+        run(cx, global, "({ churn: [1, 2, 3] })", NULL);
+        check("JS_DefineObject's object usable after the request ends",
+              defd && JS_SetProperty(cx, defd, "seven", &n) && run(cx, global, "defd.seven", &v) && isNum(cx, v, 7));
+    }
+
     /* Oolite keys its converters by class: Object, String, Number, Boolean and Array differ */
     {
         JSObject *oo = JS_NewObject(cx, NULL, NULL, NULL), *so = NULL, *no = NULL, *bo = NULL, *ao = JS_NewArrayObject(cx, 0, NULL);

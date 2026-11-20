@@ -1212,6 +1212,11 @@ JSObject *JS_DefineObject(JSContext *cx, JSObject *obj, const char *name, JSClas
 {
     JSObject *o = JS_NewObject(cx, clasp, proto, obj);
     if (!o || !defineValue(obj, name, OBJECT_TO_JSVAL(o), attrs)) return NULL;
+    /* Oolite keeps these in unrooted statics (sPlayerObject, sMissionObject,
+       sManifestObject): SpiderMonkey keeps them alive through their parent. A
+       handle is not the object, so hold this one for the program's life; they
+       are made once per JavaScript reset. */
+    ooL_Dup((ooLValue)o);
     return o;
 }
 

@@ -1,0 +1,109 @@
+--- a/src/Core/Scripting/OOJSEquipmentInfo.m
++++ b/src/Core/Scripting/OOJSEquipmentInfo.m
+@@ -488,11 +488,37 @@
+             if (!JS_SetPrivate(context, _jsSelf, [self retain]))
+                 _jsSelf = NULL;
+         }
++#if OOLITE_GFOS
++        /*	GFOS: an unrooted gfosjsapi handle goes when the request ends; root the
++                cache until the next JS reset (see OOJSShipGroup.m). */
++        if (_jsSelf != NULL) {
++            OOJSAddGCObjectRoot(context, &_jsSelf, "EquipmentInfo jsSelf");
++            [[NSNotificationCenter defaultCenter] addObserver:self
++                                                     selector:@selector(gfosDeleteJSSelf)
++                                                         name:kOOJavaScriptEngineWillResetNotification
++                                                       object:[OOJavaScriptEngine sharedEngine]];
++        }
++#endif
+     }
+ 
+     return OBJECT_TO_JSVAL(_jsSelf);
+ }
+ 
++#if OOLITE_GFOS
++- (void)gfosDeleteJSSelf
++{
++    if (_jsSelf != NULL) {
++        _jsSelf = NULL;
++        JSContext* context = OOJSAcquireContext();
++        JS_RemoveObjectRoot(context, &_jsSelf);
++        OOJSRelinquishContext(context);
++        [[NSNotificationCenter defaultCenter] removeObserver:self
++                                                        name:kOOJavaScriptEngineWillResetNotification
++                                                      object:[OOJavaScriptEngine sharedEngine]];
++    }
++}
++#endif
++
+ - (NSString*)oo_jsClassName
+ {
+     return @"EquipmentInfo";
+--- a/src/Core/Scripting/OOJSShipGroup.m
++++ b/src/Core/Scripting/OOJSShipGroup.m
+@@ -215,6 +215,22 @@
+             if (!JS_SetPrivate(context, _jsSelf, [self retain]))
+                 _jsSelf = NULL;
+         }
++#if OOLITE_GFOS
++        /*	GFOS: on gfosjsapi a JSObject* is a handle, not the object. A handle
++                nobody holds goes when the request ends, so this unrooted cache came
++                back as some other value (ship.group.ships undefined, group.leader
++                with no AIScript). Root it, as Entity does, until the next JS reset:
++                scripts compare groups (group.leader.group != group), so the object
++                must stay the same while the group lives. Members are weak, so a held
++                group pins only itself. */
++        if (_jsSelf != NULL) {
++            OOJSAddGCObjectRoot(context, &_jsSelf, "ShipGroup jsSelf");
++            [[NSNotificationCenter defaultCenter] addObserver:self
++                                                     selector:@selector(gfosDeleteJSSelf)
++                                                         name:kOOJavaScriptEngineWillResetNotification
++                                                       object:[OOJavaScriptEngine sharedEngine]];
++        }
++#endif
+     }
+ 
+     if (_jsSelf != NULL)
+@@ -223,6 +239,21 @@
+     return result;
+ }
+ 
++#if OOLITE_GFOS
++- (void)gfosDeleteJSSelf
++{
++    if (_jsSelf != NULL) {
++        _jsSelf = NULL;
++        JSContext* context = OOJSAcquireContext();
++        JS_RemoveObjectRoot(context, &_jsSelf);
++        OOJSRelinquishContext(context);
++        [[NSNotificationCenter defaultCenter] removeObserver:self
++                                                        name:kOOJavaScriptEngineWillResetNotification
++                                                      object:[OOJavaScriptEngine sharedEngine]];
++    }
++}
++#endif
++
+ - (void)oo_clearJSSelf:(JSObject*)selfVal
+ {
+     if (_jsSelf == selfVal)
+--- a/src/Core/Scripting/OOJSSystemInfo.m
++++ b/src/Core/Scripting/OOJSSystemInfo.m
+@@ -274,8 +274,19 @@
+ 
+     result = OOJSValueFromNativeObject(context, info);
+ 
++#if OOLITE_GFOS
++    /*	GFOS: an unrooted gfosjsapi handle goes when the request ends, so the
++            cache came back as some other value (system.info.distanceToSystem
++            undefined, or a number). Root the one cached object instead. */
++    if (sCachedSystemInfo != NULL)
++        JS_RemoveObjectRoot(context, &sCachedSystemInfo);
++    sCachedSystemInfo = JSVAL_IS_OBJECT(result) ? JSVAL_TO_OBJECT(result) : NULL;
++    if (sCachedSystemInfo != NULL)
++        OOJSAddGCObjectRoot(context, &sCachedSystemInfo, "cached SystemInfo");
++#else
+     // Cache is not a root; we clear it in finalize if necessary.
+     sCachedSystemInfo = JSVAL_TO_OBJECT(result);
++#endif
+     sCachedGalaxy = galaxy;
+     sCachedSystem = system;
+ 

@@ -69,7 +69,8 @@ for name in Core/GameController.m Core/OOLogOutputHandler.m Core/OOLogging.m Cor
             Core/OOCPUInfo.h Core/OOLogHeader.m Core/OOOpenGL.m Core/OOPolygonSprite.m SDL/EXRSnapshotSupport/miniz.c \
             SDL/main.m SDL/OOSDLJoystickManager.m SDL/MyOpenGLView.m Core/Scripting/OOJSScript.m \
             Core/OOAsyncWorkManager.m Core/OOEncodingConverter.m Core/Materials/OOTextureLoader.m \
-            Core/Materials/OOPlanetTextureGenerator.m SDL/MyOpenGLView+Input.m Core/Scripting/OOJSSystem.m; do
+            Core/Materials/OOPlanetTextureGenerator.m SDL/MyOpenGLView+Input.m Core/Scripting/OOJSSystem.m \
+            Core/Scripting/OOJSShipGroup.m Core/Scripting/OOJSEquipmentInfo.m Core/Scripting/OOJSSystemInfo.m; do
   mkdir -p "$PS/src/$(dirname "$name")"; cp "$U/src/$name" "$PS/src/$name"
 done
 for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-gfos-native-glu-header \
@@ -81,7 +82,8 @@ for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-g
          0019-gfos-game-loop-without-runloop 0020-gfos-draw-trace \
          0021-gfos-async-work-on-the-game-task 0022-gfos-text-encoding-without-iconv \
          0023-gfos-texture-memory 0024-gfos-taps-last-one-tick \
-         0025-gfos-logging-preferences-after-start-up 0026-gfos-set-populator-trace; do
+         0025-gfos-logging-preferences-after-start-up 0026-gfos-set-populator-trace \
+         0027-gfos-root-cached-js-objects; do
   (cd "$PS" && patch -s -N -p1 < "$HERE/patches/oolite/$p.patch") || { say "PATCH FAILED $p"; exit 1; }
 done
 
