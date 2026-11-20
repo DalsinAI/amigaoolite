@@ -80,7 +80,8 @@ for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-g
          0017-gfos-no-xdr-script-cache 0018-gfos-launch-trace \
          0019-gfos-game-loop-without-runloop 0020-gfos-draw-trace \
          0021-gfos-async-work-on-the-game-task 0022-gfos-text-encoding-without-iconv \
-         0023-gfos-texture-memory 0024-gfos-taps-last-one-tick; do
+         0023-gfos-texture-memory 0024-gfos-taps-last-one-tick \
+         0025-gfos-logging-preferences-after-start-up; do
   (cd "$PS" && patch -s -N -p1 < "$HERE/patches/oolite/$p.patch") || { say "PATCH FAILED $p"; exit 1; }
 done
 
