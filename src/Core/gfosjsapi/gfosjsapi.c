@@ -67,7 +67,7 @@ struct JSContext {
     OONativeRec        *natives;
     /* glue (JavaScript helpers) and the exception sentinel */
     ooLValue gSent, gMakeNative, gDefineAccessor, gDefineValue, gSetProto, gIsArray, gFreeze, gKeys, gDel,
-             gNewError, gToStr, gToObj, gNewArray, gRegExp, gObjectProto, gEmpty, gExecIn;
+             gNewError, gToStr, gToObj, gNewArray, gRegExp, gObjectProto, gEmpty, gExecIn, gClearScope;
 };
 
 static struct JSContext sContext;
@@ -209,6 +209,16 @@ static const char sGlue[] =
 "  var SENT = {}; var take = null;\n"
 "  /* SpiderMonkey's JS_DefineProperty replaces a property, even a permanent one; JavaScriptCore\n"
 "     throws for a non-configurable one. Oolite's Ship lists homeSystem twice: keep the first. */\n"
+"  /* JS_ClearScope on the global (Oolite's JavaScript reset) must leave it as it began, as\n"
+"     SpiderMonkey's new global does: what is defined on it later is kept configurable, so it\n"
+"     can go, and the built-ins it began with stay. */\n"
+"  var G = (0, eval)('this');\n"
+"  var builtIn = {}; Object.getOwnPropertyNames(G).forEach(function(n) { builtIn[n] = true; });\n"
+"  var realDefine = Object.defineProperty;\n"
+"  Object.defineProperty = function defineProperty(o, n, d) {\n"
+"    if (o === G && d && typeof d === 'object' && !builtIn[n] && d.configurable !== true) d = Object.assign({}, d, { configurable: true });\n"
+"    return realDefine(o, n, d);\n"
+"  };\n"
 "  var define = function(o, n, d) {\n"
 "    var had = Object.getOwnPropertyDescriptor(o, n);\n"
 "    if (had && !had.configurable) { try { Object.defineProperty(o, n, d); } catch (e) {} return; }\n"
@@ -240,6 +250,9 @@ static const char sGlue[] =
 "    newArray: function(n) { return new Array(n); },\n"
 "    regexp: function(s, f) { return new RegExp(s, f); },\n"
 "    objectProto: Object.prototype,\n"
+"    clearScope: function(o) {\n"
+"      Object.getOwnPropertyNames(o).forEach(function(n) { if (o !== G || !builtIn[n]) { try { delete o[n]; } catch (e) {} } });\n"
+"    },\n"
 "    execIn: function(__gfosjsapiSource) { with (this) { return eval(__gfosjsapiSource); } }\n"
 "  };\n"
 "})()";
@@ -294,6 +307,7 @@ static int ensureReady(void)
     CX->gRegExp = glueFn(glue, "regexp");
     CX->gObjectProto = glueFn(glue, "objectProto");
     CX->gExecIn = glueFn(glue, "execIn");
+    CX->gClearScope = glueFn(glue, "clearScope");
     take = ooL_NewFunction("__gfosjsapiTake", takePending, NULL);
     {
         ooLValue setTake = glueFn(glue, "setTake"), r = NULL;
@@ -920,7 +934,17 @@ JSBool JS_FreezeObject(JSContext *cx, JSObject *obj)
     return callGlue(CX->gFreeze, 1, &a) != NULL || !CX->hasPending;
 }
 
-void JS_ClearScope(JSContext *cx, JSObject *obj) { (void)cx; (void)obj; }
+/* Oolite's JavaScript reset clears the global and builds it again; SpiderMonkey makes the global
+   new, JavaScriptCore's stays: the glue deletes what was added to it (made configurable for this). */
+void JS_ClearScope(JSContext *cx, JSObject *obj)
+{
+    ooLValue a, r;
+    (void)cx;
+    if (!obj || !ensureReady() || !CX->gClearScope) return;
+    a = (ooLValue)obj;
+    r = callGlue(CX->gClearScope, 1, &a);
+    (void)r;
+}
 
 /* ---- properties ----------------------------------------------------------------------- */
 

@@ -321,6 +321,21 @@ int gfosjsapiGateBody(void)
     t1 = JS_Now();
     printf("INFO C -> JS call through gfosjsapi: %ld us per call\n", (long)((t1 - t0) / 1000));
 
+    /* Oolite's JavaScript reset: JS_ClearScope on the global, then everything defined again,
+       a script's permanent getter (oolite-global-prefix.js's worldScriptNames) included */
+    JS_DefineProperty(cx, global, "permanentThing", INT_TO_JSVAL(1), NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY);
+    run(cx, global, "Object.defineProperty(this, 'scripted', { enumerable: true, get: function () { return 1; } })", NULL);
+    JS_ClearScope(cx, global);
+    {
+        JSBool m = JS_FALSE;
+        if (run(cx, global, "typeof permanentThing + ' ' + typeof scripted + ' ' + typeof Math.max", &v) && JSVAL_IS_STRING(v))
+            JS_StringEqualsAscii(cx, JSVAL_TO_STRING(v), "undefined undefined function", &m);
+        check("JS_ClearScope empties what was added to the global, keeps the built-ins", m);
+    }
+    check("... and a permanent getter can be defined again",
+          run(cx, global, "Object.defineProperty(this, 'scripted', { enumerable: true, get: function () { return 2; } }); scripted", &v)
+          && isNum(cx, v, 2) && !JS_IsExceptionPending(cx));
+
     JS_EndRequest(cx);
     printf("INFO finalizers run so far: %d\n", finalized);
     JS_DestroyContext(cx);
