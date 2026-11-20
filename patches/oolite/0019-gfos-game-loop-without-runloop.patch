@@ -1,6 +1,22 @@
 --- a/src/Core/GameController.m
 +++ b/src/Core/GameController.m
-@@ -317,7 +317,15 @@
+@@ -236,6 +236,15 @@
+     [UNIVERSE setGameView:gameView];
+ }
+ 
++#if OOLITE_GFOS
++/* GFOS: the game runs on javascript.library's script task, where GNUstep's
++ * NSRunLoop never returns from currentRunLoop. The animation timer only
++ * calls performGameTick:, so the game loop at the end of
++ * applicationDidFinishLaunching calls it directly while this is on, and
++ * SDL's vsync paces the frames. */
++static BOOL sGFOSTicking = NO;
++#endif
++
+ - (void)applicationDidFinishLaunching:(NSNotification*)notification
+ {
+     NSAutoreleasePool* pool = nil;
+@@ -317,7 +326,15 @@
      // Release anything allocated above that is not required.
      [pool release];
  
@@ -17,19 +33,8 @@
      [[NSRunLoop currentRunLoop] run];
  #endif
  }
-@@ -418,8 +426,21 @@
-     }
- }
+@@ -420,6 +437,10 @@
  
-+#if OOLITE_GFOS
-+/* GFOS: the game runs on javascript.library's script task, where GNUstep's
-+ * NSRunLoop never returns from currentRunLoop. The animation timer only
-+ * calls performGameTick:, so the game loop at the end of
-+ * applicationDidFinishLaunching calls it directly while this is on, and
-+ * SDL's vsync paces the frames. */
-+static BOOL sGFOSTicking = NO;
-+#endif
-+
  - (void)startAnimationTimer
  {
 +#if OOLITE_GFOS
