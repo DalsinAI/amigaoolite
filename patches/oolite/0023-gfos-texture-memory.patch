@@ -1,0 +1,47 @@
+--- a/src/Core/Materials/OOPlanetTextureGenerator.m
++++ b/src/Core/Materials/OOPlanetTextureGenerator.m
+@@ -166,7 +166,13 @@
+ 
+         OOGraphicsDetail detailLevel = [UNIVERSE detailLevel];
+ 
+-#ifndef TEXGEN_TEST_RIG
++#if OOLITE_GFOS && !defined(TEXGEN_TEST_RIG)
++        /* GFOS: generation runs on the game task of a 68040, and the result has
++         * guest-RAM backing under virgl: Lave at extra detail (2048, 3D noise)
++         * took two minutes. Oolite's own reduced-detail size, 2D noise unless a
++         * planet asks for 3D. */
++        _planetScale = kPlanetScaleReducedDetail;
++#elif !defined(TEXGEN_TEST_RIG)
+         if (detailLevel < DETAIL_LEVEL_SHADERS || [planetInfo oo_boolForKey:@"isMiniature" defaultValue:NO]) {
+             _planetScale = kPlanetScaleReducedDetail;
+         } else if (detailLevel == DETAIL_LEVEL_SHADERS) {
+@@ -177,7 +183,11 @@
+ #else
+         _planetScale = kPlanetScale4096x4096;
+ #endif
++#if OOLITE_GFOS
++        _info.perlin3d = [planetInfo oo_boolForKey:@"perlin_3d" defaultValue:NO];
++#else
+         _info.perlin3d = [planetInfo oo_boolForKey:@"perlin_3d" defaultValue:detailLevel > DETAIL_LEVEL_SHADERS];
++#endif
+         _info.planetAspectRatio = _info.perlin3d ? 2 : 1;
+         _info.planetScaleOffset = 8 - _info.planetAspectRatio;
+     }
+--- a/src/Core/Materials/OOTextureLoader.m
++++ b/src/Core/Materials/OOTextureLoader.m
+@@ -274,7 +274,15 @@
+     OOLog(@"texture.load.rescale.maxSize", @"GL maximum texture size: %u", sGLMaxSize);
+ 
+     // Why 0x80000000? Because it's the biggest number OORoundUpToPowerOf2() can handle.
++#if OOLITE_GFOS
++    /* GFOS: with virgl every texture has guest-RAM backing, mipmaps too, so a
++     * 2048x2048 normal map costs over 20 MB of Amiga memory; the station and a
++     * Cobra III filled a 0.62 GB machine. 512 by default; "max-texture-size"
++     * in the defaults still sets it. */
++    sUserMaxSize = [[NSUserDefaults standardUserDefaults] oo_unsignedIntForKey:@"max-texture-size" defaultValue:512];
++#else
+     sUserMaxSize = [[NSUserDefaults standardUserDefaults] oo_unsignedIntForKey:@"max-texture-size" defaultValue:0x80000000];
++#endif
+     if (sUserMaxSize < 0x80000000)
+         OOLog(@"texture.load.rescale.maxSize", @"User maximum texture size: %u", sUserMaxSize);
+     sUserMaxSize = OORoundUpToPowerOf2_32(sUserMaxSize);
