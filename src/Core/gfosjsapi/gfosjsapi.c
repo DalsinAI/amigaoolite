@@ -68,7 +68,7 @@ struct JSContext {
     OONativeRec        *natives;
     /* glue (JavaScript helpers) and the exception sentinel */
     ooLValue gSent, gMakeNative, gDefineAccessor, gDefineValue, gSetProto, gIsArray, gFreeze, gKeys, gDel,
-             gNewError, gToStr, gToObj, gNewArray, gRegExp, gObjectProto, gEmpty, gExecIn, gClearScope;
+             gNewError, gToStr, gToObj, gNewArray, gRegExp, gObjectProto, gEmpty, gExecIn, gClearScope, gDynProto;
 };
 
 static struct JSContext sContext;
@@ -251,6 +251,18 @@ static const char sGlue[] =
 "    newArray: function(n) { return new Array(n); },\n"
 "    regexp: function(s, f) { return new RegExp(s, f); },\n"
 "    objectProto: Object.prototype,\n"
+"    dynProto: function(base, getHook, setHook) {\n"
+"      return new Proxy(base, {\n"
+"        get: function(t, n, r) {\n"
+"          if (typeof n === 'symbol' || n in t) return Reflect.get(t, n, r);\n"
+"          var v = getHook(r, n); if (v === SENT) throw take(); return v;\n"
+"        },\n"
+"        set: function(t, n, v, r) {\n"
+"          if (typeof n === 'symbol' || n in t) return Reflect.set(t, n, v, r);\n"
+"          if (setHook(r, n, v) === SENT) throw take(); return true;\n"
+"        }\n"
+"      });\n"
+"    },\n"
 "    clearScope: function(o) {\n"
 "      Object.getOwnPropertyNames(o).forEach(function(n) { if (o !== G || !builtIn[n]) { try { delete o[n]; } catch (e) {} } });\n"
 "    },\n"
@@ -309,6 +321,7 @@ static int ensureReady(void)
     CX->gObjectProto = glueFn(glue, "objectProto");
     CX->gExecIn = glueFn(glue, "execIn");
     CX->gClearScope = glueFn(glue, "clearScope");
+    CX->gDynProto = glueFn(glue, "dynProto");
     take = ooL_NewFunction("__gfosjsapiTake", takePending, NULL);
     {
         ooLValue setTake = glueFn(glue, "setTake"), r = NULL;
@@ -858,6 +871,67 @@ static void setProto(ooLValue obj, ooLValue proto)
     callGlue(CX->gSetProto, 2, args);
 }
 
+/* ---- classes whose getProperty answers names they never define ------------------------
+   SpiderMonkey calls a class's getProperty and setProperty for every get and set on its
+   objects; Oolite's SystemInfo (system.info.inhabitant), MissionVariables, WorldScripts and
+   Manifest answer any name from there. Their objects get a prototype that is a Proxy over the
+   real one: a name found nowhere reaches the class hook with its name, as in SpiderMonkey;
+   everything defined behaves as before. (A Proxy round the object itself would not be a box.) */
+static int isDynamicClass(JSClass *c)
+{
+    static const char *const names[] = { "SystemInfo", "MissionVariables", "WorldScripts", "Manifest", NULL };
+    int i;
+    if (!c || !c->name) return 0;
+    for (i = 0; names[i]; i++) if (strcmp(c->name, names[i]) == 0) return 1;
+    return 0;
+}
+
+static ooLValue dynHook(long argc, ooLValue *argv, void *data, int set)
+{
+    JSClass *c = (JSClass *)data;
+    JSObject *self;
+    jsval t, v = JSVAL_VOID;
+    char name[256] = "";
+    jsid id;
+    JSBool ok = JS_TRUE;
+    ooLValue ret;
+    enter();
+    CX->nativeDepth++;
+    t = argc > 0 ? fromBorrowed(argv[0]) : JSVAL_VOID;
+    self = JSVAL_IS_OBJECT(t) ? JSVAL_TO_OBJECT(t) : CX->global;
+    if (argc > 1) ooL_ToString(argv[1], name, sizeof name);
+    if (set && argc > 2) v = fromBorrowed(argv[2]);
+    id = idForName(name);
+    callTrace('>', set ? "dynset" : "dynget", name);
+    if (set) { if (c->setProperty && c->setProperty != JS_StrictPropertyStub) ok = c->setProperty(CX, self, id, JS_FALSE, &v); }
+    else { if (c->getProperty && c->getProperty != JS_PropertyStub) ok = c->getProperty(CX, self, id, &v); }
+    callTrace('<', set ? "dynset" : "dynget", name);
+    ret = !ok ? ooL_Dup(CX->gSent) : set ? NULL : toLNew(v);
+    CX->nativeDepth--;
+    leave();
+    return ret;
+}
+static ooLValue dynGet(long argc, ooLValue *argv, void *data) { return dynHook(argc, argv, data, 0); }
+static ooLValue dynSet(long argc, ooLValue *argv, void *data) { return dynHook(argc, argv, data, 1); }
+
+static ooLValue dynProtoFor(JSClass *clasp, ooLValue base)
+{
+    static struct { JSClass *clasp; ooLValue base, proxy; } cache[16];
+    static int used;
+    int i;
+    ooLValue args[3], p;
+    for (i = 0; i < used; i++) if (cache[i].clasp == clasp && cache[i].base == base) return cache[i].proxy;
+    if (!CX->gDynProto) return base;
+    args[0] = base;
+    args[1] = keep(ooL_NewFunction("getProperty", dynGet, clasp));
+    args[2] = keep(ooL_NewFunction("setProperty", dynSet, clasp));
+    p = callGlue(CX->gDynProto, 3, args);
+    if (!p) return base;
+    p = ooL_Dup(p);                     /* lives as long as the program */
+    if (used < 16) { cache[used].clasp = clasp; cache[used].base = ooL_Dup(base); cache[used].proxy = p; used++; }
+    return p;
+}
+
 JSObject *JS_NewObject(JSContext *cx, JSClass *clasp, JSObject *proto, JSObject *parent)
 {
     ooLValue o;
@@ -875,7 +949,8 @@ JSObject *JS_NewObject(JSContext *cx, JSClass *clasp, JSObject *proto, JSObject 
         o = keep(ooL_WrapBox(box));
         if (!o) { free(box); return NULL; }
         if (!proto && (rec = classRec(clasp)) != NULL) proto = (JSObject *)rec->proto;
-        setProto(o, proto ? (ooLValue)proto : CX->gObjectProto);
+        if (isDynamicClass(clasp)) setProto(o, dynProtoFor(clasp, proto ? (ooLValue)proto : CX->gObjectProto));
+        else setProto(o, proto ? (ooLValue)proto : CX->gObjectProto);
     }
     return (JSObject *)o;
 }
