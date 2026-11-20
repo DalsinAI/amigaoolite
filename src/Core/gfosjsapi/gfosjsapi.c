@@ -233,7 +233,7 @@ static const char sGlue[] =
 "    newArray: function(n) { return new Array(n); },\n"
 "    regexp: function(s, f) { return new RegExp(s, f); },\n"
 "    objectProto: Object.prototype,\n"
-"    execIn: function(__gfosjsapiSource) { return eval(__gfosjsapiSource); }\n"
+"    execIn: function(__gfosjsapiSource) { with (this) { return eval(__gfosjsapiSource); } }\n"
 "  };\n"
 "})()";
 
@@ -305,8 +305,29 @@ static int ensureReady(void)
 
 /* ==== exceptions =============================================================== */
 
+/* SetEnv GFOSJSAPI_TRACE 1: every exception made pending is printed, to stdout (where Oolite's
+   log goes, so Run >file catches it: this Shell has no *> for stderr), with its JS stack. */
+static char *propText(ooLValue o, const char *name);
+
+static int traceOn(void)
+{
+    static int on = -1;
+    if (on < 0) { const char *e = getenv("GFOSJSAPI_TRACE"); on = e && *e && *e != '0'; }
+    return on;
+}
+
 static void setPendingOwned(ooLValue v)       /* takes ownership of v */
 {
+    if (traceOn()) {
+        static unsigned long count;
+        char text[300] = "";
+        const char *stack = NULL;
+        ooL_ToString(v, text, sizeof text);
+        if (ooL_TypeOf(v) == OOL_OBJECT) stack = propText(v, "stack");
+        printf("gfosjsapi: pending exception %lu: %s\n", ++count, text);
+        if (stack && *stack) printf("gfosjsapi: pending exception %lu stack: %.600s\n", count, stack);
+        fflush(stdout);
+    }
     if (CX->pendingPin) ooL_Free(CX->pendingPin);
     CX->pendingPin = v;
     CX->hasPending = 1;
