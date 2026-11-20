@@ -51,14 +51,25 @@ unsigned char *OOGFOSDTPictureLoad(const char *path, unsigned long *width, unsig
     }
     DisposeDTObject(o);
     if (pixels) {
-        *width = w;
-        *height = h;
-        *hasAlpha = alpha ? 1 : 0;
-        if (!alpha) {                       /* some datatypes leave the byte 0 */
-            unsigned long i, n = w * h;
+        /* The alpha bytes decide, not PDTA_AlphaChannel (which a datatype may
+         * not answer): all 0 is a picture with no alpha, so opaque. */
+        unsigned long i, n = w * h;
+        int any = 0, translucent = 0;
+        for (i = 0; i < n; i++) {
+            if (pixels[i * 4])
+                any = 1;
+            if (pixels[i * 4] != 0xFF)
+                translucent = 1;
+        }
+        if (!any) {
             for (i = 0; i < n; i++)
                 pixels[i * 4] = 0xFF;
+            translucent = 0;
         }
+        (void)alpha;
+        *width = w;
+        *height = h;
+        *hasAlpha = translucent;
     }
     return pixels;
 }
