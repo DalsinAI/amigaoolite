@@ -73,7 +73,7 @@ for name in Core/GameController.m Core/OOLogOutputHandler.m Core/OOLogging.m Cor
             Core/Materials/OOPlanetTextureGenerator.m SDL/MyOpenGLView+Input.m Core/Scripting/OOJSSystem.m \
             Core/Scripting/OOJSShipGroup.m Core/Scripting/OOJSEquipmentInfo.m Core/Scripting/OOJSSystemInfo.m \
             Core/AI.m Core/Entities/PlayerEntitySound.m Core/Entities/ShipEntityAI.m Core/Scripting/OOJSShip.m \
-            Core/OOOpenGLExtensionManager.m Core/Materials/OOShaderProgram.m Core/OOOpenALController.m Core/Materials/OOTextureLoader.m; do
+            Core/OOOpenGLExtensionManager.m Core/Materials/OOShaderProgram.m Core/OOOpenALController.m; do
   mkdir -p "$PS/src/$(dirname "$name")"; cp "$U/src/$name" "$PS/src/$name"
 done
 for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-gfos-native-glu-header \
