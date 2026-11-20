@@ -260,6 +260,18 @@ int gfosjsapiGateBody(void)
     }
     JS_RemoveObjectRoot(cx, &rooted);
 
+    /* Oolite keys its converters by class: Object, String, Number, Boolean and Array differ */
+    {
+        JSObject *oo = JS_NewObject(cx, NULL, NULL, NULL), *so = NULL, *no = NULL, *bo = NULL, *ao = JS_NewArrayObject(cx, 0, NULL);
+        JSClass *co, *cs, *cn, *cb, *ca;
+        JS_ValueToObject(cx, JS_GetEmptyStringValue(cx), &so);
+        JS_ValueToObject(cx, INT_TO_JSVAL(0), &no);
+        JS_ValueToObject(cx, JSVAL_FALSE, &bo);
+        co = JS_GetClass(cx, oo); cs = JS_GetClass(cx, so); cn = JS_GetClass(cx, no); cb = JS_GetClass(cx, bo); ca = JS_GetClass(cx, ao);
+        check("Object, String, Number, Boolean and Array classes differ",
+              co && cs && cn && cb && ca && co != cs && co != cn && co != cb && co != ca && cs != cn && cs != cb && cn != cb);
+    }
+
     /* script with this = an object (how Oolite runs world scripts) */
     o = JS_NewObject(cx, NULL, NULL, NULL);
     check("script with this = object", run(cx, o, "this.answer = 42; this.answer", &v) && isNum(cx, v, 42));

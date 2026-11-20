@@ -68,7 +68,7 @@ struct JSContext {
     OONativeRec        *natives;
     /* glue (JavaScript helpers) and the exception sentinel */
     ooLValue gSent, gMakeNative, gDefineAccessor, gDefineValue, gSetProto, gIsArray, gFreeze, gKeys, gDel,
-             gNewError, gToStr, gToObj, gNewArray, gRegExp, gObjectProto, gEmpty, gExecIn, gClearScope, gDynProto;
+             gNewError, gToStr, gToObj, gNewArray, gRegExp, gObjectProto, gEmpty, gExecIn, gClearScope, gDynProto, gKindOf;
 };
 
 static struct JSContext sContext;
@@ -80,6 +80,16 @@ static JSClass sObjectClass   = { "Object",   0, JS_PropertyStub, JS_PropertyStu
 static JSClass sFunctionClass = { "Function", 0, JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
                                   JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, JS_FinalizeStub, JSCLASS_NO_OPTIONAL_MEMBERS };
 static JSClass sArrayClass    = { "Array",    0, JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+                                  JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, JS_FinalizeStub, JSCLASS_NO_OPTIONAL_MEMBERS };
+/* String, Number and Boolean objects have classes of their own, as in SpiderMonkey: Oolite keys
+   its JS-to-native converters by class pointer, and with one shared class the Boolean converter
+   (registered last) took every plain object, so system.setPopulator got an NSNumber for its
+   settings dictionary and hung sending it setObject:forKey:. */
+static JSClass sStringClass   = { "String",   0, JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+                                  JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, JS_FinalizeStub, JSCLASS_NO_OPTIONAL_MEMBERS };
+static JSClass sNumberClass   = { "Number",   0, JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
+                                  JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, JS_FinalizeStub, JSCLASS_NO_OPTIONAL_MEMBERS };
+static JSClass sBooleanClass  = { "Boolean",  0, JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
                                   JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, JS_FinalizeStub, JSCLASS_NO_OPTIONAL_MEMBERS };
 
 static void *xgrow(void *p, int *cap, int need, size_t size)
@@ -242,6 +252,11 @@ static const char sGlue[] =
 "    defineValue: function(o, n, v, e, w, c) { define(o, n, { value: v, enumerable: e, writable: w, configurable: c }); },\n"
 "    setProto: function(o, p) { Object.setPrototypeOf(o, p); return o; },\n"
 "    isArray: function(o) { return Array.isArray(o); },\n"
+"    kindOf: function(o) {\n"
+"      if (Array.isArray(o)) return 1;\n"
+"      var t = Object.prototype.toString.call(o);\n"
+"      return t === '[object String]' ? 2 : t === '[object Number]' ? 3 : t === '[object Boolean]' ? 4 : 0;\n"
+"    },\n"
 "    freeze: function(o) { Object.freeze(o); },\n"
 "    keys: function(o) { var k = []; for (var p in o) k.push(p); return k; },\n"
 "    del: function(o, n) { return delete o[n]; },\n"
@@ -322,6 +337,7 @@ static int ensureReady(void)
     CX->gExecIn = glueFn(glue, "execIn");
     CX->gClearScope = glueFn(glue, "clearScope");
     CX->gDynProto = glueFn(glue, "dynProto");
+    CX->gKindOf = glueFn(glue, "kindOf");
     take = ooL_NewFunction("__gfosjsapiTake", takePending, NULL);
     {
         ooLValue setTake = glueFn(glue, "setTake"), r = NULL;
@@ -964,8 +980,17 @@ JSClass *JS_GetClass(JSContext *cx, JSObject *obj)
     if ((box = boxOf(obj)) != NULL) return box->clasp;
     if (ooL_TypeOf((ooLValue)obj) == OOL_FUNCTION) return &sFunctionClass;
     {
-        ooLValue a = (ooLValue)obj, r = callGlue(CX->gIsArray, 1, &a);
-        if (r && ooL_ToBool(r)) return &sArrayClass;
+        ooLValue a = (ooLValue)obj, r = callGlue(CX->gKindOf ? CX->gKindOf : CX->gIsArray, 1, &a);
+        double k = 0;
+        if (r) ooL_ToDouble(r, &k);
+        if (!CX->gKindOf && r && ooL_ToBool(r)) return &sArrayClass;
+        switch ((int)k) {
+        case 1: return &sArrayClass;
+        case 2: return &sStringClass;
+        case 3: return &sNumberClass;
+        case 4: return &sBooleanClass;
+        default: break;
+        }
     }
     return &sObjectClass;
 }
