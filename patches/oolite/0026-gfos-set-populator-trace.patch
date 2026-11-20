@@ -1,0 +1,56 @@
+--- a/src/Core/Scripting/OOJSSystem.m
++++ b/src/Core/Scripting/OOJSSystem.m
+@@ -1226,6 +1226,9 @@
+         return NO;
+     }
+     key = OOStringFromJSValue(context, OOJS_ARGV[0]);
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++        printf("OOLITE_GFOS_POP %s\n", "key"); fflush(stdout);
++#endif
+     if (key == nil) {
+         OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 0U), &OOJS_ARGV[0], nil, @"key, settings");
+         return NO;
+@@ -1235,6 +1238,9 @@
+         [UNIVERSE setPopulatorSetting:key to:nil];
+     } else {
+         // adding
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++        printf("OOLITE_GFOS_POP %s\n", "before-valuetoobject"); fflush(stdout);
++#endif
+         if (!JS_ValueToObject(context, OOJS_ARGV[1], &params)) {
+             OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"key, settings");
+             return NO;
+@@ -1246,9 +1252,18 @@
+         }
+ 
+         OOJSPopulatorDefinition* populator = [[OOJSPopulatorDefinition alloc] init];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++        printf("OOLITE_GFOS_POP %s\n", "populator-init"); fflush(stdout);
++#endif
+         [populator setCallback:callback];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++        printf("OOLITE_GFOS_POP %s\n", "set-callback"); fflush(stdout);
++#endif
+ 
+         settings = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]));
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++        printf("OOLITE_GFOS_POP %s\n", "native-object"); fflush(stdout);
++#endif
+         [settings setObject:populator forKey:@"callbackObj"];
+ 
+         jsval coords = JSVAL_NULL;
+@@ -1261,8 +1276,14 @@
+         }
+ 
+         [populator release];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++        printf("OOLITE_GFOS_POP %s\n", "released"); fflush(stdout);
++#endif
+ 
+         [UNIVERSE setPopulatorSetting:key to:settings];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++        printf("OOLITE_GFOS_POP %s\n", "set-setting"); fflush(stdout);
++#endif
+     }
+ 
+     OOJS_RETURN_VOID;
