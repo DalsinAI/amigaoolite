@@ -40,6 +40,17 @@ static JSBool nativeAdd(JSContext *cx, uintN argc, jsval *vp)
 
 static JSBool nativeEmpty(JSContext *cx, uintN argc, jsval *vp) { (void)cx; (void)argc; JS_SET_RVAL(cx, vp, JSVAL_VOID); return JS_TRUE; }
 
+/* ---- a class like Oolite's SystemInfo: its getProperty answers names it never defines ---- */
+static JSBool infoGet(JSContext *cx, JSObject *this, jsid id, jsval *vp)
+{
+    (void)cx; (void)this;
+    if (JSID_IS_STRING(id)) *vp = INT_TO_JSVAL(7);
+    return JS_TRUE;
+}
+static JSClass infoClass = { "SystemInfo", 0, JS_PropertyStub, JS_PropertyStub, infoGet,
+    JS_StrictPropertyStub, JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, JS_FinalizeStub, JSCLASS_NO_OPTIONAL_MEMBERS };
+static JSFunctionSpec infoMethods[] = { { "distanceToSystem", nativeEmpty, 1, 0 }, { 0, 0, 0, 0 } };
+
 /* ---- a class like Oolite's Vector3D ---- */
 typedef struct { double x, y; } Vec;
 enum { kVec_x, kVec_y };
@@ -269,6 +280,22 @@ int gfosjsapiGateBody(void)
         run(cx, global, "({ churn: [1, 2, 3] })", NULL);
         check("JS_DefineObject's object usable after the request ends",
               defd && JS_SetProperty(cx, defd, "seven", &n) && run(cx, global, "defd.seven", &v) && isNum(cx, v, 7));
+    }
+
+    /* SystemInfo after JavaScript resets: undefined names reach the hook, methods stay */
+    {
+        int reset, i, ok = 1;
+        for (reset = 0; reset < 6 && ok; reset++) {
+            JSObject *iproto = JS_InitClass(cx, global, NULL, &infoClass, NULL, 0, NULL, infoMethods, NULL, NULL);
+            for (i = 0; i < 20 && ok; i++) {
+                JSObject *info = JS_NewObject(cx, &infoClass, iproto, NULL);
+                JSObject *g = JS_NewObject(cx, NULL, NULL, NULL);
+                JS_DefineProperty(cx, g, "info", OBJECT_TO_JSVAL(info), NULL, NULL, JSPROP_ENUMERATE);
+                ok = run(cx, g, "(typeof info.distanceToSystem === 'function' && info.inhabitant === 7) ? 1 : 0", &v)
+                     && isNum(cx, v, 1);
+            }
+        }
+        check("SystemInfo: names reach the class hook and methods stay, over six resets", ok);
     }
 
     /* Oolite keys its converters by class: Object, String, Number, Boolean and Array differ */

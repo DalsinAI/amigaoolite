@@ -932,20 +932,33 @@ static ooLValue dynSet(long argc, ooLValue *argv, void *data) { return dynHook(a
 
 static ooLValue dynProtoFor(JSClass *clasp, ooLValue base)
 {
+    /* One proxy per class, for its current prototype. Each JavaScript reset makes new
+       prototypes: the entry is replaced (objects made before keep theirs through their own
+       prototype link). A cache keyed by (class, prototype) filled after a few resets and
+       then made, and held, a new Proxy for every SystemInfo object. */
     static struct { JSClass *clasp; ooLValue base, proxy; } cache[16];
     static int used;
     int i;
     ooLValue args[3], p;
-    for (i = 0; i < used; i++) if (cache[i].clasp == clasp && cache[i].base == base) return cache[i].proxy;
+    for (i = 0; i < used; i++) if (cache[i].clasp == clasp) break;
+    if (i < used && cache[i].base == base) return cache[i].proxy;
     if (!CX->gDynProto) return base;
     args[0] = base;
     args[1] = keep(ooL_NewFunction("getProperty", dynGet, clasp));
     args[2] = keep(ooL_NewFunction("setProperty", dynSet, clasp));
     p = callGlue(CX->gDynProto, 3, args);
     if (!p) return base;
-    p = ooL_Dup(p);                     /* lives as long as the program */
-    if (used < 16) { cache[used].clasp = clasp; cache[used].base = ooL_Dup(base); cache[used].proxy = p; used++; }
-    return p;
+    if (i == used) {
+        if (used == 16) return p;       /* more dynamic classes than slots: the arena drops it */
+        used++;
+    } else {
+        keep(cache[i].base);            /* let the old entry go with the arena */
+        keep(cache[i].proxy);
+    }
+    cache[i].clasp = clasp;
+    cache[i].base = ooL_Dup(base);
+    cache[i].proxy = ooL_Dup(p);
+    return cache[i].proxy;
 }
 
 JSObject *JS_NewObject(JSContext *cx, JSClass *clasp, JSObject *proto, JSObject *parent)
