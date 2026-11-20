@@ -29,9 +29,12 @@ GLIB=${GFOS_LIB_DIR:-$RC/foundation/gfopengnustep/ci-check/out}
 FFI=${GFOS_FFI_LIB:-$RC/foundation/gfopenfoundation-build/target-libffi/lib/libffi.a}
 RTG=${GFOS_RTG:-$RC/dependencies/gfopenrtg}
 SDK=${GFOPENSDK:-$W/gfopensdk}
-# SDL3 with OpenGL (gfopenrtg team5/sdl3-opengl-20261119, SDL3.module 3): that
-# branch's Cradle build until it is merged and in the pinned SDK inputs.
-SDL3D=${GFOS_SDL3_DIR:-/run/media/da1ek/DevDrive/AmiCradle-dev/cradle-builds/jobs/j20261119T231525-fac24e/out}
+# SDL3 with OpenGL and SDL_OPENGPU_GL_SIZE, and the libGL.a whose present
+# stretches a frame into the window (gfopenrtg #275, c7dc713): their Cradle
+# builds until they are in the pinned SDK inputs.
+JOBS_DIR=/run/media/da1ek/DevDrive/AmiCradle-dev/cradle-builds/jobs
+SDL3D=${GFOS_SDL3_DIR:-$JOBS_DIR/j20261120T192454-fb13ee/out}
+GLLIB=${GFOS_GL_LIB:-$JOBS_DIR/j20261120T192848-bba4c8/out/lib/libGL.a}
 test -r "$SDL3D/libSDL3.a" || SDL3D=$RTG/build
 CACHE=${CACHE:-$W/fulllink-cache}
 JOBS=${JOBS:-$(nproc 2>/dev/null || echo 4)}
@@ -53,7 +56,7 @@ for f in "$CC" "$U/src/SDL/main.m" "$FD/libgnustep-base.a" "$FD/Headers/Foundati
   test -e "$f" || { say "MISSING $f"; missing=1; }
 done
 test "$(git -C "$U" rev-parse HEAD 2>/dev/null)" = 21978c37b2f11c8664adf3e2062efc1d0c875979 || { say "MISSING upstream at 21978c37 in $U"; missing=1; }
-GLLIB=$(find "$RTG/build" "$RTG/sdk" "$P/m68k-amigaos/lib" -name libGL.a 2>/dev/null | head -1)
+test -r "$GLLIB" || GLLIB=$(find "$RTG/build" "$RTG/sdk" "$P/m68k-amigaos/lib" -name libGL.a 2>/dev/null | head -1)
 test -n "$GLLIB" || { say "MISSING libGL.a"; missing=1; }
 test $missing -eq 0 || { say "inputs missing: stopping"; exit 1; }
 say "inputs: upstream 21978c37; foundation $FD; libGL $GLLIB; SDL3 $SDL3D; jobs $JOBS"

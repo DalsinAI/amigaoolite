@@ -5,6 +5,8 @@
 Assign OoliteDir: ""
 Assign LIBS: OoliteDir:Libs ADD
 Stack 1048576
+; GL draws 960x540 frames; the host stretches them to fill the window or screen
+Set SDL_OPENGPU_GL_SIZE 960x540
 OoliteDir:oolite -nosplash >T:oolite.out
 Assign LIBS: OoliteDir:Libs REMOVE
 Assign OoliteDir:

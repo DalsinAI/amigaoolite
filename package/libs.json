@@ -5,8 +5,8 @@
      "sha256": "d8920e912507b5b8e25a30e6b04599362fc915273fccb371915304d13e0e4d80"},
     {"drawer": "Libs/JavaScript/JavaScriptEngine", "env": "OOLITE_JSENGINE", "what": "GFOpenJavaScript 2.0's engine (JavaScriptCore)",
      "sha256": "d35f5a3846786549dc8b8a453eb813f71bd7bf32bf5564d89cfd3b4dcc69c923"},
-    {"drawer": "Libs/GFOpenGPU/SDL3.module", "env": "OOLITE_SDL3MODULE", "what": "gfopenrtg's SDL3.module 3, with OpenGL (the build the game's libSDL3.a comes from)",
-     "sha256": "896bb58be6a5450cd51d66dc8bff30b26c3493b54b9fb70845f46a792ce5290c"}
+    {"drawer": "Libs/GFOpenGPU/SDL3.module", "env": "OOLITE_SDL3MODULE", "what": "gfopenrtg's SDL3.module 3, with OpenGL and SDL_OPENGPU_GL_SIZE (c7dc713, job j20261120T192454-fb13ee: the build the game's libSDL3.a comes from)",
+     "sha256": "268bc13fc0e6708b27f29ff85da70b56e06478bc74b2751c6a103687a88b8a77"}
   ],
   "default_dir": "~/t5scratch/oolite-rc1-20261120/OoliteRC1"
 }
