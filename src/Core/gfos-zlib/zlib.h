@@ -41,6 +41,9 @@ typedef long z_off_t;
 #define Z_DEFLATED      8
 #define MAX_WBITS       15
 
+typedef voidpf (*alloc_func)(voidpf opaque, uInt items, uInt size);
+typedef void (*free_func)(voidpf opaque, voidpf address);
+
 typedef struct z_stream_s {
     const Bytef *next_in;
     uInt avail_in;
@@ -50,8 +53,8 @@ typedef struct z_stream_s {
     uLong total_out;
     const char *msg;
     void *state;
-    voidpf (*zalloc)(voidpf opaque, uInt items, uInt size);
-    void (*zfree)(voidpf opaque, voidpf address);
+    alloc_func zalloc;
+    free_func zfree;
     voidpf opaque;
     int data_type;
     uLong adler;
