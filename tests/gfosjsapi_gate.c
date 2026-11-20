@@ -73,6 +73,13 @@ static JSPropertySpec vecProps[] = {
     { 0, 0, 0, 0, 0 }
 };
 
+/* Oolite's sShipProperties lists homeSystem twice; SpiderMonkey takes it */
+static JSPropertySpec twiceProps[] = {
+    { "x", kVec_x, JSPROP_PERMANENT | JSPROP_ENUMERATE, vecGet, vecSet },
+    { "x", kVec_x, JSPROP_PERMANENT | JSPROP_ENUMERATE, vecGet, vecSet },
+    { 0, 0, 0, 0, 0 }
+};
+
 static JSBool vecLength(JSContext *cx, uintN argc, jsval *vp)
 {
     JSObject *this = JS_THIS_OBJECT(cx, vp);
@@ -199,6 +206,11 @@ int gfosjsapiGateBody(void)
     /* a class */
     proto = JS_InitClass(cx, global, NULL, &vecClass, vecConstruct, 2, vecProps, vecMethods, NULL, NULL);
     check("JS_InitClass", proto != NULL);
+    {
+        JSObject *two = JS_NewObject(cx, NULL, NULL, NULL);
+        check("a permanent property listed twice is taken, as SpiderMonkey does",
+              two && JS_DefineProperties(cx, two, twiceProps) && !JS_IsExceptionPending(cx));
+    }
     check("new Vec, tinyid getters", run(cx, global, "var a = new Vec(3, 4); a.x * 10 + a.y", &v) && isNum(cx, v, 34));
     check("method on the prototype", run(cx, global, "a.lengthSq()", &v) && isNum(cx, v, 25));
     check("setter through the class", run(cx, global, "a.x = 6; a.lengthSq()", &v) && isNum(cx, v, 52));

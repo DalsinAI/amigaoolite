@@ -207,6 +207,13 @@ static ooLValue toLNew(jsval v)
 static const char sGlue[] =
 "(function(){\n"
 "  var SENT = {}; var take = null;\n"
+"  /* SpiderMonkey's JS_DefineProperty replaces a property, even a permanent one; JavaScriptCore\n"
+"     throws for a non-configurable one. Oolite's Ship lists homeSystem twice: keep the first. */\n"
+"  var define = function(o, n, d) {\n"
+"    var had = Object.getOwnPropertyDescriptor(o, n);\n"
+"    if (had && !had.configurable) { try { Object.defineProperty(o, n, d); } catch (e) {} return; }\n"
+"    Object.defineProperty(o, n, d);\n"
+"  };\n"
 "  return {\n"
 "    sent: SENT,\n"
 "    setTake: function(t) { take = t; },\n"
@@ -219,9 +226,9 @@ static const char sGlue[] =
 "      var d = { enumerable: e, configurable: c };\n"
 "      d.get = g ? function() { var r = g(this); if (r === SENT) throw take(); return r; } : undefined;\n"
 "      d.set = s ? function(v) { var r = s(this, v); if (r === SENT) throw take(); } : undefined;\n"
-"      Object.defineProperty(o, n, d);\n"
+"      define(o, n, d);\n"
 "    },\n"
-"    defineValue: function(o, n, v, e, w, c) { Object.defineProperty(o, n, { value: v, enumerable: e, writable: w, configurable: c }); },\n"
+"    defineValue: function(o, n, v, e, w, c) { define(o, n, { value: v, enumerable: e, writable: w, configurable: c }); },\n"
 "    setProto: function(o, p) { Object.setPrototypeOf(o, p); return o; },\n"
 "    isArray: function(o) { return Array.isArray(o); },\n"
 "    freeze: function(o) { Object.freeze(o); },\n"
@@ -312,7 +319,13 @@ static char *propText(ooLValue o, const char *name);
 static int traceOn(void)
 {
     static int on = -1;
-    if (on < 0) { const char *e = getenv("GFOSJSAPI_TRACE"); on = e && *e && *e != '0'; }
+    if (on < 0) {
+        const char *e = getenv("GFOSJSAPI_TRACE");
+        FILE *f = (e && *e) ? NULL : fopen("ENV:GFOSJSAPI_TRACE", "r");   /* getenv may not see ENV: from the script task */
+        char buf[8] = "";
+        if (f) { if (fgets(buf, sizeof buf, f)) e = buf; fclose(f); }
+        on = e && *e && *e != '0';
+    }
     return on;
 }
 
@@ -324,9 +337,15 @@ static void setPendingOwned(ooLValue v)       /* takes ownership of v */
         const char *stack = NULL;
         ooL_ToString(v, text, sizeof text);
         if (ooL_TypeOf(v) == OOL_OBJECT) stack = propText(v, "stack");
+        FILE *f = fopen("T:gfosjsapi-trace.txt", "a");   /* the game runs on the script task: a file is sure */
         printf("gfosjsapi: pending exception %lu: %s\n", ++count, text);
         if (stack && *stack) printf("gfosjsapi: pending exception %lu stack: %.600s\n", count, stack);
         fflush(stdout);
+        if (f) {
+            fprintf(f, "gfosjsapi: pending exception %lu: %s\n", count, text);
+            if (stack && *stack) fprintf(f, "gfosjsapi: pending exception %lu stack: %.600s\n", count, stack);
+            fclose(f);
+        }
     }
     if (CX->pendingPin) ooL_Free(CX->pendingPin);
     CX->pendingPin = v;
