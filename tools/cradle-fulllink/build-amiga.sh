@@ -100,7 +100,9 @@ INCS="-I $HERE/src/Core/gfosjsapi -I $PS/src/Core -I $HERE/src/Core -I $FD/Heade
  -I $U/src/Core/Debug -I $U/src/Core/OXPVerifier -I $U/src/Core/MiniZip -I $U/src/SDL -I $U/src/SDL/EXRSnapshotSupport \
  -I $P/m68k-amigaos/ndk-include.vendor -I $P/m68k-amigaos/include -I $P/m68k-amigaos/port-deps/include \
  -I $SDL3D/include -I $RTG/build/include -I $RTG/build/glu/include -I $OGG/include"
-COMMON="-O2 -m68040 -m68881 -noixemul -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w $DEFS"
+# no build paths in the objects (__FILE__ in asserts and logs): the same commit gives the same bytes anywhere
+MAPS="-ffile-prefix-map=$HERE=amigaoolite -ffile-prefix-map=$U=oolite -ffile-prefix-map=$PS=patched-src"
+COMMON="$MAPS -O2 -m68040 -m68881 -noixemul -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w $DEFS"
 
 # -- one compile, cached by (compiler, flags, source, every header it pulled in is not tracked:
 #    the key covers the source, the patches, gfosjsapi's headers and the flags)
@@ -138,7 +140,7 @@ fi
 # -- GFOS pieces
 G="$OUT/gfos"; mkdir -p "$G"
 gc() { out="$1"; shift; "$@" > "$G/$out.log" 2>&1 || { say "GFOS COMPILE FAILED $out"; sed -n 1,20p "$G/$out.log" | tee -a "$SUM"; return 1; }; }
-GC="$CC -std=gnu11 -O2 -m68040 -m68881 -noixemul -Wall -Wno-unused-function"
+GC="$CC $MAPS -std=gnu11 -O2 -m68040 -m68881 -noixemul -Wall -Wno-unused-function"
 gc oojsl $GC -I "$HERE/src/Core/gfosjsapi" -I "$SDK/Include" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/gfosjsapi/oojsl.c" -o "$G/oojsl.o"
 gc gfosjsapi $GC -I "$HERE/src/Core/gfosjsapi" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/gfosjsapi/gfosjsapi.c" -o "$G/gfosjsapi.o"
 gc onscript $GC -I "$HERE/src/Core" -I "$SDK/Include" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSGameOnScriptTask.c" -o "$G/OOGFOSGameOnScriptTask.o"
@@ -146,9 +148,9 @@ gc process $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$
 gc passwd $GC -idirafter "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSPasswd.c" -o "$G/OOGFOSPasswd.o"
 gc sysinfo $GC -I "$HERE/src/Core" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/src/Core/OOGFOSSystemInfo.c" -o "$G/OOGFOSSystemInfo.o"
 gc preflight $GC -I "$HERE/src/Core" -I "$U/src/Core/MiniZip" -I "$P/m68k-amigaos/port-deps/include" -c "$HERE/src/Core/OOOXZArchivePreflight.c" -o "$G/OOOXZArchivePreflight.o"
-gc deferred "$CC" -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobjc-exceptions -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w \
+gc deferred "$CC" $MAPS -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobjc-exceptions -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w \
    -I "$HERE/src/Core" -I "$FD/Headers" -c "$HERE/src/Core/OOGFOSDeferredCalls.m" -o "$G/OOGFOSDeferredCalls.o"
-gc extractor "$CC" -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobjc-exceptions -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w \
+gc extractor "$CC" $MAPS -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobjc-exceptions -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w \
    -I "$HERE/src/Core" -I "$FD/Headers" -I "$U/src/Core/MiniZip" -I "$P/m68k-amigaos/port-deps/include" -c "$HERE/src/Core/OOOXZGFOSExtraction.m" -o "$G/OOOXZGFOSExtraction.o"
 
 # -- gfosjsapi's unit gate (run it on GFOS with a 1 MB stack): out/gfosjsapi-gate
