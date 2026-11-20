@@ -1,0 +1,36 @@
+--- a/src/Core/Materials/OOShaderProgram.m
++++ b/src/Core/Materials/OOShaderProgram.m
+@@ -141,6 +141,14 @@
+             prefixString = [@"#version 120\n#extension GL_EXT_gpu_shader4 : enable\n" stringByAppendingString:[prefixString substringFromIndex:[@"#version 330" length]]];
+         }
+ #endif
++#if OOLITE_GFOS
++        /*	GFOS: OpenGL 3.1 (a Raspberry Pi through virgl) runs GLSL 1.40, which has
++                everything these #version 330 shaders use except layout locations;
++                GL_ARB_explicit_attrib_location supplies those. */
++        if ([prefixString hasPrefix:@"#version 330"] && ![[OOOpenGLExtensionManager sharedManager] versionIsAtLeastMajor:3 minor:3]) {
++            prefixString = [@"#version 140\n#extension GL_ARB_explicit_attrib_location : require\n" stringByAppendingString:[prefixString substringFromIndex:[@"#version 330" length]]];
++        }
++#endif
+         result = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexSource
+                                                 fragmentShaderSource:fragmentSource
+                                                         prefixString:prefixString
+--- a/src/Core/OOOpenGLExtensionManager.m
++++ b/src/Core/OOOpenGLExtensionManager.m
+@@ -248,6 +248,16 @@
+         // OK
+     } else
+ #endif
++#if OOLITE_GFOS
++    /*	GFOS: on a Raspberry Pi the GPU path (guest Mesa over virgl to V3D) is
++            OpenGL 3.1 with GL_ARB_compatibility. It has what Oolite needs from
++            3.3: framebuffer and vertex array objects, float textures and colour
++            buffers, draw buffers, and explicit attribute locations, so the
++            post-processing shaders run as GLSL 1.40 (OOShaderProgram.m). */
++    if ([self versionIsAtLeastMajor:3 minor:1] && [self haveExtension:@"GL_ARB_compatibility"] && [self haveExtension:@"GL_ARB_framebuffer_object"] && [self haveExtension:@"GL_ARB_vertex_array_object"] && [self haveExtension:@"GL_ARB_texture_float"] && [self haveExtension:@"GL_ARB_color_buffer_float"] && [self haveExtension:@"GL_ARB_draw_buffers"] && [self haveExtension:@"GL_ARB_explicit_attrib_location"]) {
++        // OK
++    } else
++#endif
+     if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion]) {
+         OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
+         [NSException raise:@"OoliteOpenGLTooOldException"
