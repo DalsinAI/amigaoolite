@@ -76,7 +76,7 @@ for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-g
          0011-gfos-defer-early-log-preferences 0013-gfos-controller-default-tick \
          0014-gfos-sdl3-joystick-lifecycle 0015-gfos-view-early-prefs-fallback 0016-gfos-main-on-script-task \
          0017-gfos-no-xdr-script-cache 0018-gfos-launch-trace \
-         0019-gfos-game-loop-without-runloop; do
+         0019-gfos-game-loop-without-runloop 0020-gfos-draw-trace; do
   (cd "$PS" && patch -s -N -p1 < "$HERE/patches/oolite/$p.patch") || { say "PATCH FAILED $p"; exit 1; }
 done
 
