@@ -71,7 +71,8 @@ for name in Core/GameController.m Core/OOLogOutputHandler.m Core/OOLogging.m Cor
             Core/OOAsyncWorkManager.m Core/OOEncodingConverter.m Core/Materials/OOTextureLoader.m \
             Core/Materials/OOPlanetTextureGenerator.m SDL/MyOpenGLView+Input.m Core/Scripting/OOJSSystem.m \
             Core/Scripting/OOJSShipGroup.m Core/Scripting/OOJSEquipmentInfo.m Core/Scripting/OOJSSystemInfo.m \
-            Core/AI.m Core/Entities/PlayerEntitySound.m Core/Entities/ShipEntityAI.m Core/Scripting/OOJSShip.m; do
+            Core/AI.m Core/Entities/PlayerEntitySound.m Core/Entities/ShipEntityAI.m Core/Scripting/OOJSShip.m \
+            Core/OOOpenGLExtensionManager.m; do
   mkdir -p "$PS/src/$(dirname "$name")"; cp "$U/src/$name" "$PS/src/$name"
 done
 for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-gfos-native-glu-header \
@@ -83,8 +84,9 @@ for p in 0001-gfos-universe-frame-pump 0002-gfos-native-cpu-memory-report 0003-g
          0019-gfos-game-loop-without-runloop 0020-gfos-draw-trace \
          0021-gfos-async-work-on-the-game-task 0022-gfos-text-encoding-without-iconv \
          0023-gfos-texture-memory 0024-gfos-taps-last-one-tick \
-         0025-gfos-logging-preferences-after-start-up 0026-gfos-set-populator-trace \
-         0027-gfos-root-cached-js-objects 0028-gfos-delayed-performs-without-runloop; do
+         0025-gfos-logging-preferences-after-start-up \
+         0027-gfos-root-cached-js-objects 0028-gfos-delayed-performs-without-runloop \
+         0029-gfos-default-detail-minimum; do
   (cd "$PS" && patch -s -N -p1 < "$HERE/patches/oolite/$p.patch") || { say "PATCH FAILED $p"; exit 1; }
 done
 
@@ -141,6 +143,13 @@ gc deferred "$CC" -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobjc
    -I "$HERE/src/Core" -I "$FD/Headers" -c "$HERE/src/Core/OOGFOSDeferredCalls.m" -o "$G/OOGFOSDeferredCalls.o"
 gc extractor "$CC" -x objective-c -std=gnu11 -O2 -m68040 -m68881 -noixemul -fobjc-exceptions -fexceptions -D_NATIVE_OBJC_EXCEPTIONS -w \
    -I "$HERE/src/Core" -I "$FD/Headers" -I "$U/src/Core/MiniZip" -I "$P/m68k-amigaos/port-deps/include" -c "$HERE/src/Core/OOOXZGFOSExtraction.m" -o "$G/OOOXZGFOSExtraction.o"
+
+# -- gfosjsapi's unit gate (run it on GFOS with a 1 MB stack): out/gfosjsapi-gate
+GT="$OUT/gate"; mkdir -p "$GT"
+gc gate $GC -I "$HERE/src/Core/gfosjsapi" -c "$HERE/tests/gfosjsapi_gate.c" -o "$GT/gate.o" &&
+gc gatemain $GC -I "$HERE/src/Core/gfosjsapi" -I "$SDK/Include" -I "$P/m68k-amigaos/ndk-include.vendor" -c "$HERE/tests/gfosjsapi_gate_main.c" -o "$GT/gate_main.o" &&
+gc gatelink "$CC" -m68040 -m68881 -noixemul "$GT/gate_main.o" "$GT/gate.o" "$G/gfosjsapi.o" "$G/oojsl.o" -lm -o "$OUT/gfosjsapi-gate" &&
+  say "gate: $OUT/gfosjsapi-gate"
 
 # -- link: no libjs_static.a anywhere
 EXE="$OUT/oolite-68040"

@@ -1,0 +1,17 @@
+--- a/src/Core/OOOpenGLExtensionManager.m
++++ b/src/Core/OOOpenGLExtensionManager.m
+@@ -364,6 +364,14 @@
+ 
+ - (OOGraphicsDetail)defaultDetailLevel
+ {
++#if OOLITE_GFOS
++    /*	GFOS: a 68040 with about 0.6 GB, drawing through virgl. At the maximum
++            every ship loads its normal and specular maps (the Coriolis's are
++            2048x2048: 16 MB each to decode) and runs per-pixel shaders, and
++            after a few games the textures no longer fit. Minimum by default;
++            Game Options can still raise it, and the choice is kept. */
++    return DETAIL_LEVEL_MINIMUM;
++#endif
+ #if OO_SHADERS
+     if (defaultShaderSetting < SHADERS_FULL) {
+         return DETAIL_LEVEL_MINIMUM;
