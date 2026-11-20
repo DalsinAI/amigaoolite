@@ -1,0 +1,35 @@
+--- a/src/Core/OOALSoundDecoder.m
++++ b/src/Core/OOALSoundDecoder.m
+@@ -29,6 +29,14 @@
+ #import "OOALSoundDecoder.h"
+ #import "NSDataOOExtensions.h"
+ #import "OOLogging.h"
++
++/*	ov_read's samples in the CPU's own byte order, which is what OpenAL takes:
++    0 (little-endian) gave noise on the 68k (GFOS, 20 Nov). */
++#if defined(__BIG_ENDIAN__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
++#define OO_OV_BIGENDIAN 1
++#else
++#define OO_OV_BIGENDIAN 0
++#endif
+ #import "unzip.h"
+ #import <vorbis/vorbisfile.h>
+ 
+@@ -322,7 +330,7 @@
+             if (remaining < toRead) {
+                 toRead = remaining;
+             }
+-            framesRead = ov_read(&_vf, pcmout, toRead, 0, 2, 1, NULL);
++            framesRead = ov_read(&_vf, pcmout, toRead, OO_OV_BIGENDIAN, 2, 1, NULL);
+             if (framesRead <= 0) {
+                 if (OV_HOLE == framesRead)
+                     continue;
+@@ -364,7 +372,7 @@
+         if (remaining < toRead) {
+             toRead = remaining;
+         }
+-        framesRead = ov_read(&_vf, pcmout, toRead, 0, 2, 1, NULL);
++        framesRead = ov_read(&_vf, pcmout, toRead, OO_OV_BIGENDIAN, 2, 1, NULL);
+         if (framesRead <= 0) {
+             if (OV_HOLE == framesRead)
+                 continue;
