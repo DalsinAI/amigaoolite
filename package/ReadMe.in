@@ -75,6 +75,7 @@ are in https://github.com/amigagfosports/amigaoolite.
 Build
 -----
 
-Oolite 1.93.1 (upstream commit @UPSTREAM_COMMIT@), built with
-GFOpenAmigaGCC from amigagfosports/amigaoolite commit
+Oolite 1.93.1, upstream commit
+@UPSTREAM_COMMIT@,
+built with GFOpenAmigaGCC from amigagfosports/amigaoolite commit
 @REPOSITORY_COMMIT@.
