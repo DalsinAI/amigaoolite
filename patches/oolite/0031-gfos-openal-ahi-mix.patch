@@ -1,0 +1,34 @@
+--- a/src/Core/OOOpenALController.m
++++ b/src/Core/OOOpenALController.m
+@@ -26,6 +26,8 @@
+ #import "OOOpenALController.h"
+ #import "OOALSoundMixer.h"
+ #import "OOLogging.h"
++#include <stdio.h>
++#include <stdlib.h>
+ 
+ static id sSingleton = nil;
+ 
+@@ -57,7 +59,22 @@
+         }
+ 
+         ALuint error;
++#if OOLITE_GFOS
++        /*	GFOS: OpenAL's own choice on a card with ACAHI's Host mix is "AHI Voices".
++            The game was silent with it on the PiMiga (20 Nov), while a plain tone
++            program played through both devices. "AHI Mix" mixes in a process of its
++            own on ahi.device, as SDL's audio does. OOLITE_AL_DEVICE names another. */
++        {
++            const char *want = getenv("OOLITE_AL_DEVICE");
++            if (want == NULL || want[0] == '\0')  want = "AHI Mix";
++            device = alcOpenDevice(want);
++            if (!device)  device = alcOpenDevice(NULL);
++            fprintf(stdout, "OOLITE_GFOS_SOUND device %s\n", device ? alcGetString(device, ALC_DEVICE_SPECIFIER) : "(none)");
++            fflush(stdout);
++        }
++#else
+         device = alcOpenDevice(NULL); // default device
++#endif
+         if (!device) {
+             OOLog(kOOLogSoundInitError, @"%@", @"Failed to open default sound device");
+             [self release];
