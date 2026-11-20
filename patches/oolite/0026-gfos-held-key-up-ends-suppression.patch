@@ -1,0 +1,81 @@
+--- a/src/SDL/MyOpenGLView+Input.m
++++ b/src/SDL/MyOpenGLView+Input.m
+@@ -230,16 +230,22 @@
+ static BOOL sGFOSDownThisPoll[NUM_KEYS];
+ static BOOL sGFOSReleaseNext[NUM_KEYS];
+ 
+-static void GFOSStartPoll(BOOL *keyTable)
++/* Returns YES when a held-over release was applied: that is when its key-up
++ * counts, for suppressKeysUntilKeyUp too (a screen change in the tick between
++ * must not be left waiting for a key-up that already went by). */
++static BOOL GFOSStartPoll(BOOL *keyTable)
+ {
+     int i;
++    BOOL released = NO;
+     for (i = 0; i < NUM_KEYS; i++) {
+         if (sGFOSReleaseNext[i]) {
+             keyTable[i] = NO;
+             sGFOSReleaseNext[i] = NO;
++            released = YES;
+         }
+         sGFOSDownThisPoll[i] = NO;
+     }
++    return released;
+ }
+ 
+ static void GFOSKeyDown(BOOL *keyTable, int k)
+@@ -250,11 +256,13 @@
+     sGFOSReleaseNext[k] = NO;
+ }
+ 
+-static void GFOSKeyUp(BOOL *keyTable, int k)
++/* Returns YES when the release is held over to the next poll. */
++static BOOL GFOSKeyUp(BOOL *keyTable, int k)
+ {
+-    if (k < 0 || k >= NUM_KEYS) return;
+-    if (sGFOSDownThisPoll[k]) sGFOSReleaseNext[k] = YES;
+-    else keyTable[k] = NO;
++    if (k < 0 || k >= NUM_KEYS) return NO;
++    if (sGFOSDownThisPoll[k]) { sGFOSReleaseNext[k] = YES; return YES; }
++    keyTable[k] = NO;
++    return NO;
+ }
+ #endif
+ 
+@@ -275,7 +283,8 @@
+     bool resize_pending = false;
+ 
+ #if OOLITE_GFOS
+-    GFOSStartPoll(keys);
++    if (GFOSStartPoll(keys))
++        suppressKeys = NO; // DJS: the held-over key-up arrives now
+ #endif
+     while (SDL_PollEvent(&event)) {
+         switch (event.type) {
+@@ -679,7 +688,9 @@
+             break;
+ 
+         case SDL_EVENT_KEY_UP:
++#if !OOLITE_GFOS
+             suppressKeys = NO; // DJS
++#endif
+             kbd_event = (SDL_KeyboardEvent*)&event;
+             scan_code = kbd_event->scancode;
+ 
+@@ -856,11 +867,15 @@
+ 
+             if (key_id > 0 && key_id <= [self numKeys]) {
+ #if OOLITE_GFOS
+-                GFOSKeyUp(keys, key_id);
++                if (!GFOSKeyUp(keys, key_id))
++                    suppressKeys = NO; // DJS
+ #else
+                 keys[key_id] = NO;
+ #endif
+             } else {
++#if OOLITE_GFOS
++                suppressKeys = NO; // DJS
++#endif
+                 // OOLog(@"keys.test", @"Unhandled Keyup scancode: %d", kbd_event->keysym.scancode);
+             }
+             break;
