@@ -1,0 +1,10 @@
+{
+	identifier = "org.amicradle.team5.demo";
+	title = "Team 5 demo loop";
+	version = "1.0";
+	required_oolite_version = "1.90";
+	author = "AmiCradle Team 5";
+	license = "GPL-2.0";
+	category = "Miscellaneous";
+	description = "Launches, docks with the docking computer to the Blue Danube, and loops.";
+}
