@@ -78,3 +78,21 @@ Still open, from run 15:
 - The trace patches 0018 and 0020 (launch and first-frame markers) can come out once the game reaches gameplay.
 
 Team 5
+
+## 20 Nov 2026: runs 16 to 27 (branch team5/oolite-play-20261120)
+
+| Run | Result | Fix |
+|-----|--------|-----|
+| 16-19 | about an hour in flight (85,500 ticks, about 22 fps); world-script errors: "Invalid property identifier -10 for instance of PlayerShip", `passenger.species.match`, `worldScripts[...]` undefined | A missing getter or setter comes from the class of the object the property is defined on, at definition time. SystemInfo, MissionVariables, WorldScripts and Manifest get a Proxy prototype so undefined names reach the class hook. Patch 0025: logging preferences after start-up (24 MB of log an hour before). |
+| 20-25 | a new commander hangs in `system.setPopulator` | Diagnostic patch 0026. `settings` arrived as an NSNumber: String, Number and Boolean objects shared one class, so Oolite's class-keyed converter registry sent plain objects to the Boolean converter. Fixed in gfosjsapi (e26cb46). |
+| 26 | new commander docks at Lave; 38 AI-script errors: `ship.group.ships` undefined, `leader.AIScript` undefined, `system.info.distanceToSystem` undefined or a number | Oolite caches some JS objects without roots (ShipGroup and EquipmentInfo `_jsSelf`, the cached SystemInfo, `sPlayerObject`, `sMissionObject`, `sManifestObject`). SpiderMonkey keeps them by reachability; a gfosjsapi handle nobody holds goes at the end of the request, so they came back as other values. Patch 0027 roots them until the next JS reset, as Entity does; JS_DefineObject holds its object. |
+| 27 | **no JavaScript errors**: new commander, dock, launch, traffic launching from the station | |
+
+The new commander still takes about 60 s to load (ship data and two JS resets on a 68040).
+
+Still open:
+- Input: move from patch 0024 to the GFOpenInput/OpenControllers approach used for SDL2.
+- The trace patches 0018, 0020 and 0026 can come out.
+- Music: no OpenAL errors; not heard, since the lab is muted.
+
+Team 5
