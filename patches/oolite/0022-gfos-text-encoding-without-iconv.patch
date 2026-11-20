@@ -1,0 +1,46 @@
+--- a/src/Core/OOEncodingConverter.m
++++ b/src/Core/OOEncodingConverter.m
+@@ -164,7 +164,43 @@
+                                       range:NSMakeRange(0, [mutable length])];
+     }
+ 
++#if OOLITE_GFOS
++    {
++        /* GFOS: GNUstep converts most 8-bit encodings through iconv, which the
++         * GFOS Foundation lacks: dataUsingEncoding: comes back nil and every
++         * string is drawn as nothing. The font is windows-latin-1 (CP1252):
++         * Latin-1 passes through, CP1252's own characters are mapped, the rest
++         * become '?'. */
++        NSData *data = [mutable dataUsingEncoding:_encoding allowLossyConversion:YES];
++        if (data == nil && (_encoding == NSWindowsCP1252StringEncoding || _encoding == NSISOLatin1StringEncoding)) {
++            static const unichar cp1252[32] = {
++                0x20AC, 0, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021, 0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0, 0x017D, 0,
++                0, 0x2018, 0x2019, 0x201C, 0x201D, 0x2022, 0x2013, 0x2014, 0x02DC, 0x2122, 0x0161, 0x203A, 0x0153, 0, 0x017E, 0x0178 };
++            static BOOL noted = NO;
++            NSUInteger i, j, n = [mutable length];
++            NSMutableData *out = [NSMutableData dataWithLength:n];
++            uint8_t *b = [out mutableBytes];
++            for (i = 0; i < n; i++) {
++                unichar c = [mutable characterAtIndex:i];
++                uint8_t v = '?';
++                if (c < 0x80 || (c >= 0xA0 && c < 0x100)) v = (uint8_t)c;
++                else if (_encoding == NSWindowsCP1252StringEncoding) {
++                    for (j = 0; j < 32; j++) if (cp1252[j] == c && c != 0) { v = (uint8_t)(0x80 + j); break; }
++                }
++                b[i] = v;
++            }
++            if (!noted) {
++                noted = YES;
++                printf("OOLITE_GFOS_TEXT dataUsingEncoding gave nil: built-in CP1252/Latin-1 conversion in use\n");
++                fflush(stdout);
++            }
++            return out;
++        }
++        return data;
++    }
++#else
+     return [mutable dataUsingEncoding:_encoding allowLossyConversion:YES];
++#endif
+ }
+ 
+ #if PROFILE_ENCODING_CONVERTER

@@ -40,6 +40,7 @@ typedef struct OOAccessorRec {
     JSStrictPropertyOp setter;     /* NULL: the object's class setProperty */
     jsid               id;
     uint8              flags;
+    char              *name;       /* for GFOSJSAPI_TRACE 2 */
 } OOAccessorRec;
 
 struct JSContext {
@@ -67,7 +68,7 @@ struct JSContext {
     OONativeRec        *natives;
     /* glue (JavaScript helpers) and the exception sentinel */
     ooLValue gSent, gMakeNative, gDefineAccessor, gDefineValue, gSetProto, gIsArray, gFreeze, gKeys, gDel,
-             gNewError, gToStr, gToObj, gNewArray, gRegExp, gObjectProto, gEmpty, gExecIn;
+             gNewError, gToStr, gToObj, gNewArray, gRegExp, gObjectProto, gEmpty, gExecIn, gClearScope;
 };
 
 static struct JSContext sContext;
@@ -207,6 +208,23 @@ static ooLValue toLNew(jsval v)
 static const char sGlue[] =
 "(function(){\n"
 "  var SENT = {}; var take = null;\n"
+"  /* SpiderMonkey's JS_DefineProperty replaces a property, even a permanent one; JavaScriptCore\n"
+"     throws for a non-configurable one. Oolite's Ship lists homeSystem twice: keep the first. */\n"
+"  /* JS_ClearScope on the global (Oolite's JavaScript reset) must leave it as it began, as\n"
+"     SpiderMonkey's new global does: what is defined on it later is kept configurable, so it\n"
+"     can go, and the built-ins it began with stay. */\n"
+"  var G = (0, eval)('this');\n"
+"  var builtIn = {}; Object.getOwnPropertyNames(G).forEach(function(n) { builtIn[n] = true; });\n"
+"  var realDefine = Object.defineProperty;\n"
+"  Object.defineProperty = function defineProperty(o, n, d) {\n"
+"    if (o === G && d && typeof d === 'object' && !builtIn[n] && d.configurable !== true) d = Object.assign({}, d, { configurable: true });\n"
+"    return realDefine(o, n, d);\n"
+"  };\n"
+"  var define = function(o, n, d) {\n"
+"    var had = Object.getOwnPropertyDescriptor(o, n);\n"
+"    if (had && !had.configurable) { try { Object.defineProperty(o, n, d); } catch (e) {} return; }\n"
+"    Object.defineProperty(o, n, d);\n"
+"  };\n"
 "  return {\n"
 "    sent: SENT,\n"
 "    setTake: function(t) { take = t; },\n"
@@ -219,9 +237,9 @@ static const char sGlue[] =
 "      var d = { enumerable: e, configurable: c };\n"
 "      d.get = g ? function() { var r = g(this); if (r === SENT) throw take(); return r; } : undefined;\n"
 "      d.set = s ? function(v) { var r = s(this, v); if (r === SENT) throw take(); } : undefined;\n"
-"      Object.defineProperty(o, n, d);\n"
+"      define(o, n, d);\n"
 "    },\n"
-"    defineValue: function(o, n, v, e, w, c) { Object.defineProperty(o, n, { value: v, enumerable: e, writable: w, configurable: c }); },\n"
+"    defineValue: function(o, n, v, e, w, c) { define(o, n, { value: v, enumerable: e, writable: w, configurable: c }); },\n"
 "    setProto: function(o, p) { Object.setPrototypeOf(o, p); return o; },\n"
 "    isArray: function(o) { return Array.isArray(o); },\n"
 "    freeze: function(o) { Object.freeze(o); },\n"
@@ -233,6 +251,9 @@ static const char sGlue[] =
 "    newArray: function(n) { return new Array(n); },\n"
 "    regexp: function(s, f) { return new RegExp(s, f); },\n"
 "    objectProto: Object.prototype,\n"
+"    clearScope: function(o) {\n"
+"      Object.getOwnPropertyNames(o).forEach(function(n) { if (o !== G || !builtIn[n]) { try { delete o[n]; } catch (e) {} } });\n"
+"    },\n"
 "    execIn: function(__gfosjsapiSource) { with (this) { return eval(__gfosjsapiSource); } }\n"
 "  };\n"
 "})()";
@@ -287,6 +308,7 @@ static int ensureReady(void)
     CX->gRegExp = glueFn(glue, "regexp");
     CX->gObjectProto = glueFn(glue, "objectProto");
     CX->gExecIn = glueFn(glue, "execIn");
+    CX->gClearScope = glueFn(glue, "clearScope");
     take = ooL_NewFunction("__gfosjsapiTake", takePending, NULL);
     {
         ooLValue setTake = glueFn(glue, "setTake"), r = NULL;
@@ -308,12 +330,40 @@ static int ensureReady(void)
 /* SetEnv GFOSJSAPI_TRACE 1: every exception made pending is printed, to stdout (where Oolite's
    log goes, so Run >file catches it: this Shell has no *> for stderr), with its JS stack. */
 static char *propText(ooLValue o, const char *name);
+static int traceLevel(void);
 
 static int traceOn(void)
 {
     static int on = -1;
-    if (on < 0) { const char *e = getenv("GFOSJSAPI_TRACE"); on = e && *e && *e != '0'; }
+    if (on < 0) on = traceLevel() >= 1;
     return on;
+}
+
+/* SetEnv GFOSJSAPI_TRACE 2: also every call between C and JavaScript, '>' going in and '<'
+   coming out, to T:gfosjsapi-trace.txt, flushed each line: the last '>' without its '<' is where
+   the game hangs. */
+static int traceLevel(void)
+{
+    static int level = -1;
+    if (level < 0) {
+        const char *e = getenv("GFOSJSAPI_TRACE");
+        FILE *f = (e && *e) ? NULL : fopen("ENV:GFOSJSAPI_TRACE", "r");
+        char buf[8] = "";
+        if (f) { if (fgets(buf, sizeof buf, f)) e = buf; fclose(f); }
+        level = (e && *e >= '0' && *e <= '9') ? *e - '0' : 0;
+    }
+    return level;
+}
+
+static void callTrace(char dir, const char *kind, const char *name)
+{
+    static FILE *f;
+    static unsigned long n;
+    if (traceLevel() < 2) return;
+    if (!f) f = fopen("T:gfosjsapi-trace.txt", "a");
+    if (!f) return;
+    fprintf(f, "%lu %c %s %s\n", ++n, dir, kind, name ? name : "?");
+    fflush(f);
 }
 
 static void setPendingOwned(ooLValue v)       /* takes ownership of v */
@@ -324,9 +374,15 @@ static void setPendingOwned(ooLValue v)       /* takes ownership of v */
         const char *stack = NULL;
         ooL_ToString(v, text, sizeof text);
         if (ooL_TypeOf(v) == OOL_OBJECT) stack = propText(v, "stack");
+        FILE *f = fopen("T:gfosjsapi-trace.txt", "a");   /* the game runs on the script task: a file is sure */
         printf("gfosjsapi: pending exception %lu: %s\n", ++count, text);
         if (stack && *stack) printf("gfosjsapi: pending exception %lu stack: %.600s\n", count, stack);
         fflush(stdout);
+        if (f) {
+            fprintf(f, "gfosjsapi: pending exception %lu: %s\n", count, text);
+            if (stack && *stack) fprintf(f, "gfosjsapi: pending exception %lu stack: %.600s\n", count, stack);
+            fclose(f);
+        }
     }
     if (CX->pendingPin) ooL_Free(CX->pendingPin);
     CX->pendingPin = v;
@@ -730,7 +786,9 @@ static ooLValue nativeEntry(long argc, ooLValue *argv, void *data)
     for (i = 0; i < slots; i++) vp[2 + i] = i < nArgs ? fromBorrowed(argv[2 + i]) : JSVAL_VOID;
     /* SpiderMonkey: the rval slot starts as the callee; natives overwrite it */
     vp[0] = n->callee ? OBJECT_TO_JSVAL((JSObject *)n->callee) : JSVAL_VOID;
+    callTrace('>', "native", n->name);
     ok = n->fn(CX, (uintN)nArgs, vp);
+    callTrace('<', "native", n->name);
     if (ok) {
         jsval r = vp[0];
         /* a native that never set its result leaves the callee there: undefined */
@@ -901,7 +959,17 @@ JSBool JS_FreezeObject(JSContext *cx, JSObject *obj)
     return callGlue(CX->gFreeze, 1, &a) != NULL || !CX->hasPending;
 }
 
-void JS_ClearScope(JSContext *cx, JSObject *obj) { (void)cx; (void)obj; }
+/* Oolite's JavaScript reset clears the global and builds it again; SpiderMonkey makes the global
+   new, JavaScriptCore's stays: the glue deletes what was added to it (made configurable for this). */
+void JS_ClearScope(JSContext *cx, JSObject *obj)
+{
+    ooLValue a, r;
+    (void)cx;
+    if (!obj || !ensureReady() || !CX->gClearScope) return;
+    a = (ooLValue)obj;
+    r = callGlue(CX->gClearScope, 1, &a);
+    (void)r;
+}
 
 /* ---- properties ----------------------------------------------------------------------- */
 
@@ -932,7 +1000,9 @@ static ooLValue accessorGet(long argc, ooLValue *argv, void *data)
     self = JSVAL_IS_OBJECT(t) ? JSVAL_TO_OBJECT(t) : CX->global;
     op = a->getter;
     if (!op) { JSClass *c = JS_GetClass(CX, self); op = c ? c->getProperty : NULL; }
+    callTrace('>', "get", a->name);
     if (op && op != JS_PropertyStub) ok = op(CX, self, a->id, &v);
+    callTrace('<', "get", a->name);
     ret = ok ? toLNew(v) : ooL_Dup(CX->gSent);
     CX->nativeDepth--;
     leave();
@@ -954,7 +1024,9 @@ static ooLValue accessorSet(long argc, ooLValue *argv, void *data)
     self = JSVAL_IS_OBJECT(t) ? JSVAL_TO_OBJECT(t) : CX->global;
     op = a->setter;
     if (!op) { JSClass *c = JS_GetClass(CX, self); op = c ? c->setProperty : NULL; }
+    callTrace('>', "set", a->name);
     if (op && op != JS_StrictPropertyStub) ok = op(CX, self, a->id, JS_FALSE, &v);
+    callTrace('<', "set", a->name);
     ret = ok ? NULL : ooL_Dup(CX->gSent);
     CX->nativeDepth--;
     leave();
@@ -971,6 +1043,7 @@ static JSBool defineAccessor(JSObject *obj, const char *name, jsid id, JSPropert
     a->setter = setter && setter != JS_StrictPropertyStub ? setter : NULL;
     a->id = id;
     a->flags = (uint8)attrs;
+    a->name = name ? strdup(name) : NULL;
     if (!classHooks && !a->getter && !a->setter) { free(a); return defineValue(obj, name, JSVAL_VOID, attrs); }
     args[0] = (ooLValue)obj;
     args[1] = keep(ooL_NewString(name, -1));
@@ -1165,6 +1238,12 @@ JSBool JS_CallFunctionValue(JSContext *cx, JSObject *obj, jsval fval, uintN argc
     (void)cx;
     if (!a) return JS_FALSE;
     for (i = 0; i < argc; i++) a[i] = toL(argv[i]);
+    if (traceLevel() >= 2) {
+        char *fn = propText(toL(fval), "name");
+        callTrace('>', "call", fn);
+        rc = ooL_Call(toL(fval), obj ? (ooLValue)obj : NULL, (long)argc, a, &r);
+        callTrace('<', "call", fn);
+    } else
     rc = ooL_Call(toL(fval), obj ? (ooLValue)obj : NULL, (long)argc, a, &r);
     if (a != small) free(a);
     if (rc != OOL_OK) { pendingFromFailure(r); if (rval) *rval = JSVAL_VOID; return JS_FALSE; }
@@ -1263,8 +1342,10 @@ JSBool JS_ExecuteScript(JSContext *cx, JSObject *obj, JSScript *script, jsval *r
     long rc;
     (void)cx;
     if (!script) return JS_FALSE;
+    callTrace('>', "script", script->filename);
     if (!obj || obj == CX->global) rc = ooL_Evaluate(script->utf8, -1, script->filename, &r);
     else rc = ooL_Call(CX->gExecIn, (ooLValue)obj, 1, &script->src, &r);
+    callTrace('<', "script", script->filename);
     if (rc != OOL_OK) {
         pendingFromFailure(r);
         if (rval) *rval = JSVAL_VOID;

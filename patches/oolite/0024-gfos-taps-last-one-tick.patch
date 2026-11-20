@@ -1,0 +1,103 @@
+--- a/src/SDL/MyOpenGLView+Input.m
++++ b/src/SDL/MyOpenGLView+Input.m
+@@ -222,6 +222,42 @@
+ {
+     // SDL stub for the mac function.
+ }
++#if OOLITE_GFOS
++/* GFOS: the game reads key and button state once per tick; on a 68040 a
++ * tap's press and release can both arrive between two ticks and the game
++ * never sees it. A release that comes in the same poll as its press is
++ * held to the start of the next poll, so every tap is seen for one tick. */
++static BOOL sGFOSDownThisPoll[NUM_KEYS];
++static BOOL sGFOSReleaseNext[NUM_KEYS];
++
++static void GFOSStartPoll(BOOL *keyTable)
++{
++    int i;
++    for (i = 0; i < NUM_KEYS; i++) {
++        if (sGFOSReleaseNext[i]) {
++            keyTable[i] = NO;
++            sGFOSReleaseNext[i] = NO;
++        }
++        sGFOSDownThisPoll[i] = NO;
++    }
++}
++
++static void GFOSKeyDown(BOOL *keyTable, int k)
++{
++    if (k < 0 || k >= NUM_KEYS) return;
++    keyTable[k] = YES;
++    sGFOSDownThisPoll[k] = YES;
++    sGFOSReleaseNext[k] = NO;
++}
++
++static void GFOSKeyUp(BOOL *keyTable, int k)
++{
++    if (k < 0 || k >= NUM_KEYS) return;
++    if (sGFOSDownThisPoll[k]) sGFOSReleaseNext[k] = YES;
++    else keyTable[k] = NO;
++}
++#endif
++
+ - (void)pollControls
+ {
+     SDL_Event event;
+@@ -238,6 +274,9 @@
+     float inDelta;
+     bool resize_pending = false;
+ 
++#if OOLITE_GFOS
++    GFOSStartPoll(keys);
++#endif
+     while (SDL_PollEvent(&event)) {
+         switch (event.type) {
+         case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+@@ -255,7 +294,11 @@
+ 
+             switch (mbtn_event->button) {
+             case SDL_BUTTON_LEFT:
++#if OOLITE_GFOS
++                GFOSKeyDown(keys, gvMouseLeftButton);
++#else
+                 keys[gvMouseLeftButton] = YES;
++#endif
+                 break;
+             case SDL_BUTTON_RIGHT:
+                 // Cocoa version does this in the GameController
+@@ -280,7 +323,11 @@
+                     doubleClick = (timeBetweenClicks < MOUSE_DOUBLE_CLICK_INTERVAL); // One fifth of a second
+                     keys[gvMouseDoubleClick] = doubleClick;
+                 }
++#if OOLITE_GFOS
++                GFOSKeyUp(keys, gvMouseLeftButton);
++#else
+                 keys[gvMouseLeftButton] = NO;
++#endif
+             }
+             break;
+ 
+@@ -621,7 +668,11 @@
+             OOLog(kOOLogKeyDown, @"Keydown scancode = %d, unicode = %i", scan_code, key_id);
+ 
+             if (key_id > 0 && key_id <= [self numKeys]) {
++#if OOLITE_GFOS
++                GFOSKeyDown(keys, key_id);
++#else
+                 keys[key_id] = YES;
++#endif
+             } else {
+                 OOLog(@"keys.test", @"Unhandled Keydown scancode/unicode: %d %i", scan_code, key_id);
+             }
+@@ -804,7 +855,11 @@
+             }
+ 
+             if (key_id > 0 && key_id <= [self numKeys]) {
++#if OOLITE_GFOS
++                GFOSKeyUp(keys, key_id);
++#else
+                 keys[key_id] = NO;
++#endif
+             } else {
+                 // OOLog(@"keys.test", @"Unhandled Keyup scancode: %d", kbd_event->keysym.scancode);
+             }

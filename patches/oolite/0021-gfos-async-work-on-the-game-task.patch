@@ -1,0 +1,44 @@
+--- a/src/Core/OOAsyncWorkManager.m
++++ b/src/Core/OOAsyncWorkManager.m
+@@ -319,6 +319,20 @@
+ {
+     if (EXPECT_NOT(task == nil))
+         return NO;
++#if OOLITE_GFOS
++    /* GFOS: the game is on javascript.library's script task and a 68040 has
++     * one CPU: do the work now, on this task, and file the result as a work
++     * thread would, so waitForTaskToComplete: and completePendingTasks find it.
++     * (Waiting for a work thread is what stopped the first frame.) */
++    [super noteTaskQueued:task];
++    @try {
++        [task performAsyncTask];
++    }
++    @catch (id exception) {
++    }
++    [self queueResult:task];
++    return YES;
++#endif
+ 
+     [super noteTaskQueued:task];
+ 
+@@ -393,6 +407,20 @@
+ {
+     if (EXPECT_NOT(task == nil))
+         return NO;
++#if OOLITE_GFOS
++    /* GFOS: the game is on javascript.library's script task and a 68040 has
++     * one CPU: do the work now, on this task, and file the result as a work
++     * thread would, so waitForTaskToComplete: and completePendingTasks find it.
++     * (Waiting for a work thread is what stopped the first frame.) */
++    [super noteTaskQueued:task];
++    @try {
++        [task performAsyncTask];
++    }
++    @catch (id exception) {
++    }
++    [self queueResult:task];
++    return YES;
++#endif
+ 
+     id operation = [[OONSInvocationOperationClass() alloc] initWithTarget:self selector:@selector(dispatchTask:) object:task];
+     if (operation == nil)

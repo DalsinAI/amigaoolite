@@ -1,0 +1,20 @@
+--- a/src/Core/GameController.m
++++ b/src/Core/GameController.m
+@@ -288,6 +288,17 @@
+         // moved here to try to avoid initialising this before having an Open GL context
+         //[self logProgress:DESC(@"Initialising universe")]; // DESC expansions only possible after Universe init
+         [[Universe alloc] initWithGameView:gameView];
++#if OOLITE_GFOS
++        {
++            /* GFOS: logging preferences were deferred at start-up (patch 0011),
++             * so every class logged; in flight that was about 280 lines per frame
++             * (24 MB an hour) written from a 68040. Now resources and defaults
++             * work: load logcontrol.plist and the logging defaults as upstream
++             * does. */
++            extern void OOLoggingReloadSettings(void);
++            OOLoggingReloadSettings();
++        }
++#endif
+ #if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
+     fputs("OOLITE_GFOS_LAUNCH after-universe\n", stdout); fflush(stdout);
+ #endif

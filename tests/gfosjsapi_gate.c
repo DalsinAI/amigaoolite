@@ -73,6 +73,13 @@ static JSPropertySpec vecProps[] = {
     { 0, 0, 0, 0, 0 }
 };
 
+/* Oolite's sShipProperties lists homeSystem twice; SpiderMonkey takes it */
+static JSPropertySpec twiceProps[] = {
+    { "x", kVec_x, JSPROP_PERMANENT | JSPROP_ENUMERATE, vecGet, vecSet },
+    { "x", kVec_x, JSPROP_PERMANENT | JSPROP_ENUMERATE, vecGet, vecSet },
+    { 0, 0, 0, 0, 0 }
+};
+
 static JSBool vecLength(JSContext *cx, uintN argc, jsval *vp)
 {
     JSObject *this = JS_THIS_OBJECT(cx, vp);
@@ -199,6 +206,11 @@ int gfosjsapiGateBody(void)
     /* a class */
     proto = JS_InitClass(cx, global, NULL, &vecClass, vecConstruct, 2, vecProps, vecMethods, NULL, NULL);
     check("JS_InitClass", proto != NULL);
+    {
+        JSObject *two = JS_NewObject(cx, NULL, NULL, NULL);
+        check("a permanent property listed twice is taken, as SpiderMonkey does",
+              two && JS_DefineProperties(cx, two, twiceProps) && !JS_IsExceptionPending(cx));
+    }
     check("new Vec, tinyid getters", run(cx, global, "var a = new Vec(3, 4); a.x * 10 + a.y", &v) && isNum(cx, v, 34));
     check("method on the prototype", run(cx, global, "a.lengthSq()", &v) && isNum(cx, v, 25));
     check("setter through the class", run(cx, global, "a.x = 6; a.lengthSq()", &v) && isNum(cx, v, 52));
@@ -308,6 +320,21 @@ int gfosjsapiGateBody(void)
     }
     t1 = JS_Now();
     printf("INFO C -> JS call through gfosjsapi: %ld us per call\n", (long)((t1 - t0) / 1000));
+
+    /* Oolite's JavaScript reset: JS_ClearScope on the global, then everything defined again,
+       a script's permanent getter (oolite-global-prefix.js's worldScriptNames) included */
+    JS_DefineProperty(cx, global, "permanentThing", INT_TO_JSVAL(1), NULL, NULL, JSPROP_PERMANENT | JSPROP_READONLY);
+    run(cx, global, "Object.defineProperty(this, 'scripted', { enumerable: true, get: function () { return 1; } })", NULL);
+    JS_ClearScope(cx, global);
+    {
+        JSBool m = JS_FALSE;
+        if (run(cx, global, "typeof permanentThing + ' ' + typeof scripted + ' ' + typeof Math.max", &v) && JSVAL_IS_STRING(v))
+            JS_StringEqualsAscii(cx, JSVAL_TO_STRING(v), "undefined undefined function", &m);
+        check("JS_ClearScope empties what was added to the global, keeps the built-ins", m);
+    }
+    check("... and a permanent getter can be defined again",
+          run(cx, global, "Object.defineProperty(this, 'scripted', { enumerable: true, get: function () { return 2; } }); scripted", &v)
+          && isNum(cx, v, 2) && !JS_IsExceptionPending(cx));
 
     JS_EndRequest(cx);
     printf("INFO finalizers run so far: %d\n", finalized);

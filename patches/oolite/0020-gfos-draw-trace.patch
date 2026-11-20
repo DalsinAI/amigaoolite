@@ -1,0 +1,40 @@
+--- a/src/Core/Universe.m
++++ b/src/Core/Universe.m
+@@ -4602,7 +4602,13 @@
+ 
+                             // draw the thing
+                             [drawthing setLastDrawCounter:drawCounter];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++                            if (drawCounter < 3) { printf("OOLITE_GFOS_DRAW %d opaque %s before\n", (int)drawCounter, [NSStringFromClass([drawthing class]) UTF8String]); fflush(stdout); }
++#endif
+                             [drawthing drawImmediate:false translucent:false];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++                            if (drawCounter < 3) { printf("OOLITE_GFOS_DRAW %d opaque after\n", (int)drawCounter); fflush(stdout); }
++#endif
+ 
+                             OOGLPopModelView();
+ 
+@@ -4647,7 +4653,13 @@
+ 
+                             // draw the thing
+                             [drawthing setLastDrawCounter:drawCounter];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++                            if (drawCounter < 3) { printf("OOLITE_GFOS_DRAW %d translucent %s before\n", (int)drawCounter, [NSStringFromClass([drawthing class]) UTF8String]); fflush(stdout); }
++#endif
+                             [drawthing drawImmediate:false translucent:true];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++                            if (drawCounter < 3) { printf("OOLITE_GFOS_DRAW %d translucent after\n", (int)drawCounter); fflush(stdout); }
++#endif
+ 
+                             // atmospheric fog
+                             if (fogging) {
+@@ -4774,6 +4786,9 @@
+     }
+ 
+     OOLog(@"universe.profile.draw", @"%@", @"End drawing");
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    if (drawCounter < 4) { printf("OOLITE_GFOS_DRAW %d end\n", (int)drawCounter); fflush(stdout); }
++#endif
+ 
+     // actions when the HUD should be rendered together with the 3d universe
+     if (!hudSeparateRenderPass) {

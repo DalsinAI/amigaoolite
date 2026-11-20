@@ -51,3 +51,30 @@ Commit: "gfosjsapi: scripts run against an object see its properties".
 4. Go on until the title screen, then gameplay.
 
 Team 5
+
+## 20 Nov 2026: runs 5 to 12 (branch team5/oolite-define-twice-20261120)
+
+Built with Cradle's stove_build under the old name DalsinAI/amigaoolite (GitHub redirects it), job by job, into lab t5-oolite-20261119.
+
+| Run | Stopped at | Fix |
+|---|---|---|
+| 5 | prefix: `Can't find variable: Ship` | Upstream's `sShipProperties` lists `homeSystem` twice; JavaScriptCore refused the second permanent definition, so JS_InitClass never defined `Ship` (and that was the exception left pending before the first script). The glue keeps the first definition, as SpiderMonkey does. |
+| 6 | prefix after the JavaScript reset: `Attempting to change the getter of an unconfigurable property` | JS_ClearScope did nothing, and JavaScriptCore's global outlives the reset. What is defined on the global is kept configurable and JS_ClearScope deletes it, leaving the built-ins. |
+| 7, 8 | after "Running world scripts", no JavaScript running | GFOSJSAPI_TRACE 2 (every C/JS call to T:gfosjsapi-trace.txt) showed the hang was outside JavaScript. |
+| 9 | in startAnimationTimer (patch 0018 markers) | GNUstep's NSRunLoop never returns on the script task. Patch 0019: the game loop calls performGameTick: itself. |
+| 10, 11 | first frame, drawing the player's ship (patch 0020 markers) | The mesh waited in ensureFinishedLoading for textures from the async work threads, which never deliver. Patch 0021: async work runs on the game task. |
+| 12 | **runs**: "Loading complete in about 20 s", over 1,500 ticks, the title screen's demo ships drawn textured and shaded with OpenGL 4.3 (virgl), turning and changing | |
+
+| 13 | **plays**: title screen with text and menu; Start New Commander, Normal Start; docked at Lave (status screen, full HUD); F1 launches into flight, with Lave's generated planet and atmosphere on the forward view | Patch 0022: GNUstep converts the font's CP1252 through iconv, which the GFOS Foundation lacks, so every string came back nil and drew nothing. Built-in Latin-1/CP1252 conversion when it does. |
+
+After launch (run 13), the game stopped: the lab's 0.62 GB of Amiga RAM was full (0.6 GB in use, per the Workbench title bar), and the GL bridge gave "out of memory" (0x505) drawing the Coriolis station and the Cobra III, whose textures go up to 2048x2048 normal maps.
+
+| 14, 15 | **flies**: Return works on the menus (patch 0024); a new commander docks at Lave in under 45 s; F1 launches; W raises the throttle and the ship flies (game clock running, speed up, altitude falling); 0.46 GB in use in flight | Patch 0023: max-texture-size 512 by default and planets at Oolite's reduced-detail size with 2D noise (0.38 GB at the title against 0.46, no GL out-of-memory). Patch 0024: a tap's release in the same poll as its press is held to the next poll, so menus and keys see it. |
+
+Still open, from run 15:
+- Some taps still merge (5 presses of W gave about 2 steps of throttle): several land in one poll; real keyboards and joysticks hold keys longer.
+- The Start New Commander list acts on a click, not on Return.
+- The theme music: OpenAL streaming logs "Incomplete, trying next for OoliteTheme.ogg" every frame.
+- The trace patches 0018 and 0020 (launch and first-frame markers) can come out once the game reaches gameplay.
+
+Team 5
