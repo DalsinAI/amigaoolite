@@ -69,9 +69,11 @@ Built with Cradle's stove_build under the old name DalsinAI/amigaoolite (GitHub 
 
 After launch (run 13), the game stopped: the lab's 0.62 GB of Amiga RAM was full (0.6 GB in use, per the Workbench title bar), and the GL bridge gave "out of memory" (0x505) drawing the Coriolis station and the Cobra III, whose textures go up to 2048x2048 normal maps.
 
-Still open, from run 13:
-- Memory in flight: more RAM for the lab, or smaller textures and less detail on GFOS.
-- Lave's planet texture takes about two minutes to generate after Normal Start (OOPlanetTextureGenerator, now inline on the 68040).
+| 14, 15 | **flies**: Return works on the menus (patch 0024); a new commander docks at Lave in under 45 s; F1 launches; W raises the throttle and the ship flies (game clock running, speed up, altitude falling); 0.46 GB in use in flight | Patch 0023: max-texture-size 512 by default and planets at Oolite's reduced-detail size with 2D noise (0.38 GB at the title against 0.46, no GL out-of-memory). Patch 0024: a tap's release in the same poll as its press is held to the next poll, so menus and keys see it. |
+
+Still open, from run 15:
+- Some taps still merge (5 presses of W gave about 2 steps of throttle): several land in one poll; real keyboards and joysticks hold keys longer.
+- The Start New Commander list acts on a click, not on Return.
 - The theme music: OpenAL streaming logs "Incomplete, trying next for OoliteTheme.ogg" every frame.
 - The trace patches 0018 and 0020 (launch and first-frame markers) can come out once the game reaches gameplay.
 
