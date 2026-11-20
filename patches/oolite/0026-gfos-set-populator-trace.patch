@@ -20,7 +20,7 @@
          if (!JS_ValueToObject(context, OOJS_ARGV[1], &params)) {
              OOJSReportBadArguments(context, @"System", @"setPopulator", MIN(argc, 1U), OOJS_ARGV, NULL, @"key, settings");
              return NO;
-@@ -1246,23 +1252,44 @@
+@@ -1246,23 +1252,48 @@
          }
  
          OOJSPopulatorDefinition* populator = [[OOJSPopulatorDefinition alloc] init];
@@ -34,9 +34,13 @@
  
          settings = OOJSNativeObjectFromJSObject(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]));
 +#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
-+        printf("OOLITE_GFOS_POP %s\n", "native-object"); fflush(stdout);
++        printf("OOLITE_GFOS_POP native-object %s from %s (%lu keys)\n", settings ? [NSStringFromClass([settings class]) UTF8String] : "nil",
++               OOJSGetClass(context, JSVAL_TO_OBJECT(OOJS_ARGV[1]))->name, (unsigned long)[settings count]); fflush(stdout);
 +#endif
          [settings setObject:populator forKey:@"callbackObj"];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++        printf("OOLITE_GFOS_POP callback-stored\n"); fflush(stdout);
++#endif
  
          jsval coords = JSVAL_NULL;
          if (JS_GetProperty(context, params, "coordinates", &coords) != JS_FALSE && !JSVAL_IS_VOID(coords)) {
