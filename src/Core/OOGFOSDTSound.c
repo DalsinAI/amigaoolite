@@ -123,8 +123,8 @@ unsigned long OOGFOSDTSoundRead(OOGFOSDTSound *s, short *buffer, unsigned long m
     return DoMethodA(s->o, (Msg)&m);
 }
 
-/* frames decoded at a time by the stream's process: about 0.1 s at 44.1 kHz */
-#define STREAM_PIECE 4096UL
+/* frames decoded at a time by the stream's process: about 46 ms at 44.1 kHz */
+#define STREAM_PIECE 2048UL
 
 /* The stream's process: its own datatype object, decoding ahead into the ring
  * whenever a piece fits, waiting on SIGBREAKF_CTRL_F when it doesn't. */
@@ -163,6 +163,8 @@ static void streamWorker(void)
             st->head += m.oirs_Frames * st->frameBytes;
         ReleaseSemaphore(&st->lock);
         Signal(st->reader, 1UL << st->readerSig);
+        if (used + m.oirs_Frames * st->frameBytes >= st->size / 2)
+            Delay(1);   /* decoded on this CPU: a piece a tick, not a whole chunk inside one frame */
     }
     if (o)
         DisposeDTObject(o);
