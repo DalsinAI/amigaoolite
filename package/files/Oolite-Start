@@ -1,7 +1,10 @@
 ; Oolite for GFOS: starts the game with the drawer's own libraries
-; (javascript.library 2.0 and its engine, SDL3.module) in front of LIBS:
-CD PROGDIR:
-Assign LIBS: PROGDIR:Libs ADD
+; (javascript.library 2.0 and its engine, SDL3.module) in front of LIBS:.
+; Its icon (IconX) runs it in the Oolite drawer; from the Shell, CD there
+; first, then Execute Oolite-Start.
+Assign OoliteDir: ""
+Assign LIBS: OoliteDir:Libs ADD
 Stack 1048576
-oolite -nosplash >T:oolite.out
-Assign LIBS: PROGDIR:Libs REMOVE
+OoliteDir:oolite -nosplash >T:oolite.out
+Assign LIBS: OoliteDir:Libs REMOVE
+Assign OoliteDir:

@@ -32,7 +32,8 @@ Playing
 -------
 
 - Double-click Oolite-Start. The title screen takes about 20 seconds.
-  Oolite's own messages go to T:oolite.out.
+  Oolite's own messages go to T:oolite.out. From the Shell, CD into the
+  Oolite drawer, then Execute Oolite-Start.
 - Start a new commander, or load one. Saved games are in
   ENVARC:oolite-saves.
 - Oolite's keys are the standard ones: F1 launches from the station,
