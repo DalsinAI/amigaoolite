@@ -1,0 +1,93 @@
+; $VER: Install-Oolite 1.93.1-amigaos3-rc1 (20.11.2026)
+; The Amiga Installer script for Oolite, an AmiCradle game port.
+; Made by amicradle scripts/ports/port_installer.py: change the spec, not this file.
+; Run it from its icon, beside the Oolite drawer where the archive was unpacked.
+
+(set @app-name "Oolite")
+(set #version "1.93.1-amigaos3-rc1")
+(set #drawer "Oolite")
+(set #program "Oolite-Start")
+(set #space 292969)  ; KB
+
+(onerror
+    (message (cat "Oolite was not installed completely." "\n\n" @error-msg
+                  "\n\nFiles already copied stay where they are. Run Install-Oolite again to finish.")))
+
+; the Installer, the CPU and the FPU
+(if (< @installer-version 2818051)
+    (abort "Oolite needs Installer 43.3 or newer. This one is older: install AmigaOS 3.2 or a newer Installer."))
+(set #cpu (database "cpu"))
+(if (not (or (= #cpu "68040") (= #cpu "68060") (= #cpu "68080")))
+    (abort (cat "Oolite needs a 68040, 68060 or 68080 with an FPU. This Amiga has a " #cpu ".")))
+(if (= (database "fpu") "NOFPU")
+    (abort "Oolite needs a 68040, 68060 or 68080 with an FPU. This Amiga has no FPU."))
+
+; the package: the drawer beside this script
+(set #source (pathonly (expandpath @icon)))
+(set #from (tackon #source #drawer))
+(if (<> (exists #from (noreq)) 2)
+    (abort "The Oolite drawer is not beside Install-Oolite. Unpack the whole archive, then run Install-Oolite from there."))
+(if (<> (exists (tackon #from #program) (noreq)) 1)
+    (abort "The Oolite drawer has no Oolite-Start in it. Unpack the whole archive again."))
+
+(welcome "This installs Oolite 1.93.1-amigaos3-rc1 for AmigaOS 3.2 on a 68040, 68060 or 68080 with an FPU.")
+
+; where: the parent drawer
+(set #default
+    (if (= (exists "Work:Games" (noreq)) 2) "Work:Games"
+        (if (= (exists "Work:" (noreq)) 2) "Work:" "SYS:")))
+; a game: the Games drive's Ports drawer (DH2:Ports) where the machine has the drive;
+; a drive without the drawer gets it when the game is copied
+(if (= (exists "DH2:" (noreq)) 2) (set #default "DH2:Ports"))
+(set #parent
+    (askdir
+        (prompt "Where should the Oolite drawer go? Choose the drawer to put it in.")
+        (help "The Installer makes or updates a drawer called Oolite in the drawer you choose. An update keeps your saves and settings.")
+        (default #default)
+        (newpath)))
+(set #dest (tackon #parent #drawer))
+(set #update (= (exists #dest (noreq)) 2))
+; in KB where the Installer can say so: in bytes, 2 GB free and more does not fit
+(set #free (if (>= @installer-version 2883584) (getdiskspace #parent "K")
+    (/ (getdiskspace #parent) 1024)))
+(if (and (>= #free 0) (< #free #space))
+    (abort (cat "There is not enough room in " #parent ": Oolite needs 300 MB free.")))
+
+; the drawer: everything in it, but what the player has made
+(set #kept "")
+(if (<> (exists #parent (noreq)) 2)
+    (makedir #parent (infos)))
+(if (not #update)
+    (makedir #dest))
+(if (= #kept "")
+    (copyfiles
+        (prompt "Copying Oolite")
+        (help @copyfiles-help)
+        (source #from)
+        (dest #dest)
+        (all)
+        (optional "force" "askuser"))
+    (copyfiles
+        (prompt (cat "Updating Oolite. Kept as they are: " #kept))
+        (help @copyfiles-help)
+        (source #from)
+        (dest #dest)
+        (pattern (cat "~(" #kept ")"))
+        (optional "force" "askuser")))
+(if (<> (exists (tackon #parent "Oolite.info") (noreq)) 1)
+    (copyfiles
+        (help @copyfiles-help)
+        (source #source)
+        (dest #parent)
+        (choices "Oolite.info")))
+
+(set #later "")
+(set @default-dest #dest)
+(complete 100)
+(if @pretend
+    (message (cat "Pretend: nothing was copied or changed. Oolite would have gone in " #dest "."))
+    (message (cat "Oolite 1.93.1-amigaos3-rc1 is installed in " #dest "."
+                  "\n\nTo start it, open the Oolite drawer and double-click the Oolite-Start icon."
+                  (if (= #kept "") "" (cat "\n\nLeft as they were: " #kept "."))
+                  (if (= #later "") "" (cat "\n\nStill to add to the drawer: " #later ". Run Install-Oolite again to fetch or copy it.")))))
+(exit (quiet))

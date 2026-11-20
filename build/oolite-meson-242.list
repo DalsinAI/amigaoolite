@@ -238,5 +238,3 @@ Core/Debug/OODebugTCPConsoleClient.m
 Core/Debug/OOJSConsole.m
 Core/Debug/OOTCPStreamDecoder.c
 Core/Debug/OOTCPStreamDecoderAbstractionLayer.m
-SDL/EXRSnapshotSupport/OOSaveEXRSnapshot.cpp
-SDL/EXRSnapshotSupport/miniz.c

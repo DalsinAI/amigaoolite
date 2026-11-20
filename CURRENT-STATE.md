@@ -103,10 +103,10 @@ host-object registration, event dispatch, reset and error handling.
 The source migration audit must count genuine rebuilt original
 translation units, not invented JSAPI symbols or omitted objects.
 
-The historical source/port/build/full-link.mk target is NOT a
-production GFOS link: it explicitly uses FULL_JS185_LIB /
-libjs_static.a. Keep as cross-reference ONLY. Extend this existing
-242-source machinery for a GFOS-only link; do not start anew.
+The historical build/full-link.mk (SpiderMonkey's libjs_static.a and
+libogg/libvorbis) was removed on 20 Nov 2026. The link is
+tools/cradle-fulllink/build-amiga.sh: no SpiderMonkey, and Ogg Vorbis
+through the datatypes (src/Core/OOALSoundDecoder-gfos.m).
 
 ## Highest-priority next EXECUTABLE engineering step
 

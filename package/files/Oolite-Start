@@ -1,0 +1,14 @@
+; Oolite for GFOS: starts the game with the drawer's own libraries
+; (javascript.library 2.0 and its engine, SDL3.module) in front of LIBS:.
+; Its icon (IconX) runs it in the Oolite drawer; from the Shell, CD there
+; first, then Execute Oolite-Start.
+Assign OoliteDir: ""
+Assign LIBS: OoliteDir:Libs ADD
+Stack 1048576
+; GL draws 960x540 frames; the host stretches them to fill the window or screen.
+; SDL reads ENV:, not the Shell's own variables.
+SetEnv SDL_OPENGPU_GL_SIZE 960x540
+OoliteDir:oolite -nosplash >T:oolite.out
+UnSetEnv SDL_OPENGPU_GL_SIZE
+Assign LIBS: OoliteDir:Libs REMOVE
+Assign OoliteDir:

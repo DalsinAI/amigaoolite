@@ -1,0 +1,82 @@
+Oolite 1.93.1 for AmigaOS 3 on GFOS
+===================================
+
+Oolite is a space trading and combat game in the spirit of Elite: fly
+between star systems, trade, fight pirates or become one, and dock at the
+spinning stations. This is Oolite 1.93.1 on GFOS and AmiCradle, built for
+the 68040, drawing with OpenGL through GFOpenGPU and running its game
+scripts on javascript.library.
+
+Version @VERSION@, a release candidate.
+
+Requirements
+------------
+
+- GFOS (AmigaOS 3.2) on AmiCradle: the AC090 68040 with its JIT, on an
+  x86-64 PC or a Raspberry Pi 5 / CM5, with GFOpenGPU (OpenGL 3.1 or
+  newer on the host). A real 68040 or 68060 is far too slow for it.
+- 768 MB of free memory; the game uses about 450 MB in flight.
+- About 300 MB of disk.
+- javascript.library 2.0, its engine and SDL3.module come in the drawer's
+  Libs drawer; Oolite-Start puts them in front of LIBS: while the game
+  runs, so nothing is copied into your system.
+
+Installing
+----------
+
+Unpack the archive anywhere, then double-click Install-Oolite beside the
+Oolite drawer. It asks where Oolite goes (DH2:Ports, or Work:Games, by
+default).
+
+Playing
+-------
+
+- Double-click Oolite-Start. The title screen takes about 20 seconds.
+  Oolite's own messages go to T:oolite.out. From the Shell, CD into the
+  Oolite drawer, then Execute Oolite-Start.
+- Start a new commander, or load one. Saved games are in
+  ENVARC:oolite-saves.
+- Oolite's keys are the standard ones: F1 launches from the station,
+  the cursor keys steer, W and S set the speed, and F5 to F8 show the
+  status, chart, system data and market screens. The full list is on
+  oolite.space.
+
+How fast it is
+--------------
+
+- AmiCradle on an x86-64 PC: about 40 frames a second in flight.
+- Raspberry Pi 5 / CM5: about 33 at the title and 16 in flight at
+  1280x720. Starting a new commander takes about 100 seconds.
+
+What this build leaves out
+--------------------------
+
+- On the Pi's OpenGL 3.1 the HUD's scanner and compass draw only in part.
+- The window's size comes from the game's defaults: oolite.plist in
+  ENVARC:gnustep/defaults is not read back yet.
+- Loading a saved game and ending a game reload the ship data, which
+  takes 45 to 70 seconds.
+- Memory grows slowly while the game is left docked (about 130 MB in
+  three hours).
+- Sound has not been checked in this release candidate.
+
+This is a release candidate. It runs on AmiCradle's lab and on a CM5.
+Report problems at https://github.com/amigagfosports/amigaoolite.
+
+Licences
+--------
+
+Oolite is Copyright 2004-2026 Giles C Williams, Jens Ayton and
+contributors, under the GNU General Public License version 2
+(licences/Oolite-GPL-2.0.txt). Its artwork, models, sounds and
+configuration files may also be used under Creative Commons BY-NC-SA 3.0
+(licences/Oolite-LICENSE.md). The Amiga port's patches and build files
+are in https://github.com/amigagfosports/amigaoolite.
+
+Build
+-----
+
+Oolite 1.93.1, upstream commit
+@UPSTREAM_COMMIT@,
+built with GFOpenAmigaGCC from amigagfosports/amigaoolite commit
+@REPOSITORY_COMMIT@.
