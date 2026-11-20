@@ -1,0 +1,70 @@
+--- a/src/Core/GameController.m
++++ b/src/Core/GameController.m
+@@ -279,15 +279,27 @@
+         // moved here to try to avoid initialising this before having an Open GL context
+         //[self logProgress:DESC(@"Initialising universe")]; // DESC expansions only possible after Universe init
+         [[Universe alloc] initWithGameView:gameView];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_LAUNCH after-universe\n", stdout); fflush(stdout);
++#endif
+ 
+         [self loadPlayerIfRequired];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_LAUNCH after-load-player\n", stdout); fflush(stdout);
++#endif
+ 
+         [self logProgress:@""];
+ 
+         // get the run loop and add the call to performGameTick:
+         [self startAnimationTimer];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_LAUNCH after-animation-timer\n", stdout); fflush(stdout);
++#endif
+ 
+         [self endSplashScreen];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_LAUNCH after-end-splash\n", stdout); fflush(stdout);
++#endif
+     }
+     @catch (NSException* exception) {
+         [self reportUnhandledStartupException:exception];
+@@ -345,6 +357,11 @@
+ 
+ - (void)performGameTick:(id)sender
+ {
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    static unsigned long gfosTicks;
++    if (gfosTicks < 3 || gfosTicks % 500 == 0) { printf("OOLITE_GFOS_LAUNCH tick %lu\n", gfosTicks); fflush(stdout); }
++    gfosTicks++;
++#endif
+     [gameView pollControls];
+     [self doPerformGameTick];
+ }
+@@ -354,6 +371,11 @@
+ - (void)performGameTick:(id)sender
+ {
+     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    static unsigned long gfosTicks;
++    if (gfosTicks < 3 || gfosTicks % 500 == 0) { printf("OOLITE_GFOS_LAUNCH tick %lu\n", gfosTicks); fflush(stdout); }
++    gfosTicks++;
++#endif
+ 
+     [gameView pollControls];
+     [self doPerformGameTick];
+--- a/src/Core/Universe.m
++++ b/src/Core/Universe.m
+@@ -852,7 +852,13 @@
+ #endif
+ #endif
+ 
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_LAUNCH before-start-up-complete\n", stdout); fflush(stdout);
++#endif
+     [player startUpComplete];
++#if OOLITE_GFOS && OOLITE_GFOS_STARTUP_TRACE
++    fputs("OOLITE_GFOS_LAUNCH after-start-up-complete\n", stdout); fflush(stdout);
++#endif
+     _doingStartUp = NO;
+ 
+     return self;
