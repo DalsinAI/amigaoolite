@@ -67,7 +67,10 @@ Built with Cradle's stove_build under the old name DalsinAI/amigaoolite (GitHub 
 
 | 13 | **plays**: title screen with text and menu; Start New Commander, Normal Start; docked at Lave (status screen, full HUD); F1 launches into flight, with Lave's generated planet and atmosphere on the forward view | Patch 0022: GNUstep converts the font's CP1252 through iconv, which the GFOS Foundation lacks, so every string came back nil and drew nothing. Built-in Latin-1/CP1252 conversion when it does. |
 
+After launch (run 13), the game stopped: the lab's 0.62 GB of Amiga RAM was full (0.6 GB in use, per the Workbench title bar), and the GL bridge gave "out of memory" (0x505) drawing the Coriolis station and the Cobra III, whose textures go up to 2048x2048 normal maps.
+
 Still open, from run 13:
+- Memory in flight: more RAM for the lab, or smaller textures and less detail on GFOS.
 - Lave's planet texture takes about two minutes to generate after Normal Start (OOPlanetTextureGenerator, now inline on the 68040).
 - The theme music: OpenAL streaming logs "Incomplete, trying next for OoliteTheme.ogg" every frame.
 - The trace patches 0018 and 0020 (launch and first-frame markers) can come out once the game reaches gameplay.
