@@ -40,7 +40,8 @@ Commit: "gfosjsapi: scripts run against an object see its properties".
 ## Still to check
 
 - Top-level `var` and `function` declarations in a script run against an object stay in `execIn`'s own scope; SpiderMonkey puts them on the object. Checked in Node with the same glue: the script's own functions still reach them (closures work), so it only matters when something outside the script looks them up as properties. oolite-global-prefix.js has none (strict, everything through `this` and an inner function). Left as it is until a script needs it.
-- How run4 ended: its oolite process (9) was still alive and ignored Ctrl-C; the screen showed the blanker. Restart the lab before run5.
+- How run4 ended: the game window ("Oolite v1.93.1-255 by AmiCradle Team") opened at 1280x720 and stayed black and not redrawing; run4.out stopped at 23:27:59, about 20 s after the start, and oolite (process 9) ignores Ctrl-C. The first 50 KB of the log ends in the texture list; the agent and lab_get cut the rest, and the lab has no grep or tail, so where it hangs is unknown. Run5, with the prefix fix, is the test. Restart the lab before it.
+- The lab's blanker is now off at boot (S:User-Startup, backup S:User-Startup.before-noblanker).
 
 ## Next steps
 
