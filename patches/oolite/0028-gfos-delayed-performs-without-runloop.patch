@@ -1,0 +1,144 @@
+--- a/src/Core/AI.m
++++ b/src/Core/AI.m
+@@ -32,6 +32,9 @@
+ 
+ #import "ShipEntity.h"
+ #import "ShipEntityAI.h"
++#if OOLITE_GFOS
++#import "OOGFOSDeferredCalls.h"
++#endif
+ 
+ enum {
+     kRecursionLimiter = 32, // reactToMethod: recursion
+@@ -644,9 +647,13 @@
+ 
+         info = [[NSValue alloc] initWithBytes:&infoStruct objCType:@encode(OOAIDeferredCallTrampolineInfo)];
+ 
++#if OOLITE_GFOS
++        OOGFOSPerformAfterDelay([AI class], @selector(deferredCallTrampolineWithInfo:), info, delay);
++#else
+         [[AI class] performSelector:@selector(deferredCallTrampolineWithInfo:)
+                          withObject:info
+                          afterDelay:delay];
++#endif
+         [info release];
+     }
+ }
+--- a/src/Core/Entities/PlayerEntitySound.m
++++ b/src/Core/Entities/PlayerEntitySound.m
+@@ -29,6 +29,9 @@
+ #import "OOSoundSourcePool.h"
+ #import "ResourceManager.h"
+ #import "Universe.h"
++#if OOLITE_GFOS
++#import "OOGFOSDeferredCalls.h"
++#endif
+ 
+ // Sizes of sound source pools
+ enum {
+@@ -417,9 +420,13 @@
+         [sAfterburnerSources[which] play];
+         which = !which;
+ 
++#if OOLITE_GFOS
++        OOGFOSPerformAfterDelay(self, @selector(updateAfterburnerSound), nil, 1.25);
++#else
+         [self performSelector:@selector(updateAfterburnerSound)
+                    withObject:NULL
+                    afterDelay:1.25]; // and swap sounds in 1.25s time
++#endif
+     }
+ }
+ 
+--- a/src/Core/Entities/ShipEntityAI.m
++++ b/src/Core/Entities/ShipEntityAI.m
+@@ -44,6 +44,9 @@
+ #import "OOStringExpander.h"
+ #import "OOStringParsing.h"
+ #import "ResourceManager.h"
++#if OOLITE_GFOS
++#import "OOGFOSDeferredCalls.h"
++#endif
+ 
+ @interface ShipEntity (OOAIPrivate)
+ 
+@@ -1454,7 +1457,11 @@
+     }
+     [self dumpCargo];
+     for (i = 1; i < cargo_to_go; i++) {
++#if OOLITE_GFOS
++        OOGFOSPerformAfterDelay(self, @selector(dumpCargo), nil, 0.75 * i);
++#else
+         [self performSelector:@selector(dumpCargo) withObject:nil afterDelay:0.75 * i]; // drop 3 canisters per 2 seconds
++#endif
+     }
+ }
+ 
+--- a/src/Core/GameController.m
++++ b/src/Core/GameController.m
+@@ -242,6 +242,7 @@
+  * calls performGameTick:, so the game loop at the end of
+  * applicationDidFinishLaunching calls it directly while this is on, and
+  * SDL's vsync paces the frames. */
++#import "OOGFOSDeferredCalls.h"
+ static BOOL sGFOSTicking = NO;
+ #endif
+ 
+@@ -342,6 +343,9 @@
+         if (sGFOSTicking) {
+             NSAutoreleasePool *tickPool = [[NSAutoreleasePool alloc] init];
+             [self performGameTick:self];
++            /* delayed performs (AI reactions, comms, cargo dumps, afterburner
++               sound): no NSRunLoop here, see OOGFOSDeferredCalls */
++            OOGFOSRunDeferredCalls();
+             [tickPool release];
+         }
+     }
+--- a/src/Core/Scripting/OOJSShip.m
++++ b/src/Core/Scripting/OOJSShip.m
+@@ -49,6 +49,9 @@
+ #import "ShipEntityScriptMethods.h"
+ #import "StationEntity.h"
+ #import "WormholeEntity.h"
++#if OOLITE_GFOS
++#import "OOGFOSDeferredCalls.h"
++#endif
+ 
+ static JSObject* sShipPrototype;
+ 
+@@ -2184,7 +2187,11 @@
+         }
+ 
+         for (i = 1; i < count; i++) {
++#if OOLITE_GFOS
++            OOGFOSPerformAfterDelay(thisEnt, @selector(dumpCargo), nil, 0.75 * i);
++#else
+             [thisEnt performSelector:@selector(dumpCargo) withObject:nil afterDelay:0.75 * i]; // drop 3 canisters per 2 seconds
++#endif
+         }
+     }
+ 
+--- a/src/Core/Universe.m
++++ b/src/Core/Universe.m
+@@ -95,6 +95,9 @@
+ 
+ #if OO_LOCALIZATION_TOOLS
+ #import "OOConvertSystemDescriptions.h"
++#if OOLITE_GFOS
++#import "OOGFOSDeferredCalls.h"
++#endif
+ #endif
+ 
+ enum {
+@@ -6271,7 +6274,11 @@
+     NSMutableDictionary* msgDict = [NSMutableDictionary dictionaryWithCapacity:2];
+     [msgDict setObject:text forKey:@"message"];
+     [msgDict setObject:[NSNumber numberWithDouble:count] forKey:@"duration"];
++#if OOLITE_GFOS
++    OOGFOSPerformAfterDelay(self, @selector(addDelayedMessage:), msgDict, delay);
++#else
+     [self performSelector:@selector(addDelayedMessage:) withObject:msgDict afterDelay:delay];
++#endif
+ }
+ 
+ - (void)addDelayedMessage:(NSDictionary*)textdict
